@@ -1,0 +1,22 @@
+{
+  "short_name": "VanjariJodi",
+  "name": "वंजारीजोडी वधू-वर सूचक (VanjariJodi Matrimony)",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=192&h=192&fit=crop&crop=faces",
+      "type": "image/jpeg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=512&h=512&fit=crop&crop=faces",
+      "type": "image/jpeg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#800C1E",
+  "theme_color": "#A71930",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "अधिकृत वंजारी वधू-वर सूचक मोबाइल ॲप"
+}
