@@ -63,8 +63,41 @@ import {
   AlertTriangle,
   RefreshCw,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  PlusCircle,
 } from 'lucide-react';
+
+const VanjariJodiLogoEmblem: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-12 h-12", style }) => (
+  <svg
+    viewBox="0 0 200 200"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <defs>
+      <linearGradient id="vjGoldAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#F59E0B" />
+        <stop offset="50%" stopColor="#FBBF24" />
+        <stop offset="100%" stopColor="#D97706" />
+      </linearGradient>
+      <linearGradient id="vjOrangeAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FF6B00" />
+        <stop offset="100%" stopColor="#EA580C" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M100 10 L175 45 V115 C175 160 100 190 100 190 C100 190 25 160 25 115 V45 L100 10 Z"
+      fill="#A71930"
+      stroke="url(#vjGoldAdmin)"
+      strokeWidth="6"
+    />
+    <path d="M100 35 L120 75 H165 L128 100 L142 142 L100 115 L58 142 L72 100 L35 75 H80 Z" fill="url(#vjGoldAdmin)" />
+    <path d="M100 65 Q115 50 130 65 T100 105 T70 65 Q85 50 100 65 Z" fill="#800C1E" opacity="0.85" />
+    <circle cx="85" cy="72" r="12" fill="url(#vjOrangeAdmin)" />
+    <circle cx="115" cy="72" r="12" fill="url(#vjOrangeAdmin)" />
+  </svg>
+);
 
 const ALL_SUBADMIN_PERMISSIONS: { id: SubAdminPermission; labelMr: string; icon: string; category: string }[] = [
   { id: 'manage_profiles', labelMr: 'सदस्य बायोडाटा पाहणे, संपादन करणे व मंजूर करणे (Approve/Reject/Edit/Delete Members)', icon: '👥', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
@@ -306,6 +339,115 @@ export const AdminPanel: React.FC<{
       reader.readAsDataURL(file);
     } finally {
       setIsUploadingQrCode(false);
+    }
+  };
+
+  // Logo Upload Handler
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const res = await uploadToCloudinary(file, 'vanjarijodi_logo');
+      if (res.success && res.url) {
+        updateSiteConfig({ logoUrl: res.url });
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            updateSiteConfig({ logoUrl: reader.result });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          updateSiteConfig({ logoUrl: reader.result });
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  // Community Ad Form & Image Upload State
+  const [newAdTitle, setNewAdTitle] = useState('');
+  const [newAdType, setNewAdType] = useState<'meetup' | 'sponsored'>('meetup');
+  const [newAdDesc, setNewAdDesc] = useState('');
+  const [newAdImageUrl, setNewAdImageUrl] = useState('');
+  const [newAdLinkUrl, setNewAdLinkUrl] = useState('');
+  const [isUploadingAdImg, setIsUploadingAdImg] = useState(false);
+
+  const handleUploadAdImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAdImg(true);
+    try {
+      const res = await uploadToCloudinary(file, 'vanjarijodi_ads');
+      if (res.success && res.url) {
+        setNewAdImageUrl(res.url);
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            setNewAdImageUrl(reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setNewAdImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploadingAdImg(false);
+    }
+  };
+
+  // Hero Slide Form & Image Upload State
+  const [newSlideTitle, setNewSlideTitle] = useState('');
+  const [newSlideSubtitle, setNewSlideSubtitle] = useState('');
+  const [newSlideImageUrl, setNewSlideImageUrl] = useState('');
+  const [isUploadingSlideImg, setIsUploadingSlideImg] = useState(false);
+
+  const handleUploadHeroSlideImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingSlideImg(true);
+    try {
+      const res = await uploadToCloudinary(file, 'vanjarijodi_slides');
+      if (res.success && res.url) {
+        setNewSlideImageUrl(res.url);
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            setNewSlideImageUrl(reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setNewSlideImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploadingSlideImg(false);
     }
   };
 
@@ -614,9 +756,17 @@ export const AdminPanel: React.FC<{
         {/* HEADER BAR */}
         <div className="flex items-center justify-between px-6 py-3.5 bg-gradient-to-r from-[#800C1E] via-[#A71930] to-[#800C1E] border-b border-amber-300 text-amber-100 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-2xl bg-amber-400/20 text-amber-200 border border-amber-300/40">
-              <Crown className="w-6 h-6 fill-amber-300 text-amber-300" />
-            </div>
+            {siteConfig?.logoUrl ? (
+              <img
+                src={siteConfig.logoUrl}
+                alt={siteConfig?.logoTitle || 'वंजारी जोडी'}
+                className="h-10 w-auto object-contain rounded-xl border border-amber-300 bg-white p-0.5 shadow"
+              />
+            ) : (
+              <div className="p-2 rounded-2xl bg-amber-400/20 text-amber-200 border border-amber-300/40">
+                <Crown className="w-6 h-6 fill-amber-300 text-amber-300" />
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg sm:text-xl font-black text-amber-100 tracking-tight">
@@ -1957,17 +2107,31 @@ export const AdminPanel: React.FC<{
                     dob: ext.dob || '1998-01-01',
                     age: 26,
                     mobile: ext.mobile || '9800000000',
+                    email: '',
+                    district: ext.district || 'बीड',
+                    taluka: '',
+                    city: '',
                     education: ext.education || 'पदवीधर',
                     occupation: ext.occupation || 'नोकरी / व्यवसाय',
-                    district: ext.district || 'बीड',
+                    income: 'उल्लेख नाही',
+                    height: "5'5\"",
+                    weight: '55',
+                    bloodGroup: 'O+',
+                    maritalStatus: 'never_married',
+                    religion: 'हिंदू',
                     subCaste: ext.subCaste || 'वंजारी (NT-D)',
                     gotra: ext.gotra || 'काश्यप',
-                    rashi: ext.rashi || 'मकर',
-                    fatherName: ext.fatherName || '',
+                    fatherOccupation: ext.fatherName || '',
+                    motherOccupation: '',
+                    brothers: 0,
+                    sisters: 0,
+                    familyType: 'सुसंस्कृत कुटुंब',
                     expectations: ext.expectations || '',
                     photos: ext.candidatePhotoUrl ? [ext.candidatePhotoUrl] : [],
+                    horoscopeUrl: '',
                     aadhaarVerified: true,
                     isVerified: true,
+                    isFeatured: false,
                     isApproved: true,
                     membership: 'free',
                     createdAt: new Date().toISOString().split('T')[0],
@@ -2814,7 +2978,7 @@ export const AdminPanel: React.FC<{
 
                       <a
                         href={`https://wa.me/?text=${encodeURIComponent(
-                          `🚩 संत भगवान बाबा यांच्या आशीर्वादाने स्थापित *वंजारी विवाह मंच* मोबाईल ॲप डाउनलोड करा!\n\nॲप डाऊनलोड करण्यासाठी खालील लिंकवर क्लिक करा:\n${
+                          `🚩 संत भगवान बाबा यांच्या आशीर्वादाने स्थापित *वंजारी जोडी* मोबाईल ॲप डाउनलोड करा!\n\nॲप डाऊनलोड करण्यासाठी खालील लिंकवर क्लिक करा:\n${
                             siteConfig?.apkSettings?.apkUrl || ''
                           }`
                         )}`}
@@ -3741,6 +3905,526 @@ export const AdminPanel: React.FC<{
                         🚫 सूचना बॅनर सध्या बंद (OFF) ठेवला आहे. वेबसाइटवर कोणतीही अतिरिक्त सूचना लाईन दिसणार नाही.
                       </p>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SPONSORED ADS & MELAVA CONTROLS CARD */}
+              <div id="sponsored-ads-admin" className="bg-white p-5 rounded-2xl border border-amber-300 shadow-md space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-200 pb-3">
+                  <div>
+                    <h4 className="font-extrabold text-[#A71930] text-sm flex items-center gap-2">
+                      <Megaphone className="w-4 h-4 text-[#A71930]" />
+                      <span>प्रायोजित वधू-वर मेळावे व जाहिराती विभाग (Sponsored Ads & Melava Section)</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      मुख्यपृष्ठावरील मेळावे व प्रायोजित जाहिरातींचा विभाग दाखवणे/लपवणे किंवा नवीन मेळाव्याची जाहिरात पोस्ट करणे.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700">विभाग चालू / बंद (ON / OFF):</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsAdsEnabled(!isAdsEnabled)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-black cursor-pointer shadow border transition-all ${
+                        isAdsEnabled
+                          ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700'
+                          : 'bg-rose-600 text-white border-rose-500 hover:bg-rose-700'
+                      }`}
+                    >
+                      {isAdsEnabled ? 'सक्रिय (ON - मुख्यपृष्ठावर दिसतात)' : 'बंद (OFF - पूर्णपणे लपवले आहे)'}
+                    </button>
+                  </div>
+                </div>
+
+                {!isAdsEnabled ? (
+                  <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                    <span>🚫 प्रायोजित जाहिराती व मेळावे विभाग सध्या बंद (OFF) ठेवला आहे. मुख्यपृष्ठावर हा सेक्शन पूर्णपणे लपवण्यात आला आहे.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Form to Add New Ad / Melava */}
+                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-300 space-y-3">
+                      <h5 className="font-extrabold text-[#A71930] text-xs flex items-center gap-1.5">
+                        <PlusCircle className="w-4 h-4 text-[#A71930]" />
+                        <span>नवीन वधू-वर मेळावा किंवा प्रायोजित जाहिरात जोडा:</span>
+                      </h5>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-bold">
+                        <div>
+                          <label className="block text-slate-700 mb-1">जाहिरात / मेळावा शीर्षक (Title):</label>
+                          <input
+                            type="text"
+                            placeholder="उदा. भव्य महा-वंजारी वधू-वर पालक परिचय मेळावा २०२६ (नाशिक)"
+                            value={newAdTitle}
+                            onChange={(e) => setNewAdTitle(e.target.value)}
+                            className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 mb-1">प्रकार (Type):</label>
+                          <select
+                            value={newAdType}
+                            onChange={(e) => setNewAdType(e.target.value as any)}
+                            className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                          >
+                            <option value="meetup">वधू-वर मेळावा (Melava / Meetup)</option>
+                            <option value="sponsored">विशेष प्रायोजित जाहिरात (Sponsored Ad)</option>
+                          </select>
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-slate-700 mb-1">वर्णन व स्थळ माहिती (Description):</label>
+                          <textarea
+                            rows={2}
+                            placeholder="मेळाव्याचे ठिकाण, वेळ व इतर महत्त्वाची माहिती लिहा..."
+                            value={newAdDesc}
+                            onChange={(e) => setNewAdDesc(e.target.value)}
+                            className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 mb-1">जाहिरात बॅनर फोटो (Image Upload or URL):</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="प्रतिमा URL प्रविष्ट करा किंवा फोटो निवडा"
+                              value={newAdImageUrl}
+                              onChange={(e) => setNewAdImageUrl(e.target.value)}
+                              className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                            />
+                            <label className="px-3 py-2 bg-amber-200 hover:bg-amber-300 text-[#800C1E] rounded-xl text-xs font-bold cursor-pointer shrink-0 border border-amber-300 flex items-center gap-1">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{isUploadingAdImg ? 'अपलोड...' : 'फोटो निवडा'}</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleUploadAdImage}
+                                className="hidden"
+                                disabled={isUploadingAdImg}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 mb-1">अधिक माहिती लिंक (Link URL - Optional):</label>
+                          <input
+                            type="url"
+                            placeholder="https://..."
+                            value={newAdLinkUrl}
+                            onChange={(e) => setNewAdLinkUrl(e.target.value)}
+                            className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!newAdTitle || !newAdDesc) return alert('कृपया शीर्षक आणि माहिती प्रविष्ट करा.');
+                            addCommunityAd({
+                              id: 'ad-' + Date.now(),
+                              title: newAdTitle,
+                              type: newAdType,
+                              description: newAdDesc,
+                              imageUrl: newAdImageUrl || 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800',
+                              linkUrl: newAdLinkUrl || '',
+                              isActive: true,
+                            });
+                            setNewAdTitle('');
+                            setNewAdDesc('');
+                            setNewAdImageUrl('');
+                            setNewAdLinkUrl('');
+                            alert('नवीन मेळावा / जाहिरात यशस्वीरित्या जोडली गेली!');
+                          }}
+                          className="px-5 py-2 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 font-black text-xs rounded-xl shadow cursor-pointer border border-amber-300 flex items-center gap-1.5"
+                        >
+                          <Plus className="w-4 h-4 text-amber-300" />
+                          <span>जाहिरात पब्लिश करा</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Existing Ads List */}
+                    <div className="space-y-2">
+                      <h5 className="font-extrabold text-[#A71930] text-xs">सध्याच्या जाहिराती व मेळावे सूची ({communityAds.length}):</h5>
+                      {communityAds.length === 0 ? (
+                        <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-slate-200">कोणतीही जाहिरात नोंदवलेली नाही.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {communityAds.map((ad) => (
+                            <div key={ad.id} className="p-3 bg-slate-50 rounded-xl border border-amber-300/60 flex items-start justify-between gap-3 shadow-sm">
+                              <div className="flex gap-3 items-start">
+                                {ad.imageUrl && (
+                                  <img src={ad.imageUrl} alt={ad.title} className="w-16 h-16 object-cover rounded-lg border border-slate-300 shrink-0" />
+                                )}
+                                <div>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-[#A71930] font-bold border border-amber-300">
+                                    {ad.type === 'meetup' ? 'वधू-वर मेळावा' : 'विशेष जाहिरात'}
+                                  </span>
+                                  <h6 className="font-bold text-xs text-slate-900 mt-1">{ad.title}</h6>
+                                  <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5">{ad.description}</p>
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1.5 items-end shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAdStatus(ad.id)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-black cursor-pointer shadow ${
+                                    ad.isActive ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-700'
+                                  }`}
+                                >
+                                  {ad.isActive ? 'चालू (ON)' : 'बंद (OFF)'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (confirm('ही जाहिरात हटवायची आहे का?')) deleteCommunityAd(ad.id);
+                                  }}
+                                  className="p-1 text-rose-600 hover:text-rose-800 hover:bg-rose-100 rounded-lg cursor-pointer"
+                                  title="हटवा"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB: BRANDING & SLIDES MANAGER */}
+          {activeTab === 'branding' && (
+            <div className="space-y-6">
+              <div className="p-4 bg-amber-100 rounded-2xl border border-amber-300">
+                <h3 className="text-lg font-black text-[#A71930] flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-[#A71930]" />
+                  <span>वंजारी जोडी बोधचिन्ह, लोगो व स्लाईडर प्रतिमा व्यवस्थापन (Logo & Branding Controls)</span>
+                </h3>
+                <p className="text-xs text-slate-700 font-medium">
+                  येथून तुम्ही वंजारी जोडी ॲपचा मुख्य लोगो (Logo) थेट कॉम्प्युटर / मोबाईलवरून अपलोड करू शकता किंवा URL द्वारे सेट करू शकता. हा लोगो नेव्हिगेशन बार, फुटर, आणि प्रिंट बायोडाटा PDF वर आपोआप अपडेट होईल.
+                </p>
+              </div>
+
+              {/* 1. LOGO MANAGEMENT CARD */}
+              <div className="bg-white p-5 rounded-2xl border border-amber-300 shadow-md space-y-5">
+                <div className="border-b border-amber-200 pb-3 flex items-center justify-between">
+                  <h4 className="font-extrabold text-[#A71930] text-sm flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#A71930]" />
+                    <span>वंजारी जोडी अधिकृत लोगो (App Logo Settings)</span>
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateSiteConfig({ logoUrl: '', logoTitle: 'वंजारी जोडी', logoSubtitle: 'विश्वासू वंजारी विवाह मंच', logoHeight: 52 });
+                      alert('लोगो व शीर्षक मूळ डीफॉल्ट वर रिसेट केले गेले!');
+                    }}
+                    className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-[#A71930] rounded-xl text-xs font-bold border border-amber-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>डीफॉल्ट लोगोवर रिसेट करा</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Form & Upload Controls */}
+                  <div className="space-y-4 text-xs font-bold">
+                    {/* Logo File Upload */}
+                    <div>
+                      <label className="block text-slate-800 font-extrabold mb-1">
+                        📷 १. लोगो फोटो अपलोड करा (Computer / Phone File Upload):
+                      </label>
+                      <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border-2 border-dashed border-amber-300">
+                        <label className="px-4 py-2.5 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 rounded-xl font-black text-xs cursor-pointer shadow flex items-center gap-2 shrink-0 border border-amber-300">
+                          <Upload className="w-4 h-4 text-amber-300" />
+                          <span>{isUploadingLogo ? 'अपलोड होत आहे...' : 'लोगो फाईल निवडा'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUploadLogo}
+                            className="hidden"
+                            disabled={isUploadingLogo}
+                          />
+                        </label>
+                        <span className="text-[11px] text-slate-600 font-medium">PNG, JPG किंवा SVG फॉरमॅट (पारदर्शक पार्श्वभूमी उत्तम)</span>
+                      </div>
+                    </div>
+
+                    {/* Logo URL Text Input */}
+                    <div>
+                      <label className="block text-slate-800 font-extrabold mb-1">
+                        🔗 २. किंवा थेट लोगो इमेज URL प्रविष्ट करा (Logo Image URL):
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={siteConfig?.logoUrl || ''}
+                        onChange={(e) => updateSiteConfig({ logoUrl: e.target.value })}
+                        className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-mono text-xs"
+                      />
+                    </div>
+
+                    {/* Logo Title & Subtitle */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-800 font-extrabold mb-1">
+                          🏷️ ३. लोगोचे मुख्य नाव (Brand Name):
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig?.logoTitle || 'वंजारी जोडी'}
+                          onChange={(e) => updateSiteConfig({ logoTitle: e.target.value })}
+                          className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-800 font-extrabold mb-1">
+                          📝 ४. लोगोचे उपशीर्षक (Brand Tagline):
+                        </label>
+                        <input
+                          type="text"
+                          value={siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
+                          onChange={(e) => updateSiteConfig({ logoSubtitle: e.target.value })}
+                          className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Logo Display Height */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-slate-800 font-extrabold">
+                          📏 ५. लोगोची उंची (Display Height in Header):
+                        </label>
+                        <span className="text-[#A71930] font-black">{siteConfig?.logoHeight || 52} px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={30}
+                        max={100}
+                        step={2}
+                        value={siteConfig?.logoHeight || 52}
+                        onChange={(e) => updateSiteConfig({ logoHeight: Number(e.target.value) })}
+                        className="w-full accent-[#A71930] cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => alert('लोगो व ब्रँडिंग सेटिंग्ज यशस्वीरित्या सेव्ह केल्या गेल्या!')}
+                        className="w-full py-2.5 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 font-black text-xs rounded-xl shadow cursor-pointer border border-amber-300 flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4 text-amber-300" />
+                        <span>लोगो आणि ब्रँडिंग बदल सेव्ह करा</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Live Previews Box */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-amber-300/80 space-y-4">
+                    <h5 className="font-extrabold text-[#A71930] text-xs flex items-center gap-1.5 border-b border-amber-200 pb-2">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <span>लोगो थेट कसा दिसेल (Live Logo Previews everywhere):</span>
+                    </h5>
+
+                    {/* Preview 1: Header / Navbar Preview */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-600">१. हेडर / नेव्हिगेशन बार वर (Header Preview):</span>
+                      <div className="p-3 bg-white rounded-xl border border-amber-300 shadow-sm flex items-center gap-3">
+                        {siteConfig?.logoUrl ? (
+                          <img
+                            src={siteConfig.logoUrl}
+                            alt="Logo"
+                            style={{ height: `${siteConfig?.logoHeight || 52}px`, width: 'auto' }}
+                            className="object-contain rounded-xl border border-amber-300 shadow-sm bg-white p-0.5"
+                          />
+                        ) : (
+                          <VanjariJodiLogoEmblem
+                            style={{ height: `${siteConfig?.logoHeight || 52}px`, width: 'auto' }}
+                          />
+                        )}
+                        <div>
+                          <span className="text-xl font-black text-[#A71930] block">
+                            {siteConfig?.logoTitle || 'वंजारी जोडी'}
+                          </span>
+                          <span className="text-[10px] text-amber-800 font-bold">
+                            {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview 2: Footer / Dark Mode Banner Preview */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-600">२. फुटर / डार्क बॅनर वर (Footer Preview):</span>
+                      <div className="p-3 bg-[#800C1E] text-amber-100 rounded-xl border border-amber-300 shadow-sm flex items-center gap-3">
+                        {siteConfig?.logoUrl ? (
+                          <img
+                            src={siteConfig.logoUrl}
+                            alt="Logo"
+                            className="w-12 h-12 object-contain rounded-xl border border-amber-300 bg-white p-0.5"
+                          />
+                        ) : (
+                          <VanjariJodiLogoEmblem className="w-12 h-12" />
+                        )}
+                        <div>
+                          <span className="text-lg font-black text-amber-300 block">
+                            {siteConfig?.logoTitle || 'वंजारी जोडी'}
+                          </span>
+                          <span className="text-[10px] text-amber-200 font-bold">
+                            {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview 3: Printable Biodata PDF Header Preview */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-600">३. प्रिंट बायोडाटा PDF वर (Print Biodata Header Preview):</span>
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-300 shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {siteConfig?.logoUrl ? (
+                            <img src={siteConfig.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
+                          ) : (
+                            <VanjariJodiLogoEmblem className="h-10 w-10" />
+                          )}
+                          <span className="font-black text-sm text-[#A71930]">
+                            {siteConfig?.logoTitle || 'वंजारी जोडी'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-amber-200 text-[#800C1E] font-bold">
+                          बायोडाटा PDF
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. HERO SLIDER BANNER IMAGES MANAGER */}
+              <div className="bg-white p-5 rounded-2xl border border-amber-300 shadow-md space-y-4">
+                <div className="border-b border-amber-200 pb-3 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-extrabold text-[#A71930] text-sm flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[#A71930]" />
+                      <span>मुख्यपृष्ठ स्लाईडर बॅनर प्रतिमा (Hero Slider Banner Images)</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      मुख्यपृष्ठावरील फिरणाऱ्या स्लाईड बॅनरच्या बॅकग्राउंड प्रतिमा व मजकूर कस्टमायझ करा.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Add Hero Slide Form */}
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-300 space-y-3 text-xs font-bold">
+                  <h5 className="font-extrabold text-[#A71930] text-xs">नवीन स्लाईड बॅनर जोडा:</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-700 mb-1">स्लाईड शीर्षक (Slide Title):</label>
+                      <input
+                        type="text"
+                        placeholder="उदा. पवित्र विवाह सोहळा"
+                        value={newSlideTitle}
+                        onChange={(e) => setNewSlideTitle(e.target.value)}
+                        className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1">उपशीर्षक (Subtitle):</label>
+                      <input
+                        type="text"
+                        placeholder="उदा. वंजारी समाजातील हजारो कुटुंबांचा विश्वास"
+                        value={newSlideSubtitle}
+                        onChange={(e) => setNewSlideSubtitle(e.target.value)}
+                        className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-slate-700 mb-1">प्रतिमा (Image File or URL):</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="प्रतिमा URL प्रविष्ट करा किंवा फोटो निवडा"
+                          value={newSlideImageUrl}
+                          onChange={(e) => setNewSlideImageUrl(e.target.value)}
+                          className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900"
+                        />
+                        <label className="px-3 py-2 bg-amber-200 hover:bg-amber-300 text-[#800C1E] rounded-xl text-xs font-bold cursor-pointer shrink-0 border border-amber-300 flex items-center gap-1">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{isUploadingSlideImg ? 'अपलोड...' : 'फोटो निवडा'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUploadHeroSlideImage}
+                            className="hidden"
+                            disabled={isUploadingSlideImg}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newSlideTitle || !newSlideImageUrl) return alert('कृपया शीर्षक आणि प्रतिमा प्रविष्ट करा.');
+                        addHeroSlide({
+                          title: newSlideTitle,
+                          subtitle: newSlideSubtitle,
+                          imageUrl: newSlideImageUrl,
+                          ctaText: 'मोफत नोंदणी करा',
+                          ctaLink: 'register',
+                        });
+                        setNewSlideTitle('');
+                        setNewSlideSubtitle('');
+                        setNewSlideImageUrl('');
+                        alert('नवीन स्लाईडर बॅनर जोडला गेला!');
+                      }}
+                      className="px-5 py-2 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 font-black text-xs rounded-xl shadow cursor-pointer border border-amber-300 flex items-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4 text-amber-300" />
+                      <span>स्लाईड बॅनर जोडा</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Hero Slides List */}
+                <div className="space-y-2">
+                  <h5 className="font-extrabold text-[#A71930] text-xs">सध्याचे स्लाईड बॅनर ({heroSlides.length}):</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {heroSlides.map((slide) => (
+                      <div key={slide.id} className="p-3 bg-slate-50 rounded-xl border border-amber-300/60 flex items-center justify-between gap-3 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <img src={slide.imageUrl} alt={slide.title} className="w-16 h-12 object-cover rounded-lg border border-slate-300 shrink-0" />
+                          <div>
+                            <h6 className="font-bold text-xs text-slate-900">{slide.title}</h6>
+                            <p className="text-[11px] text-slate-600 line-clamp-1">{slide.subtitle}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => deleteHeroSlide(slide.id)}
+                          className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-100 rounded-lg cursor-pointer shrink-0"
+                          title="हटवा"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

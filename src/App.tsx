@@ -23,7 +23,6 @@ import { PaymentModal } from './components/PaymentModal';
 import { AdminSupportChatWidget } from './components/AdminSupportChatWidget';
 import { ContactUnlockModal } from './components/ContactUnlockModal';
 import { GuestRestrictionModal } from './components/GuestRestrictionModal';
-import { SmartGuestNudge } from './components/SmartGuestNudge';
 import { ProfileRemovalModal } from './components/ProfileRemovalModal';
 
 const MainAppContent: React.FC = () => {
@@ -146,9 +145,6 @@ const MainAppContent: React.FC = () => {
 
       {/* Member Profile Removal / Marriage Fixed Modal */}
       <ProfileRemovalModal />
-
-      {/* Smart Guest Registration Nudge Floating Banner */}
-      <SmartGuestNudge />
 
       {/* Floating Direct Member-to-Admin Support Chat Widget */}
       <AdminSupportChatWidget />

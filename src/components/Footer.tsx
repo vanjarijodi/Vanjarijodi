@@ -2,12 +2,13 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Heart, Phone, Mail, MapPin, Download, ShieldCheck, Sparkles, ShieldAlert } from 'lucide-react';
 
-const VanjariJodiLogoEmblem: React.FC<{ className?: string }> = ({ className = "w-12 h-12" }) => (
+const VanjariJodiLogoEmblem: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-12 h-12", style }) => (
   <svg
     viewBox="0 0 200 200"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    style={style}
   >
     <defs>
       <linearGradient id="vjGoldF" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -19,55 +20,17 @@ const VanjariJodiLogoEmblem: React.FC<{ className?: string }> = ({ className = "
         <stop offset="0%" stopColor="#FF6B00" />
         <stop offset="100%" stopColor="#EA580C" />
       </linearGradient>
-      <linearGradient id="vjRedF" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#A71930" />
-        <stop offset="100%" stopColor="#800C1E" />
-      </linearGradient>
     </defs>
-
     <path
       d="M100 10 L175 45 V115 C175 160 100 190 100 190 C100 190 25 160 25 115 V45 L100 10 Z"
-      fill="url(#vjRedF)"
+      fill="#A71930"
       stroke="url(#vjGoldF)"
-      strokeWidth="4"
+      strokeWidth="6"
     />
-    <path
-      d="M85 30 L92 40 L100 26 L108 40 L115 30 L112 46 H88 L85 30 Z"
-      fill="url(#vjGoldF)"
-      stroke="#FFF"
-      strokeWidth="1"
-    />
-    <path
-      d="M68 52 C78 42 122 42 132 52 C140 60 136 68 100 68 C64 68 60 60 68 52 Z"
-      fill="url(#vjOrangeF)"
-      stroke="url(#vjGoldF)"
-      strokeWidth="2"
-    />
-    <path
-      d="M58 70 C38 58 22 32 28 18 C40 32 54 56 70 72 Z"
-      fill="url(#vjGoldF)"
-      stroke="#FFF"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M142 70 C162 58 178 32 172 18 C160 32 146 56 130 72 Z"
-      fill="url(#vjGoldF)"
-      stroke="#FFF"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M70 72 C78 68 122 68 130 72 C138 88 132 118 100 133 C68 118 62 88 70 72 Z"
-      fill="url(#vjOrangeF)"
-      stroke="url(#vjGoldF)"
-      strokeWidth="2"
-    />
-    <path
-      d="M86 114 C86 124 114 124 114 114"
-      fill="none"
-      stroke="url(#vjGoldF)"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
+    <path d="M100 35 L120 75 H165 L128 100 L142 142 L100 115 L58 142 L72 100 L35 75 H80 Z" fill="url(#vjGoldF)" />
+    <path d="M100 65 Q115 50 130 65 T100 105 T70 65 Q85 50 100 65 Z" fill="#800C1E" opacity="0.85" />
+    <circle cx="85" cy="72" r="12" fill="url(#vjOrangeF)" />
+    <circle cx="115" cy="72" r="12" fill="url(#vjOrangeF)" />
   </svg>
 );
 
@@ -173,7 +136,15 @@ export const Footer: React.FC = () => {
             {siteConfig?.aboutUsText || 'वंजारी समाजातील वधू-वरांसाठी विश्वासाचे आणि सर्व सोयींनी युक्त डिजिटल मॅट्रिमोनी व्यासपीठ.'}
           </p>
           <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-amber-300">
-            <ShieldCheck className="w-4 h-4 text-amber-300" />
+            {siteConfig?.logoUrl ? (
+              <img
+                src={siteConfig.logoUrl}
+                alt={siteConfig?.logoTitle || 'वंजारी जोडी'}
+                className="w-5 h-5 object-contain rounded-md border border-amber-300 bg-white p-0.5 shadow-sm shrink-0"
+              />
+            ) : (
+              <VanjariJodiLogoEmblem className="w-5 h-5 shrink-0" />
+            )}
             <span>सुरक्षित व गोपनीय विवाह सेवा</span>
           </div>
         </div>

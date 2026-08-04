@@ -57,7 +57,7 @@ export const AndroidAppBanner: React.FC = () => {
             {/* Main Headline */}
             <div className="space-y-2">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-100 leading-tight tracking-tight">
-                वंजारी विवाह मंच ॲप डाऊनलोड करा!
+                {siteConfig?.logoTitle || 'वंजारी जोडी'} ॲप डाऊनलोड करा!
               </h2>
               <p className="text-xs sm:text-sm text-amber-100/90 font-medium leading-relaxed">
                 संत भगवान बाबा यांच्या आशीर्वादाने आता वंजारी समाजातील हजारो स्थळे थेट तुमच्या मोबाईलवर. जलद, सुरक्षित आणि वापरण्यास अत्यंत सोपे!

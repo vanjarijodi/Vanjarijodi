@@ -345,12 +345,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('vanjari_jodi_profiles');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Clean out legacy demo profiles starting with vj-1
+        return parsed.filter((p: UserProfile) => p && p.id && !p.id.startsWith('vj-1'));
       } catch (e) {
-        return INITIAL_PROFILES;
+        return [];
       }
     }
-    return INITIAL_PROFILES;
+    return [];
   });
 
   useEffect(() => {
@@ -362,12 +364,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const savedUser = localStorage.getItem('vanjari_jodi_current_user');
     if (savedUser) {
       try {
-        return JSON.parse(savedUser);
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.id && parsed.id.startsWith('vj-1')) return null;
+        return parsed;
       } catch (e) {
         return null;
       }
     }
-    // Default to null so new visitors start as guests until they log in or register
     return null;
   });
 
@@ -399,7 +402,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 5. Shortlisting
   const [shortlistedIds, setShortlistedIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_shortlists');
-    return saved ? JSON.parse(saved) : ['vj-102', 'vj-104'];
+    return saved ? JSON.parse(saved).filter((id: string) => !id.startsWith('vj-1')) : [];
   });
 
   const toggleShortlist = (profileId: string) => {
@@ -414,23 +417,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [interests, setInterests] = useState<Interest[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_interests');
     return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: 'int-1',
-            fromUserId: 'vj-102',
-            toUserId: 'vj-101',
-            status: 'pending',
-            createdAt: '2026-02-18T10:00:00Z',
-          },
-          {
-            id: 'int-2',
-            fromUserId: 'vj-101',
-            toUserId: 'vj-104',
-            status: 'accepted',
-            createdAt: '2026-02-15T14:30:00Z',
-          },
-        ];
+      ? JSON.parse(saved).filter((i: Interest) => !i.fromUserId?.startsWith('vj-1') && !i.toUserId?.startsWith('vj-1'))
+      : [];
   });
 
   useEffect(() => {
@@ -482,7 +470,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // 7. Unlocked Contacts
-  const [unlockedContacts, setUnlockedContacts] = useState<string[]>(['vj-102']);
+  const [unlockedContacts, setUnlockedContacts] = useState<string[]>([]);
 
   const unlockContact = (profileId: string) => {
     if (!currentUser) {
@@ -504,25 +492,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_chats');
     return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: 'msg-1',
-            senderId: 'vj-102',
-            receiverId: 'vj-101',
-            text: 'जय भगवान बाबा! सानप कुटुंबिय, मी डॉ. अविनाश फड बोलत आहे.',
-            timestamp: '१०:३० AM',
-            isRead: true,
-          },
-          {
-            id: 'msg-2',
-            senderId: 'vj-101',
-            receiverId: 'vj-102',
-            text: 'नमस्कार डॉ. अविनाशजी! हो, तुमचे बायोडाटा पाहिले. खूप छान वाटले.',
-            timestamp: '१०:३२ AM',
-            isRead: true,
-          },
-        ];
+      ? JSON.parse(saved).filter((m: ChatMessage) => !m.senderId?.startsWith('vj-1') && !m.receiverId?.startsWith('vj-1'))
+      : [];
   });
 
   useEffect(() => {
@@ -532,24 +503,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Profile Liking State & Pending Approvals
   const [likedProfileIds, setLikedProfileIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_liked_profiles');
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved).filter((id: string) => !id.startsWith('vj-1')) : [];
   });
 
   const [pendingLikes, setPendingLikes] = useState<any[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_pending_likes');
     return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: 'like-101',
-            fromUserId: 'vj-102',
-            fromUserName: 'अविनाश गोपीनाथ फड',
-            toUserId: 'vj-101',
-            toUserName: 'पूजा भगवान सानप',
-            createdAt: '2026-08-01T11:00:00Z',
-            status: 'pending'
-          }
-        ];
+      ? JSON.parse(saved).filter((l: any) => !l.fromUserId?.startsWith('vj-1') && !l.toUserId?.startsWith('vj-1'))
+      : [];
   });
 
   useEffect(() => {
@@ -719,19 +680,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // 9. Notifications
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: 'notif-1',
-      userId: 'vj-101',
-      title: 'Welcome to VanjariJodi',
-      titleMr: 'वंजारीजोडी वर आपले सहर्ष स्वागत!',
-      message: 'Your profile is 100% complete & verified.',
-      messageMr: 'तुमचे प्रोफाईल पूर्ण झाले असून १-२ तासात प्रमाणित केले जाईल.',
-      type: 'system',
-      createdAt: '2026-02-18T08:00:00Z',
-      isRead: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const addNotification = (item: Omit<NotificationItem, 'id' | 'createdAt' | 'isRead'>) => {
     const newNotif: NotificationItem = {
@@ -765,7 +714,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 10. Success Stories
   const [successStories, setSuccessStories] = useState<SuccessStory[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_stories');
-    return saved ? JSON.parse(saved) : SUCCESS_STORIES;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.filter((s: any) => s && s.id && !s.id.startsWith('story-') && !s.coupleName?.includes('विशाल'));
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
   });
 
   useEffect(() => {
@@ -824,7 +781,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 10b. Offline Payment Requests Engine
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_payment_reqs');
-    return saved ? JSON.parse(saved) : INITIAL_PAYMENT_REQUESTS;
+    return saved ? JSON.parse(saved).filter((r: any) => !r.userId?.startsWith('vj-1')) : [];
   });
 
   useEffect(() => {
@@ -984,7 +941,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [isCountersEnabled, setIsCountersEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem('vanjari_jodi_counters_toggle');
-    return saved !== null ? saved === 'true' : true;
+    return saved !== null ? saved === 'true' : false;
   });
   useEffect(() => {
     localStorage.setItem('vanjari_jodi_counters_toggle', String(isCountersEnabled));
@@ -1026,7 +983,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 12. Contact Requests & Number Privacy Authorization Engine
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_contact_requests');
-    return saved ? JSON.parse(saved) : INITIAL_CONTACT_REQUESTS;
+    return saved ? JSON.parse(saved).filter((r: any) => !r.requesterId?.startsWith('vj-1') && !r.targetProfileId?.startsWith('vj-1')) : [];
   });
 
   useEffect(() => {
@@ -1145,7 +1102,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 14. Community Ads & Sponsorships Engine
   const [communityAds, setCommunityAds] = useState<CommunityAd[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_ads');
-    return saved ? JSON.parse(saved) : INITIAL_COMMUNITY_ADS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
@@ -1211,20 +1168,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [adminSupportMessages, setAdminSupportMessages] = useState<AdminSupportMessage[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_admin_support_chat');
     return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: 'sup-1',
-            senderId: 'vj-101',
-            senderName: 'पूजा भगवान सानप',
-            senderRole: 'user',
-            message: 'नमस्कार ॲडमिन टीम, माझी प्रोफाईल पडताळणी झाली आहे का?',
-            timestamp: '१०:१५ AM',
-            isReadByAdmin: false,
-            isReadByUser: true,
-            userMobile: '+91 98221 45890',
-          },
-        ];
+      ? JSON.parse(saved).filter((m: any) => !m.senderId?.startsWith('vj-1'))
+      : [];
   });
 
   useEffect(() => {
@@ -1518,10 +1463,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return INITIAL_SUB_ADMINS;
+        return [];
       }
     }
-    return INITIAL_SUB_ADMINS;
+    return [];
   });
 
   const [currentSubAdmin, setCurrentSubAdmin] = useState<SubAdmin | null>(null);
@@ -1558,10 +1503,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return INITIAL_PROMO_CODES;
+        return [];
       }
     }
-    return INITIAL_PROMO_CODES;
+    return [];
   });
 
   useEffect(() => {
@@ -1648,10 +1593,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return INITIAL_PENDING_PROFILES;
+        return [];
       }
     }
-    return INITIAL_PENDING_PROFILES;
+    return [];
   });
 
   useEffect(() => {
@@ -1717,7 +1662,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isFaceAuthModalOpen, setIsFaceAuthModalOpen] = useState(false);
   const [faceVerificationLogs, setFaceVerificationLogs] = useState<FaceVerificationLog[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_face_verifications');
-    return saved ? JSON.parse(saved) : INITIAL_FACE_VERIFICATIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
@@ -2031,41 +1976,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 4. Live User Activity & Guest Analytics
   const [userActivityLogs, setUserActivityLogs] = useState<UserActivityLog[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_user_activities');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 'act-1',
-        userId: 'vj-101',
-        userName: 'प्रियंका ज्ञानदेव फड',
-        userType: 'registered',
-        action: 'Login',
-        details: 'नाशिक वरून नवीन सत्र सुरू झाले',
-        timestamp: new Date(Date.now() - 5 * 60000).toISOString()
-      },
-      {
-        id: 'act-2',
-        userId: 'guest-99182',
-        userName: 'अतिथी युझर (Guest Pune)',
-        userType: 'guest',
-        action: 'Search Filter',
-        details: 'पुणे जिल्ह्यातील सिल्व्हर वधू शोधाशोध केली',
-        timestamp: new Date(Date.now() - 12 * 60000).toISOString()
-      }
-    ];
+    return saved ? JSON.parse(saved).filter((a: any) => !a.userId?.startsWith('vj-1')) : [];
   });
 
   const [guestSessions, setGuestSessions] = useState<GuestSessionLog[]>(() => {
     const saved = localStorage.getItem('vanjari_jodi_guest_sessions');
-    return saved ? JSON.parse(saved) : [
-      {
-        sessionId: 'guest-sess-101',
-        deviceInfo: 'Android Chrome (Mobile)',
-        ipAddress: '157.33.120.44 (Nashik)',
-        firstVisitTime: new Date(Date.now() - 45 * 60000).toISOString(),
-        lastActiveTime: new Date(Date.now() - 2 * 60000).toISOString(),
-        pagesViewed: ['मुख्यपृष्ठ', 'शोध फिल्टर्स', 'बायोडाटा#vj-101'],
-        actionsTaken: ['बायोडाटा स्क्रोल', 'फोटो व्ह्यू करण्याचा प्रयत्न', 'रजिस्ट्रेशन कॉल-टू-ॲक्शन क्लिक']
-      }
-    ];
+    return saved ? JSON.parse(saved).filter((g: any) => !g.sessionId?.includes('101')) : [];
   });
 
   useEffect(() => {
