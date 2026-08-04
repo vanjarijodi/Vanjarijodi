@@ -35,8 +35,8 @@ jobs:
       - name: Validate & Restore Gradle Wrapper
         run: |
           cd android
-          if ! python3 -c "import zipfile; zipfile.ZipFile('gradle/wrapper/gradle-wrapper.jar')" 2>/dev/null; then
-            echo "Gradle wrapper jar is corrupt or invalid. Fetching official Gradle 8.7 wrapper jar..."
+          if ! python3 -c "import zipfile; z = zipfile.ZipFile('gradle/wrapper/gradle-wrapper.jar'); assert 'org/gradle/wrapper/GradleWrapperMain.class' in z.namelist()" 2>/dev/null; then
+            echo "Gradle wrapper jar is corrupt or missing required wrapper class. Fetching official Gradle 8.7 wrapper jar..."
             curl -sLo gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar
           fi
           chmod +x gradlew
