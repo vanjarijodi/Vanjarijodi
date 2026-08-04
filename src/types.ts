@@ -96,6 +96,7 @@ export interface UserProfile {
   privacy: {
     hideContact: boolean;
     hidePhoto: boolean;
+    restrictDetails?: boolean;
     contactVisibility?: 'visible_to_all' | 'visible_to_verified_only' | 'hidden';
     photoVisibility?: 'visible_to_all' | 'visible_to_verified_only' | 'hidden';
     biodataVisibility?: 'visible_to_all' | 'visible_to_verified_only' | 'hidden';
@@ -107,6 +108,8 @@ export interface UserProfile {
   isChatBlocked?: boolean;
   isBlocked?: boolean;
   isCustomAccessGranted?: boolean;
+  badge?: string;
+  customBadge?: string;
   isHiddenByAdmin?: boolean;
   viewsCount?: number;
   pendingPhotoApproval?: boolean;
@@ -394,6 +397,9 @@ export interface ApkSettings {
 export type SubAdminPermission = 
   | 'manage_profiles'
   | 'add_profiles'
+  | 'edit_profiles'
+  | 'delete_profiles'
+  | 'bulk_delete'
   | 'member_access_control'
   | 'payment_requests'
   | 'pricing_plans'

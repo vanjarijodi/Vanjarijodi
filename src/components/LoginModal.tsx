@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, Lock, Sparkles, UserCheck, ShieldCheck, UserPlus, PhoneCall, CheckCircle2, ArrowRight } from 'lucide-react';
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 
 export const LoginModal: React.FC<{
   isOpen: boolean;
@@ -159,6 +160,14 @@ export const LoginModal: React.FC<{
         {/* Scrollable Modal Content */}
         <div className="p-5 sm:p-6 space-y-4 overflow-y-auto">
           
+          {/* Centered Brand Logo */}
+          <div className="flex flex-col items-center justify-center py-4 bg-white border border-amber-200/60 rounded-3xl shadow-sm">
+            <VanjariJodiLogo variant="stacked" size={80} />
+            <p className="text-[10px] sm:text-xs text-amber-700 font-extrabold mt-2 italic bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+              ॥ श्री संत भगवान बाबा प्रसन्न ॥
+            </p>
+          </div>
+
           {/* Top Option 1: New Member Registration Banner */}
           <div className="p-3 bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 rounded-2xl border border-amber-300 flex items-center justify-between gap-2 shadow-sm">
             <div className="flex items-center gap-2">

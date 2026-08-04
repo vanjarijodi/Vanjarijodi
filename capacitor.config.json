@@ -1,6 +1,6 @@
 {
   "appId": "com.vanjarijodi.app",
-  "appName": "वंजारी जोडी",
+  "appName": "VanjariJodi",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

@@ -24,6 +24,8 @@ import { AdminSupportChatWidget } from './components/AdminSupportChatWidget';
 import { ContactUnlockModal } from './components/ContactUnlockModal';
 import { GuestRestrictionModal } from './components/GuestRestrictionModal';
 import { ProfileRemovalModal } from './components/ProfileRemovalModal';
+import { SplashScreen } from './components/SplashScreen';
+import { BlessingsSection } from './components/BlessingsSection';
 
 const MainAppContent: React.FC = () => {
   const {
@@ -45,8 +47,15 @@ const MainAppContent: React.FC = () => {
     setActiveVideoUser,
     isPaymentOpen,
     setIsPaymentOpen,
-    selectedPlanForPayment
+    selectedPlanForPayment,
+    siteConfig
   } = useApp();
+
+  const [showSplash, setShowSplash] = React.useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFDFB] text-slate-800 flex flex-col font-sans selection:bg-[#A71930] selection:text-white">
@@ -60,20 +69,23 @@ const MainAppContent: React.FC = () => {
           {/* Full Screen Hero with Auto Sliding Images & Dark Overlay & Quick Search */}
           <Hero />
 
+          {/* Sacred Blessings & Heritage Section */}
+          <BlessingsSection />
+
           {/* Key Features Cards */}
           <FeaturesSection />
 
           {/* Animated Counters */}
           <StatsSection />
 
-          {/* Main Profiles Section (No face photos visible on main grid) */}
-          <ProfilesGrid />
+          {/* Featured Advertisements & Community Notices (डिजिटल जाहिरात व प्रायोजित उपक्रम मंच) */}
+          <CommunityAds />
+
+          {/* Main Profiles Section (Only shown if explicitly enabled by admin in siteConfig) */}
+          {siteConfig?.showProfilesOnIndexPage && <ProfilesGrid />}
 
           {/* Success Stories Image Slider */}
           <SuccessStories />
-
-          {/* Admin Managed Advertisements Area */}
-          <CommunityAds />
 
           {/* Premium Paid Plans (Hidden by default, Admin toggle) */}
           <PremiumPlans />

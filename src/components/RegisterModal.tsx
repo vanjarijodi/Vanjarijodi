@@ -4,6 +4,7 @@ import { MAHARASHTRA_DISTRICTS } from '../data/initialData';
 import { UserProfile, Gender, MaritalStatus } from '../types';
 import { AIBioDataExtractor } from './AIBioDataExtractor';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 import {
   X,
   UserCheck,
@@ -97,9 +98,15 @@ export const RegisterModal: React.FC<{
   const [photoUrls, setPhotoUrls] = useState<string[]>([
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800',
   ]);
+  const [primaryPhotoIndex, setPrimaryPhotoIndex] = useState<number>(0);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
   const [extractedSuccessBadge, setExtractedSuccessBadge] = useState<string | null>(null);
+
+  // Privacy Checkbox States
+  const [hideContact, setHideContact] = useState<boolean>(false);
+  const [hidePhoto, setHidePhoto] = useState<boolean>(false);
+  const [restrictDetails, setRestrictDetails] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -137,31 +144,41 @@ export const RegisterModal: React.FC<{
 
   const handlePhotoUploadSim = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhotoError(null);
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 600 * 1024) {
-        setPhotoError(`फोटोचा आकार ${(file.size / 1024).toFixed(0)} KB आहे! फोटो ६०० KB पेक्षा कमी असावा. (Max 600 KB Limit)`);
-        return;
-      }
-      if (photoUrls.length >= 5) {
-        setPhotoError('आपण जास्तीत जास्त ५ फोटो जोडलेले आहेत.');
-        return;
+    const files: File[] = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (photoUrls.length + files.length > 5) {
+      setPhotoError('आपण एका वेळी किंवा एकूण जास्तीत जास्त ५ फोटो जोडले जाऊ शकतात.');
+    }
+
+    const filesToUpload = files.slice(0, 5 - photoUrls.length);
+    if (filesToUpload.length === 0) return;
+
+    setIsUploadingPhoto(true);
+    for (const file of filesToUpload) {
+      if (file.size > 800 * 1024) {
+        setPhotoError(`फोटोचा आकार ${(file.size / 1024).toFixed(0)} KB आहे! कृपया ८०० KB पेक्षा कमी आकाराचा फोटो निवडा.`);
+        continue;
       }
 
-      setIsUploadingPhoto(true);
       const res = await uploadToCloudinary(file, 'vanjarijodi_candidates');
-      setIsUploadingPhoto(false);
-
       if (res.success && res.url) {
         setPhotoUrls((prev) => [...prev, res.url]);
       } else {
-        setPhotoError(res.error || 'क्लाउडवर फोटो अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+        setPhotoError(res.error || 'फोटो अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
       }
     }
+    setIsUploadingPhoto(false);
   };
 
   const removePhoto = (indexToRemove: number) => {
-    setPhotoUrls((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    setPhotoUrls((prev) => {
+      const updated = prev.filter((_, idx) => idx !== indexToRemove);
+      if (primaryPhotoIndex >= updated.length) {
+        setPrimaryPhotoIndex(Math.max(0, updated.length - 1));
+      }
+      return updated;
+    });
   };
 
   const handleSubmitRegistration = (e: React.FormEvent) => {
@@ -173,6 +190,14 @@ export const RegisterModal: React.FC<{
     if (!mobile) {
       alert('कृपया मुख्य मोबाईल नंबर टाका.');
       return;
+    }
+
+    // Ensure selected primary photo is at index 0
+    let orderedPhotos = [...photoUrls];
+    if (primaryPhotoIndex > 0 && primaryPhotoIndex < orderedPhotos.length) {
+      const primaryPhoto = orderedPhotos[primaryPhotoIndex];
+      orderedPhotos.splice(primaryPhotoIndex, 1);
+      orderedPhotos.unshift(primaryPhoto);
     }
 
     const newProfile: UserProfile = {
@@ -220,24 +245,27 @@ export const RegisterModal: React.FC<{
       mamaNative,
       familyType,
       expectations: expectations || 'सुशिक्षित आणि सुसंस्कृत वंजारी जोडीदार.',
-      photos: photoUrls,
+      photos: orderedPhotos,
       aadhaarVerified: true,
       isVerified: true,
       isFeatured: false,
-      isApproved: true,
+      isApproved: false,
       membership: 'free',
       createdAt: new Date().toISOString().split('T')[0],
       lastActive: 'आत्ताच नोंदणी',
       bio: `नोंदणी प्रकार: ${activeMode === 'ocr_photo' ? 'फोटो/PDF एआय स्कॅन' : 'मॅन्युअल नोंदणी'}.`,
-      privacy: { hideContact: false, hidePhoto: false },
+      privacy: { hideContact, hidePhoto, restrictDetails },
       registrationType: activeMode === 'ocr_photo' ? 'ocr_ai' : 'manual',
     };
 
     addProfile(newProfile);
+
+    const isAutoApproved = siteConfig.isAutoModeEnabled && (siteConfig.autoApproveNewRegistrations || siteConfig.autoModeType === 'free_for_all');
+
     alert(
-      language === 'mr'
-        ? 'अभिनंदन! वंजारीजोडी वर तुमची नोंदणी यशस्वी झाली आहे.'
-        : 'Congratulations! Registration successful on VanjariJodi.'
+      isAutoApproved
+        ? 'अभिनंदन! वेबसाइट ऑटो मोडवर असल्याने तुमची नोंदणी व फोटो थेट ऑटोमॅटिक मंजूर झाले आहेत व सार्वजनिक झाले आहेत.'
+        : 'धन्यवाद! तुमची नोंदणी, फोटो व गोपनीयता पर्याय सबमिट झाले आहेत. तुमचे प्रोफाइल ॲडमिनकडे मंजुरीसाठी (Pending Approval) पाठवले आहे.'
     );
     onClose();
   };
@@ -282,6 +310,15 @@ export const RegisterModal: React.FC<{
         {/* STEP 1: CLEAN SELECTOR POPUP (If showSelector is true) */}
         {showSelector ? (
           <div className="p-8 space-y-6 text-center overflow-y-auto">
+            
+            {/* Centered Brand Logo */}
+            <div className="flex flex-col items-center justify-center py-4 bg-white border border-amber-200/60 rounded-3xl shadow-sm max-w-md mx-auto">
+              <VanjariJodiLogo variant="stacked" size={80} />
+              <p className="text-[10px] sm:text-xs text-amber-700 font-extrabold mt-2 italic bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                ॥ श्री संत भगवान बाबा प्रसन्न ॥
+              </p>
+            </div>
+
             <div className="space-y-2">
               <span className="inline-block px-3 py-1 rounded-full bg-amber-100 text-[#A71930] font-black text-xs border border-amber-300 uppercase tracking-wider">
                 पसंतीचा नोंदणी पर्याय निवडा
@@ -439,17 +476,20 @@ export const RegisterModal: React.FC<{
                 
                 {/* Step Progress Bar */}
                 <div className="flex items-center justify-between text-xs font-bold text-slate-600 pb-3 border-b border-amber-200 overflow-x-auto gap-2">
-                  <span className={`px-3 py-1.5 rounded-xl transition-all ${step === 1 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`}>
+                  <span className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${step === 1 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`} onClick={() => setStep(1)}>
                     १. वैयक्तिक माहिती
                   </span>
-                  <span className={`px-3 py-1.5 rounded-xl transition-all ${step === 2 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`}>
+                  <span className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${step === 2 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`} onClick={() => setStep(2)}>
                     २. शिक्षण व नोकरी
                   </span>
-                  <span className={`px-3 py-1.5 rounded-xl transition-all ${step === 3 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`}>
+                  <span className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${step === 3 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`} onClick={() => setStep(3)}>
                     ३. कौटुंबिक तपशील
                   </span>
-                  <span className={`px-3 py-1.5 rounded-xl transition-all ${step === 4 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`}>
+                  <span className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${step === 4 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`} onClick={() => setStep(4)}>
                     ४. संपर्क व फोटो
+                  </span>
+                  <span className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${step === 5 ? 'bg-[#A71930] text-amber-100 shadow' : 'bg-amber-100 text-slate-700'}`} onClick={() => setStep(5)}>
+                    ५. तपासणी व गोपनीयता
                   </span>
                 </div>
 
@@ -886,15 +926,20 @@ export const RegisterModal: React.FC<{
                     </div>
 
                     {/* Photos Upload */}
-                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-300 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-slate-900 font-extrabold text-xs">
-                          ३. क्लाउड फोटो अपलोड (Cloudinary Direct Storage)
+                    <div className="p-4 bg-amber-50 rounded-2xl border-2 border-amber-300 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2 border-b border-amber-200 pb-2">
+                        <label className="block text-[#A71930] font-black text-xs flex items-center gap-1.5">
+                          <Camera className="w-4 h-4 text-[#A71930]" />
+                          <span>३. फोटो अपलोड व मुख्य प्रोफाईल फोटो निवड (Max 5 Photos - Optional)</span>
                         </label>
-                        <span className="text-[11px] font-bold text-[#A71930] bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
-                          जास्तीत जास्त ६०० KB पर्यंत फोटो (Max 600 KB)
+                        <span className="text-[11px] font-black text-slate-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                          {photoUrls.length}/५ फोटो जोडले
                         </span>
                       </div>
+
+                      <p className="text-[11px] text-slate-700 font-bold leading-relaxed">
+                        तुम्ही ५ पर्यंत फोटो जोडू शकता. अपलोड केलेल्या फोटोंपैकी जो फोटो मुख्य दिसायला हवा तो फोटो <strong>"मुख्य फोटो (Set Profile Photo)"</strong> म्हणून स्टार (⭐) वर क्लिक करून निवडा.
+                      </p>
 
                       {photoError && (
                         <div className="p-3 bg-rose-100 border border-rose-300 rounded-xl text-rose-800 text-xs font-bold flex items-center gap-2">
@@ -903,53 +948,239 @@ export const RegisterModal: React.FC<{
                         </div>
                       )}
 
-                      <div className="border-2 border-dashed border-amber-400 rounded-2xl p-4 text-center bg-white hover:border-[#A71930] transition-colors">
-                        {isUploadingPhoto ? (
-                          <div className="flex flex-col items-center justify-center py-2 text-[#A71930] space-y-1">
-                            <Loader2 className="w-7 h-7 animate-spin text-[#A71930]" />
-                            <p className="text-xs font-bold">क्लाउडवर सुरक्षित फोटो अपलोड होत आहे...</p>
-                          </div>
-                        ) : (
-                          <>
-                            <Camera className="w-8 h-8 text-[#A71930] mx-auto mb-1" />
-                            <p className="text-xs text-slate-800 font-bold">
-                              इथे क्लिक करून फोटो जोडा (जास्तीत जास्त ६०० KB, कमाल ५ फोटो)
-                            </p>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handlePhotoUploadSim}
-                              disabled={isUploadingPhoto}
-                              className="hidden"
-                              id="modal-photo-upload"
-                            />
-                            <label
-                              htmlFor="modal-photo-upload"
-                              className="inline-block mt-2 px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#A71930] font-bold text-xs border border-amber-300 cursor-pointer shadow-sm transition-all"
-                            >
-                              गॅलरी मधून फोटो निवडा
-                            </label>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Photo Thumbnails */}
-                      {photoUrls.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          {photoUrls.map((url, index) => (
-                            <div key={index} className="relative w-16 h-16 rounded-xl overflow-hidden border border-amber-300 shadow">
-                              <img src={url} alt="upload" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => removePhoto(index)}
-                                className="absolute top-1 right-1 p-0.5 rounded-full bg-rose-600 text-white hover:bg-rose-700"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
+                      {photoUrls.length < 5 && (
+                        <div className="border-2 border-dashed border-amber-400 rounded-2xl p-4 text-center bg-white hover:border-[#A71930] transition-colors">
+                          {isUploadingPhoto ? (
+                            <div className="flex flex-col items-center justify-center py-2 text-[#A71930] space-y-1">
+                              <Loader2 className="w-7 h-7 animate-spin text-[#A71930]" />
+                              <p className="text-xs font-bold">क्लाउडवर फोटो सुरक्षित अपलोड होत आहेत...</p>
                             </div>
-                          ))}
+                          ) : (
+                            <>
+                              <Camera className="w-8 h-8 text-[#A71930] mx-auto mb-1" />
+                              <p className="text-xs text-slate-800 font-bold">
+                                इथे क्लिक करून ५ पर्यंत फोटो जोडा (जास्तीत जास्त ८०० KB प्रति फोटो)
+                              </p>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handlePhotoUploadSim}
+                                disabled={isUploadingPhoto}
+                                className="hidden"
+                                id="modal-photo-upload"
+                              />
+                              <label
+                                htmlFor="modal-photo-upload"
+                                className="inline-block mt-2 px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#A71930] font-black text-xs border border-amber-300 cursor-pointer shadow-sm transition-all"
+                              >
+                                🖼️ गॅलरीमधून १ किंवा अधिक फोटो निवडा ({photoUrls.length}/५)
+                              </label>
+                            </>
+                          )}
                         </div>
                       )}
+
+                      {/* Photo Thumbnails with Primary Selection */}
+                      {photoUrls.length > 0 && (
+                        <div className="space-y-2 pt-2">
+                          <span className="text-[11px] font-black text-slate-800 block">
+                            👇 मुख्य प्रोफाईल फोटो निवडण्यासाठी फोटोवर क्लिक करा (Click ⭐ to set Main Photo):
+                          </span>
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                            {photoUrls.map((url, index) => {
+                              const isPrimary = index === primaryPhotoIndex;
+                              return (
+                                <div
+                                  key={index}
+                                  onClick={() => setPrimaryPhotoIndex(index)}
+                                  className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer shadow-sm ${
+                                    isPrimary ? 'border-[#A71930] ring-2 ring-[#A71930]/30 scale-102 bg-amber-100' : 'border-amber-300 hover:border-amber-400'
+                                  }`}
+                                >
+                                  <img src={url} alt={`upload-${index}`} className="w-full h-24 object-cover" />
+                                  
+                                  {/* Delete Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removePhoto(index);
+                                    }}
+                                    className="absolute top-1 right-1 p-1 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow-md z-10"
+                                    title="फोटो हटवा"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  {/* Primary Badge / Button */}
+                                  <div className={`absolute bottom-0 inset-x-0 p-1 text-[10px] font-black text-center transition-colors ${
+                                    isPrimary ? 'bg-[#A71930] text-amber-100' : 'bg-slate-900/70 text-white hover:bg-[#A71930]'
+                                  }`}>
+                                    {isPrimary ? '⭐ मुख्य फोटो (Main)' : 'मुख्य करा'}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                )}
+
+                {/* STEP 5: Review & Privacy Settings */}
+                {step === 5 && (
+                  <div className="space-y-5 animate-fade-in font-semibold">
+                    
+                    {/* Header Banner */}
+                    <div className="p-4 bg-amber-100 rounded-2xl border border-amber-300 space-y-1">
+                      <h3 className="text-base font-black text-[#A71930] flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-[#A71930]" />
+                        <span>५. माहिती तपासणी व गोपनीयता पर्याय (Review & Privacy Controls)</span>
+                      </h3>
+                      <p className="text-xs text-slate-700 font-bold leading-relaxed">
+                        कृपया तुम्ही भरलेली सर्व माहिती व फोटो काळजीपूर्वक तपासा. तुम्हाला जी माहिती सार्वजनिकपणे दाखवायची नाही, त्यासमोरील चौकटीत टिक मार्क (Tick Mark) करा.
+                      </p>
+                    </div>
+
+                    {/* Summary Card */}
+                    <div className="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3 text-xs">
+                      <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                        <h4 className="font-extrabold text-[#A71930] text-sm flex items-center gap-1.5">
+                          <span>📋 भरलेल्या माहितीचा तपशील (BioData Summary):</span>
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setStep(1)}
+                          className="text-xs text-[#A71930] underline font-black cursor-pointer hover:text-[#800C1E]"
+                        >
+                          ✏️ माहिती बदला (Edit)
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                          <span className="text-slate-500 font-bold block text-[11px]">उमेदवाराचे नाव:</span>
+                          <span className="font-black text-slate-900 text-sm">{fullName || 'नाव प्रविष्ट केले नाही'}</span>
+                        </div>
+
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                          <span className="text-slate-500 font-bold block text-[11px]">मुख्य व पर्यायी मोबाईल:</span>
+                          <span className="font-black text-slate-900 font-mono text-xs">{mobile || 'नोंदवलेला नाही'} {secondaryMobile ? `(पर्यायी: ${secondaryMobile})` : ''}</span>
+                        </div>
+
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                          <span className="text-slate-500 font-bold block text-[11px]">वय व जन्मतारीख:</span>
+                          <span className="font-black text-slate-900">{currentAge} वर्षे ({dob || 'तारीख नाही'})</span>
+                        </div>
+
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                          <span className="text-slate-500 font-bold block text-[11px]">शिक्षण व नोकरी:</span>
+                          <span className="font-black text-slate-900">{education} • {occupation}</span>
+                        </div>
+
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 sm:col-span-2">
+                          <span className="text-slate-500 font-bold block text-[11px]">जिल्हा व मूळ पत्ता:</span>
+                          <span className="font-black text-slate-900">{district}, {nativeAddress || currentAddress}</span>
+                        </div>
+
+                        {photoUrls.length > 0 && (
+                          <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 sm:col-span-2">
+                            <span className="text-slate-600 font-extrabold block text-[11px] mb-1.5">
+                              अपलोड केलेले फोटो ({photoUrls.length}/५) - ⭐ चिन्हांकित फोटो मुख्य दिसेल:
+                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {photoUrls.map((p, i) => (
+                                <div key={i} className={`relative rounded-xl overflow-hidden border-2 ${i === primaryPhotoIndex ? 'border-[#A71930] ring-1 ring-[#A71930]' : 'border-amber-300'}`}>
+                                  <img src={p} alt="thumb" className="w-12 h-12 object-cover" />
+                                  {i === primaryPhotoIndex && (
+                                    <span className="absolute bottom-0 inset-x-0 bg-[#A71930] text-amber-100 text-[8px] font-black text-center py-0.2">
+                                      मुख्य
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Privacy Checkboxes */}
+                    <div className="bg-gradient-to-br from-amber-50 to-amber-100/70 p-5 rounded-2xl border-2 border-amber-400 space-y-3 shadow-md">
+                      <h4 className="font-black text-[#A71930] text-sm flex items-center gap-2 border-b border-amber-300 pb-2">
+                        <UserCheck className="w-5 h-5 text-[#A71930]" />
+                        <span>🛡️ गोपनीयता नियंत्रणे - काय लपवायचे ते निवडा (Privacy Settings):</span>
+                      </h4>
+                      <p className="text-xs text-slate-700 font-bold">
+                        खालील ज्या बाबींवर तुम्ही टिक (Tick Mark) कराल, त्या इतर सदस्यांना सार्वजनिकपणे दिसणार नाहीत:
+                      </p>
+
+                      <div className="space-y-2.5 pt-1">
+                        <label className="p-3 bg-white rounded-xl border-2 border-amber-300 flex items-start gap-3 cursor-pointer hover:bg-amber-50 transition-all shadow-xs">
+                          <input
+                            type="checkbox"
+                            checked={hideContact}
+                            onChange={(e) => setHideContact(e.target.checked)}
+                            className="w-5 h-5 rounded border-amber-400 text-[#A71930] focus:ring-0 mt-0.5 cursor-pointer shrink-0"
+                          />
+                          <div>
+                            <span className="font-black text-slate-900 text-xs block">
+                              🚫 माझा मुख्य व पर्यायी मोबाईल नंबर सार्वजनिक दाखवू नका (Hide Mobile Number)
+                            </span>
+                            <span className="text-[11px] text-slate-600 font-bold block mt-0.5">
+                              टिक केल्यास मोबाईल नंबर लपवला जाईल. तुम्ही ज्या सदस्याला परवानगी (Accept Request) द्याल, त्यालाच तो दिसेल.
+                            </span>
+                          </div>
+                        </label>
+
+                        <label className="p-3 bg-white rounded-xl border-2 border-amber-300 flex items-start gap-3 cursor-pointer hover:bg-amber-50 transition-all shadow-xs">
+                          <input
+                            type="checkbox"
+                            checked={hidePhoto}
+                            onChange={(e) => setHidePhoto(e.target.checked)}
+                            className="w-5 h-5 rounded border-amber-400 text-[#A71930] focus:ring-0 mt-0.5 cursor-pointer shrink-0"
+                          />
+                          <div>
+                            <span className="font-black text-slate-900 text-xs block">
+                              🙈 माझे फोटो सार्वजनिक दाखवू नका (Hide Photo from Public View)
+                            </span>
+                            <span className="text-[11px] text-slate-600 font-bold block mt-0.5">
+                              टिक केल्यास फोटो ब्लर/लॉक राहतील आणि तुम्ही परवानगी दिल्यावरच स्पष्ट दिसतील.
+                            </span>
+                          </div>
+                        </label>
+
+                        <label className="p-3 bg-white rounded-xl border-2 border-amber-300 flex items-start gap-3 cursor-pointer hover:bg-amber-50 transition-all shadow-xs">
+                          <input
+                            type="checkbox"
+                            checked={restrictDetails}
+                            onChange={(e) => setRestrictDetails(e.target.checked)}
+                            className="w-5 h-5 rounded border-amber-400 text-[#A71930] focus:ring-0 mt-0.5 cursor-pointer shrink-0"
+                          />
+                          <div>
+                            <span className="font-black text-slate-900 text-xs block">
+                              🔒 माझे वैयक्तिक व कौटुंबिक तपशील फक्त मी परस्पर परवानगी (Accept) दिल्यावरच दाखवा
+                            </span>
+                            <span className="text-[11px] text-slate-600 font-bold block mt-0.5">
+                              तुमचे वैयक्तिक व कौटुंबिक रकाने सुरक्षित राहतील व परवानगीनंतरच दिसतील.
+                            </span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Admin Approval Notice */}
+                    <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-400 text-emerald-950 text-xs space-y-1 shadow-sm">
+                      <div className="font-black text-emerald-900 flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
+                        <span>👑 ॲडमिन मंजुरी प्रक्रिया (Admin Approval Queue):</span>
+                      </div>
+                      <p className="font-bold leading-relaxed text-emerald-900">
+                        फॉर्म सबमिट केल्यानंतर तुमचे प्रोफाईल ॲडमिनकडे (Admin Queue) मंजुरीसाठी पाठवले जाईल. ॲडमिनद्वारे तपासणी करून मंजुरी (Approve/Accept) दिल्यानंतरच तुमचे प्रोफाइल तुमच्या गोपनीयतेच्या पसंतीनुसार इतर सदस्यांना दृश्यमान होईल.
+                      </p>
                     </div>
 
                   </div>
@@ -961,7 +1192,7 @@ export const RegisterModal: React.FC<{
                     <button
                       type="button"
                       onClick={() => setStep(step - 1)}
-                      className="px-5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-slate-800 font-bold text-xs border border-amber-300 flex items-center gap-1"
+                      className="px-5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-slate-800 font-bold text-xs border border-amber-300 flex items-center gap-1 cursor-pointer"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>मागे (Previous)</span>
@@ -970,21 +1201,21 @@ export const RegisterModal: React.FC<{
                     <div></div>
                   )}
 
-                  {step < 4 ? (
+                  {step < 5 ? (
                     <button
                       type="button"
                       onClick={() => setStep(step + 1)}
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] text-amber-100 font-black text-xs shadow-md border border-amber-300/40 flex items-center gap-1"
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] text-amber-100 font-black text-xs shadow-md border border-amber-300/40 flex items-center gap-1 cursor-pointer"
                     >
-                      <span>पुढील टप्पा →</span>
+                      <span>{step === 4 ? 'गोपनीयता निवडीकडे जा →' : 'पुढील टप्पा →'}</span>
                     </button>
                   ) : (
                     <button
                       type="submit"
-                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs shadow-xl border border-emerald-400 flex items-center gap-1"
+                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs shadow-xl border border-emerald-400 flex items-center gap-2 cursor-pointer"
                     >
-                      <CheckCircle className="w-4 h-4" />
-                      <span>नोंदणी फॉर्म सबमिट करा</span>
+                      <CheckCircle className="w-5 h-5" />
+                      <span>✓ नोंदणी सबमिट करा व ॲडमिन मंजुरीसाठी पाठवा</span>
                     </button>
                   )}
                 </div>

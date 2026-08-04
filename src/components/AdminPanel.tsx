@@ -3,6 +3,8 @@ import { useApp } from '../context/AppContext';
 import { downloadApkFile } from '../utils/apkDownloader';
 import { UserProfile, MembershipTier, SuccessStory, SubAdmin, SubAdminPermission, PromoCode, PendingProfileEdit, FeatureBoxItem } from '../types';
 import { AIBioDataExtractor } from './AIBioDataExtractor';
+import { AdminEditProfileModal } from './AdminEditProfileModal';
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 import { MAHARASHTRA_DISTRICTS } from '../data/initialData';
 import { uploadToCloudinary, validateFileSize } from '../utils/cloudinary';
 import {
@@ -67,40 +69,11 @@ import {
   PlusCircle,
 } from 'lucide-react';
 
-const VanjariJodiLogoEmblem: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-12 h-12", style }) => (
-  <svg
-    viewBox="0 0 200 200"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={style}
-  >
-    <defs>
-      <linearGradient id="vjGoldAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#F59E0B" />
-        <stop offset="50%" stopColor="#FBBF24" />
-        <stop offset="100%" stopColor="#D97706" />
-      </linearGradient>
-      <linearGradient id="vjOrangeAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FF6B00" />
-        <stop offset="100%" stopColor="#EA580C" />
-      </linearGradient>
-    </defs>
-    <path
-      d="M100 10 L175 45 V115 C175 160 100 190 100 190 C100 190 25 160 25 115 V45 L100 10 Z"
-      fill="#A71930"
-      stroke="url(#vjGoldAdmin)"
-      strokeWidth="6"
-    />
-    <path d="M100 35 L120 75 H165 L128 100 L142 142 L100 115 L58 142 L72 100 L35 75 H80 Z" fill="url(#vjGoldAdmin)" />
-    <path d="M100 65 Q115 50 130 65 T100 105 T70 65 Q85 50 100 65 Z" fill="#800C1E" opacity="0.85" />
-    <circle cx="85" cy="72" r="12" fill="url(#vjOrangeAdmin)" />
-    <circle cx="115" cy="72" r="12" fill="url(#vjOrangeAdmin)" />
-  </svg>
-);
-
 const ALL_SUBADMIN_PERMISSIONS: { id: SubAdminPermission; labelMr: string; icon: string; category: string }[] = [
-  { id: 'manage_profiles', labelMr: 'सदस्य बायोडाटा पाहणे, संपादन करणे व मंजूर करणे (Approve/Reject/Edit/Delete Members)', icon: '👥', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
+  { id: 'manage_profiles', labelMr: 'सदस्य बायोडाटा पाहणे व मंजूर करणे (Approve/Reject/View Members)', icon: '👥', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
+  { id: 'edit_profiles', labelMr: 'सदस्य प्रोफाईल तपशील संपादित/बदलणे (Edit Member Profiles)', icon: '✍️', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
+  { id: 'delete_profiles', labelMr: 'सदस्य प्रोफाईल एक-एक डिलीट करणे (Delete Single Profiles)', icon: '🗑️', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
+  { id: 'bulk_delete', labelMr: 'घाऊक मल्टिपल प्रोफाईल्स डिलीट करणे (Bulk Delete Profiles)', icon: '⚠️', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
   { id: 'add_profiles', labelMr: 'नवीन बायोडाटा जोडणे (Add New Profile)', icon: '➕', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
   { id: 'member_access_control', labelMr: 'सदस्य अक्सेस ब्लॉक करणे व विशेष VIP अक्सेस देणे (Block Member / VIP Grant)', icon: '🔒', category: '१. सदस्य व्यवस्थापन (Member Operations)' },
   { id: 'payment_requests', labelMr: 'पेमेंट पावत्या व पे-पर-काँटॅक्ट मंजुरी (Approve Payment Requests)', icon: '💳', category: '२. आर्थिक व योजना नियंत्रणे (Payments & Pricing)' },
@@ -228,7 +201,11 @@ export const AdminPanel: React.FC<{
     toggleCustomAccess,
     adminSuggestMatch,
     resetSampleProfiles,
+    updateProfileDirect,
   } = useApp();
+
+  const [selectedEditProfile, setSelectedEditProfile] = useState<UserProfile | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -1206,7 +1183,26 @@ export const AdminPanel: React.FC<{
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                  <button
+                    onClick={() => {
+                      if (profiles.length === 0) {
+                        alert('हटवण्यासाठी एकही प्रोफाईल उपलब्ध नाही.');
+                        return;
+                      }
+                      if (confirm(`⚠️ अतिमहत्त्वाची सूचना! तुम्हाला खरोखर सर्व ${profiles.length} प्रोफाईल्स एकाच वेळी हटवायचे आहेत का?\n\nसर्व प्रोफाईल्स रिसायकल बिनमध्ये पाठवले जातील आणि आवश्यकतेनुसार पुनर्संचयित (Restore) करता येतील.`)) {
+                        const allIds = profiles.map((p) => p.id);
+                        bulkSoftDeleteProfiles(allIds);
+                        alert('सर्व प्रोफाईल्स रिसायकल बिनमध्ये पाठवण्यात आले आहेत!');
+                      }
+                    }}
+                    className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow border border-rose-700 flex items-center gap-1.5 cursor-pointer shrink-0"
+                    title="सर्व प्रोफाईल्स हटवा (Delete All Profiles)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>सर्व प्रोफाईल्स हटवा (Delete All)</span>
+                  </button>
+
                   <div className="relative flex-1 sm:w-64">
                     <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -1406,7 +1402,183 @@ export const AdminPanel: React.FC<{
             </div>
           )}
 
-          {/* TAB 3: MEMBER WHATSAPP & CHAT APPROVAL ENGINE */}
+          {/* TAB 2: PENDING REGISTRATION APPROVAL ENGINE */}
+          {activeTab === 'pending' && (
+            <div className="space-y-4">
+              {/* Auto Mode Status Banner */}
+              <div className={`p-4 rounded-2xl border-2 flex items-center justify-between flex-wrap gap-3 ${
+                siteConfig.isAutoModeEnabled
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                  : 'bg-amber-50 border-amber-300 text-amber-950'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg shrink-0 ${
+                    siteConfig.isAutoModeEnabled ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
+                  }`}>
+                    {siteConfig.isAutoModeEnabled ? '⚡' : '🔒'}
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-xs">
+                      {siteConfig.isAutoModeEnabled
+                        ? 'वेबसाइट सध्या "ऑटो मोड" (Auto Approval Mode) वर आहे!'
+                        : 'वेबसाइट सध्या "ॲडमिन मॅन्युअल मोड" (Manual Approval Mode) वर आहे.'}
+                    </h4>
+                    <p className="text-[11px] opacity-90 font-bold mt-0.5">
+                      {siteConfig.isAutoModeEnabled
+                        ? 'नवीन सर्व वधू-वर नोंदण्या व ५ फोटो ऑटोमॅटिक मंजूर होऊन थेट वेबसाईटवर प्रकाशित होत आहेत.'
+                        : 'नवीन नोंदण्या येथे प्रलंबित राहतात व ॲडमिनच्या मंजुरीनंतरच वेबसाईटवर सार्वजनिक दिसतात.'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className="px-3 py-1.5 rounded-xl bg-white text-slate-900 font-extrabold text-xs border border-slate-300 hover:bg-slate-50 cursor-pointer shadow-xs shrink-0"
+                >
+                  ⚙️ मोड सेटिंग्ज बदला
+                </button>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 rounded-2xl border-2 border-amber-300 shadow-sm">
+                <div>
+                  <h3 className="text-lg font-black text-[#A71930] flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-[#A71930]" />
+                    <span>⏳ प्रलंबित नोंदणी मंजुरी कक्ष (Pending Registration Approvals) ({pendingMembers.length})</span>
+                  </h3>
+                  <p className="text-xs text-slate-700 font-bold mt-1">
+                    येथे नवीन सदस्यांनी भरलेला बायोडाटा, फोटो व त्यांनी निवडलेले गोपनीयता पर्याय (Privacy Choices) तपासा आणि एका क्लिकवर प्रोफाइल सार्वजनिक करण्यासाठी मंजूर (Approve) करा.
+                  </p>
+                </div>
+                {pendingMembers.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`तुम्हाला खरोखर सर्व ${pendingMembers.length} प्रलंबित प्रोफाईल्स मंजूर (Approve All) करायचे आहेत का?`)) {
+                        pendingMembers.forEach((m) => approveProfile(m.id));
+                        alert('सर्व प्रलंबित प्रोफाईल्स यशस्वीरित्या मंजूर करण्यात आले आहेत!');
+                      }
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow border border-emerald-500 flex items-center gap-2 shrink-0 cursor-pointer"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>सर्व एकाच वेळी मंजूर करा ({pendingMembers.length})</span>
+                  </button>
+                )}
+              </div>
+
+              {pendingMembers.length === 0 ? (
+                <div className="p-12 text-center bg-white rounded-3xl border-2 border-dashed border-amber-300 space-y-3">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center text-2xl font-bold">
+                    ✓
+                  </div>
+                  <h4 className="text-base font-black text-slate-800">
+                    सध्या एकही नोंदणी मंजुरीसाठी प्रलंबित नाही!
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    सर्व नवीन वधू-वरांची नोंदणी मंजूर झालेली आहे. नवीन फॉर्म सबमिट झाल्यावर ते येथे स्वयंचलित दिसतील.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border-2 border-amber-300 shadow-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-amber-100 text-[#800C1E] font-black border-b border-amber-300">
+                          <th className="p-3">फोटो व नाव</th>
+                          <th className="p-3">वय / लिंग</th>
+                          <th className="p-3">मोबाईल व ठिकाण</th>
+                          <th className="p-3">शिक्षण व नोकरी</th>
+                          <th className="p-3">निवडलेले गोपनीयता पर्याय</th>
+                          <th className="p-3 text-right">कृती / कारवाई (Actions)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-amber-100 font-semibold text-slate-800">
+                        {pendingMembers.map((m) => (
+                          <tr key={m.id} className="hover:bg-amber-50/80 transition-colors">
+                            <td className="p-3">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={m.photos?.[0] || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'}
+                                  alt={m.fullName}
+                                  className="w-12 h-12 rounded-xl object-cover border-2 border-amber-300 shadow-xs"
+                                />
+                                <div>
+                                  <span className="font-black text-slate-900 text-xs block">{m.fullName}</span>
+                                  <span className="text-[10px] text-slate-500 font-mono">ID: {m.id} • {m.createdAt}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black ${m.gender === 'bride' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800'}`}>
+                                {m.gender === 'bride' ? 'वधू' : 'वर'} ({m.age} वर्षे)
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <div className="font-mono text-xs font-bold text-slate-900">{m.mobile}</div>
+                              <div className="text-[11px] text-slate-600">{m.district} ({m.city || m.taluka})</div>
+                            </td>
+                            <td className="p-3 max-w-xs truncate">
+                              <div className="font-bold text-slate-900 truncate">{m.education}</div>
+                              <div className="text-[11px] text-slate-600 truncate">{m.occupation}</div>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex flex-wrap gap-1">
+                                {m.privacy?.hideContact ? (
+                                  <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[10px]">
+                                    📱 संपर्क लपवला
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                                    📱 संपर्क दृश्यमान
+                                  </span>
+                                )}
+                                {m.privacy?.hidePhoto ? (
+                                  <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">
+                                    🙈 फोटो लपवला
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px]">
+                                    📷 फोटो दृश्यमान
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    approveProfile(m.id);
+                                    alert(`प्रोफाईल "${m.fullName}" यशस्वीरित्या मंजूर करण्यात आले!`);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow border border-emerald-500 flex items-center gap-1 cursor-pointer"
+                                  title="मंजूर करा (Approve Profile)"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  <span>मंजूर करा (Approve)</span>
+                                </button>
+                                <button
+                                  onClick={() => setSelectedProfileForModal(m)}
+                                  className="p-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 cursor-pointer"
+                                  title="संपूर्ण प्रोफाईल पहा (View Full Profile)"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => softDeleteProfile(m.id, 'profile')}
+                                  className="p-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
+                                  title="नाकारा व रिसायकल बिनमध्ये पाठवा"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {activeTab === 'chat_approvals' && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-amber-100 rounded-2xl border border-amber-300">
@@ -4327,26 +4499,7 @@ export const AdminPanel: React.FC<{
                     <div className="space-y-1">
                       <span className="text-[11px] font-bold text-slate-600">१. हेडर / नेव्हिगेशन बार वर (Header Preview):</span>
                       <div className="p-3 bg-white rounded-xl border border-amber-300 shadow-sm flex items-center gap-3">
-                        {siteConfig?.logoUrl ? (
-                          <img
-                            src={siteConfig.logoUrl}
-                            alt="Logo"
-                            style={{ height: `${siteConfig?.logoHeight || 52}px`, width: 'auto' }}
-                            className="object-contain rounded-xl border border-amber-300 shadow-sm bg-white p-0.5"
-                          />
-                        ) : (
-                          <VanjariJodiLogoEmblem
-                            style={{ height: `${siteConfig?.logoHeight || 52}px`, width: 'auto' }}
-                          />
-                        )}
-                        <div>
-                          <span className="text-xl font-black text-[#A71930] block">
-                            {siteConfig?.logoTitle || 'वंजारी जोडी'}
-                          </span>
-                          <span className="text-[10px] text-amber-800 font-bold">
-                            {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
-                          </span>
-                        </div>
+                        <VanjariJodiLogo variant="full" size={50} />
                       </div>
                     </div>
 
@@ -4354,23 +4507,7 @@ export const AdminPanel: React.FC<{
                     <div className="space-y-1">
                       <span className="text-[11px] font-bold text-slate-600">२. फुटर / डार्क बॅनर वर (Footer Preview):</span>
                       <div className="p-3 bg-[#800C1E] text-amber-100 rounded-xl border border-amber-300 shadow-sm flex items-center gap-3">
-                        {siteConfig?.logoUrl ? (
-                          <img
-                            src={siteConfig.logoUrl}
-                            alt="Logo"
-                            className="w-12 h-12 object-contain rounded-xl border border-amber-300 bg-white p-0.5"
-                          />
-                        ) : (
-                          <VanjariJodiLogoEmblem className="w-12 h-12" />
-                        )}
-                        <div>
-                          <span className="text-lg font-black text-amber-300 block">
-                            {siteConfig?.logoTitle || 'वंजारी जोडी'}
-                          </span>
-                          <span className="text-[10px] text-amber-200 font-bold">
-                            {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
-                          </span>
-                        </div>
+                        <VanjariJodiLogo variant="full" size={50} />
                       </div>
                     </div>
 
@@ -4378,16 +4515,7 @@ export const AdminPanel: React.FC<{
                     <div className="space-y-1">
                       <span className="text-[11px] font-bold text-slate-600">३. प्रिंट बायोडाटा PDF वर (Print Biodata Header Preview):</span>
                       <div className="p-3 bg-amber-50 rounded-xl border border-amber-300 shadow-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {siteConfig?.logoUrl ? (
-                            <img src={siteConfig.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
-                          ) : (
-                            <VanjariJodiLogoEmblem className="h-10 w-10" />
-                          )}
-                          <span className="font-black text-sm text-[#A71930]">
-                            {siteConfig?.logoTitle || 'वंजारी जोडी'}
-                          </span>
-                        </div>
+                        <VanjariJodiLogo variant="horizontal" size={40} />
                         <span className="text-[10px] px-2 py-0.5 rounded bg-amber-200 text-[#800C1E] font-bold">
                           बायोडाटा PDF
                         </span>

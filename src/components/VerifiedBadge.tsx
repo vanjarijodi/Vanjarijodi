@@ -30,8 +30,9 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
   const isIdVerified = profile ? Boolean(profile.isIdVerified || profile.aadhaarVerified) : Boolean(propIsIdVerified);
   const isPhotoVerified = profile ? Boolean(profile.isPhotoVerified) : Boolean(propIsPhotoVerified);
   const isPremiumVerified = profile ? Boolean(profile.isPremiumVerified || (profile.membership && profile.membership !== 'free')) : Boolean(propIsPremiumVerified);
+  const customBadgeText = profile?.badge || profile?.customBadge;
 
-  if (!isVerified && !isFaceVerified && !isIdVerified && !isPhotoVerified && !isPremiumVerified) {
+  if (!isVerified && !isFaceVerified && !isIdVerified && !isPhotoVerified && !isPremiumVerified && !customBadgeText) {
     return null;
   }
 
@@ -43,6 +44,14 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
 
   return (
     <div className={`inline-flex items-center flex-wrap gap-1 ${className}`}>
+      {/* Custom Admin Assigned Badge */}
+      {customBadgeText && (
+        <span className={`rounded-full bg-gradient-to-r from-amber-100 via-rose-100 to-amber-100 text-[#800C1E] border-2 border-amber-400 font-black ${textSizes[size]} inline-flex items-center gap-1 shadow-xs animate-pulse`}>
+          <Award className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
+          <span>{customBadgeText}</span>
+        </span>
+      )}
+
       {/* ID Verified Badge */}
       {isIdVerified && (
         <span className={`rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold ${textSizes[size]} inline-flex items-center gap-1 shadow-2xs`}>

@@ -16,38 +16,7 @@ import {
 } from 'lucide-react';
 import { VerifiedBadge } from './VerifiedBadge';
 import { NoticeBanner } from './NoticeBanner';
-
-const VanjariJodiLogoEmblem: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-12 h-12", style }) => (
-  <svg
-    viewBox="0 0 200 200"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={style}
-  >
-    <defs>
-      <linearGradient id="vjGoldNav" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#F59E0B" />
-        <stop offset="50%" stopColor="#FBBF24" />
-        <stop offset="100%" stopColor="#D97706" />
-      </linearGradient>
-      <linearGradient id="vjOrangeNav" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FF6B00" />
-        <stop offset="100%" stopColor="#EA580C" />
-      </linearGradient>
-    </defs>
-    <path
-      d="M100 10 L175 45 V115 C175 160 100 190 100 190 C100 190 25 160 25 115 V45 L100 10 Z"
-      fill="#A71930"
-      stroke="url(#vjGoldNav)"
-      strokeWidth="6"
-    />
-    <path d="M100 35 L120 75 H165 L128 100 L142 142 L100 115 L58 142 L72 100 L35 75 H80 Z" fill="url(#vjGoldNav)" />
-    <path d="M100 65 Q115 50 130 65 T100 105 T70 65 Q85 50 100 65 Z" fill="#800C1E" opacity="0.85" />
-    <circle cx="85" cy="72" r="12" fill="url(#vjOrangeNav)" />
-    <circle cx="115" cy="72" r="12" fill="url(#vjOrangeNav)" />
-  </svg>
-);
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 
 export const Navbar: React.FC<{
   onOpenSearch?: () => void;
@@ -82,41 +51,13 @@ export const Navbar: React.FC<{
           
           {/* 2. LOGO & BRANDING */}
           <div
-            className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group py-1 min-w-0 shrink"
+            className="flex items-center cursor-pointer group py-1 min-w-0 shrink"
             onClick={() => {
               setCurrentView('home');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
-            <div className="relative shrink-0">
-              {siteConfig?.logoUrl ? (
-                <img
-                  src={siteConfig.logoUrl}
-                  alt={siteConfig?.logoTitle || 'वंजारी जोडी'}
-                  style={{ height: `${siteConfig?.logoHeight || 48}px`, width: 'auto' }}
-                  className="max-h-10 sm:max-h-13 w-auto object-contain rounded-xl border border-amber-300 shadow-sm bg-white p-0.5"
-                />
-              ) : (
-                <VanjariJodiLogoEmblem
-                  style={{ height: `${siteConfig?.logoHeight || 48}px`, width: 'auto' }}
-                  className="max-h-10 sm:max-h-13 w-auto drop-shadow-[0_2px_8px_rgba(167,25,48,0.25)]"
-                />
-              )}
-            </div>
-
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1">
-                <span className="text-sm sm:text-2xl md:text-3xl font-black tracking-tight text-[#A71930] whitespace-nowrap shrink-0">
-                  {siteConfig?.logoTitle || 'वंजारी जोडी'}
-                </span>
-                <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-100 text-[#A71930] border border-amber-300 font-bold uppercase tracking-widest hidden lg:inline-block shadow-sm shrink-0">
-                  अधिकृत
-                </span>
-              </div>
-              <p className="text-[9px] sm:text-xs font-bold text-amber-700 leading-tight whitespace-nowrap hidden xs:block">
-                {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
-              </p>
-            </div>
+            <VanjariJodiLogo variant="full" size={54} />
           </div>
 
           {/* RIGHT SIDE CONTROLS: Registration, Login, APK Download, Menu */}

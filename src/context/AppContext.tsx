@@ -1166,11 +1166,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addProfile = (newProfile: UserProfile) => {
-    const autoApprove = siteConfig.isAutoModeEnabled && (siteConfig.autoApproveNewRegistrations || siteConfig.autoModeType === 'free_for_all');
-    const profileToSave = autoApprove ? { ...newProfile, isApproved: true } : newProfile;
+    const isAutoApproved = siteConfig.isAutoModeEnabled && (siteConfig.autoApproveNewRegistrations || siteConfig.autoModeType === 'free_for_all');
+    const isApprovedStatus = isAutoApproved ? true : (typeof newProfile.isApproved === 'boolean' ? newProfile.isApproved : false);
+    const profileToSave = { ...newProfile, isApproved: isApprovedStatus };
     setProfiles((prev) => [profileToSave, ...prev]);
     setCurrentUser(profileToSave);
-    logActivity('New Registration', `नवीन प्रोफाईल जोडले: ${profileToSave.fullName} (${profileToSave.gender === 'bride' ? 'वधू' : 'वर'}) ${autoApprove ? '[ऑटो मोड मंजूर]' : ''}`, profileToSave.fullName);
+    logActivity('New Registration', `नवीन प्रोफाईल जोडले: ${profileToSave.fullName} (${profileToSave.gender === 'bride' ? 'वधू' : 'वर'}) ${isApprovedStatus ? '[ऑटो मोड ऑटो मंजूर]' : '[ॲडमिन मंजुरी प्रलंबित]'}`, profileToSave.fullName);
   };
 
   // 16. Admin Direct Support Chat Messages & Real-time Notifications

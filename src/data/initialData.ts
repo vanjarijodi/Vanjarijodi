@@ -97,7 +97,64 @@ export const MEMBERSHIP_PLANS: Plan[] = [
   }
 ];
 
-export const INITIAL_COMMUNITY_ADS: any[] = [];
+export const INITIAL_COMMUNITY_ADS: any[] = [
+  {
+    id: 'ad-1',
+    title: 'महा-वंजारी राज्यस्तरीय वधू-वर पालक परिचय मेळावा २०२६',
+    description: 'बीड, नाशिक, अहमदनगर, संभाजीनगर, पुणे व मुंबई भागातील वधू-वर व पालकांसाठी भव्य राज्यस्तरीय परिचय मेळावा. मोफत बायोडाटा पुस्तक वाटप व प्रत्यक्ष गाठीभेटी.',
+    imageUrl: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1200',
+    type: 'meetup',
+    contactPhone: '+91 98221 00000',
+    categoryTag: 'वधू-वर मेळावा',
+    badgeText: 'विशेष मेळावा 🎯',
+    linkUrl: 'https://wa.me/919822100000?text=मेळावा_नोंदणी',
+    priority: 1,
+    isActive: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ad-2',
+    title: 'भगवान बाबा मॅरेज हॉल व राजेशाही लॉन्स',
+    description: 'एसी बँक्वेट हॉल, ४००० लोकांची पंगत व्यवस्था, प्रशस्त पार्किंग, ५० लक्झरी रूम्स व २४ तास जनरेटर बॅकअप. वंजारी समाज बांधवांसाठी विशेष सवलत.',
+    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&q=80&w=1200',
+    type: 'sponsor',
+    contactPhone: '+91 94222 11111',
+    categoryTag: 'मंगल कार्यालय',
+    badgeText: '२०% सवलत 💎',
+    linkUrl: 'https://wa.me/919422211111?text=हॉल_बुकिंग',
+    priority: 2,
+    isActive: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ad-3',
+    title: 'रॉयल वंजारी कॅमेरा व व्हिडिओग्राफी स्टुडिओ',
+    description: '४K सिनेमॅटिक प्री-वेडिंग शुटींग, ड्रोन व्हिडिओग्राफी, वेडिंग लाईव्ह स्ट्रीमिंग व आधुनिक अल्बम डिझाईन. संपूर्ण महाराष्ट्रात उपलब्ध.',
+    imageUrl: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&q=80&w=1200',
+    type: 'business',
+    contactPhone: '+91 98900 22222',
+    categoryTag: 'फोटोग्राफी',
+    badgeText: '४K सिनेमॅटिक 🎥',
+    linkUrl: 'https://wa.me/919890022222?text=फोटोग्राफी_चौकशी',
+    priority: 3,
+    isActive: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ad-4',
+    title: 'गोपीनाथजी मुंडे आयएएस कोचिंग व स्पर्धा परीक्षा अकॅडमी',
+    description: 'UPSC/MPSC स्पर्धा परीक्षा तयारी, मोफत वसतिगृह व अभ्यासीका सुविधा. उच्चशिक्षित अधिकारी व तज्ज्ञ मार्गदर्शकांचे मार्गदर्शन.',
+    imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=1200',
+    type: 'banner',
+    contactPhone: '+91 97630 33333',
+    categoryTag: 'शिक्षण व करिअर',
+    badgeText: 'मोफत मार्गदर्शन 🎓',
+    linkUrl: 'https://wa.me/919763033333?text=अकॅडमी_चौकशी',
+    priority: 4,
+    isActive: true,
+    createdAt: new Date().toISOString()
+  }
+];
 
 export const INITIAL_CONTACT_REQUESTS: any[] = [];
 
@@ -158,7 +215,7 @@ export const INITIAL_SITE_CONFIG: any = {
   enableChatGlobal: true,
   blockContactSharingInChat: true,
   showDistrictFilter: true,
-  showProfilesOnIndexPage: true,
+  showProfilesOnIndexPage: false,
   hideEmptyProfilesSection: false,
   blurProfilePhotos: false,
   photoBlurPercent: 30,

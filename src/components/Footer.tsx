@@ -1,38 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Heart, Phone, Mail, MapPin, Download, ShieldCheck, Sparkles, ShieldAlert } from 'lucide-react';
-
-const VanjariJodiLogoEmblem: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-12 h-12", style }) => (
-  <svg
-    viewBox="0 0 200 200"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={style}
-  >
-    <defs>
-      <linearGradient id="vjGoldF" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#F59E0B" />
-        <stop offset="50%" stopColor="#FBBF24" />
-        <stop offset="100%" stopColor="#D97706" />
-      </linearGradient>
-      <linearGradient id="vjOrangeF" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FF6B00" />
-        <stop offset="100%" stopColor="#EA580C" />
-      </linearGradient>
-    </defs>
-    <path
-      d="M100 10 L175 45 V115 C175 160 100 190 100 190 C100 190 25 160 25 115 V45 L100 10 Z"
-      fill="#A71930"
-      stroke="url(#vjGoldF)"
-      strokeWidth="6"
-    />
-    <path d="M100 35 L120 75 H165 L128 100 L142 142 L100 115 L58 142 L72 100 L35 75 H80 Z" fill="url(#vjGoldF)" />
-    <path d="M100 65 Q115 50 130 65 T100 105 T70 65 Q85 50 100 65 Z" fill="#800C1E" opacity="0.85" />
-    <circle cx="85" cy="72" r="12" fill="url(#vjOrangeF)" />
-    <circle cx="115" cy="72" r="12" fill="url(#vjOrangeF)" />
-  </svg>
-);
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 
 export const Footer: React.FC = () => {
   const { t, language, siteConfig, setIsAdminOpen } = useApp();
@@ -114,37 +83,13 @@ export const Footer: React.FC = () => {
         {/* Brand Column */}
         <div className="space-y-2 max-w-lg">
           <div className="flex items-center justify-center md:justify-start gap-3">
-            {siteConfig?.logoUrl ? (
-              <img
-                src={siteConfig.logoUrl}
-                alt={siteConfig?.logoTitle || 'वंजारी जोडी'}
-                className="w-12 h-12 object-contain rounded-xl border border-amber-300 shadow bg-white p-0.5"
-              />
-            ) : (
-              <VanjariJodiLogoEmblem className="w-12 h-12" />
-            )}
-            <div>
-              <span className="text-xl font-black text-amber-300 tracking-tight block">
-                {siteConfig?.logoTitle || 'वंजारी जोडी'}
-              </span>
-              <p className="text-xs font-bold text-amber-200">
-                {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
-              </p>
-            </div>
+            <VanjariJodiLogo variant="full" size={50} />
           </div>
           <p className="text-xs text-amber-100/90 leading-relaxed font-medium">
             {siteConfig?.aboutUsText || 'वंजारी समाजातील वधू-वरांसाठी विश्वासाचे आणि सर्व सोयींनी युक्त डिजिटल मॅट्रिमोनी व्यासपीठ.'}
           </p>
           <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-amber-300">
-            {siteConfig?.logoUrl ? (
-              <img
-                src={siteConfig.logoUrl}
-                alt={siteConfig?.logoTitle || 'वंजारी जोडी'}
-                className="w-5 h-5 object-contain rounded-md border border-amber-300 bg-white p-0.5 shadow-sm shrink-0"
-              />
-            ) : (
-              <VanjariJodiLogoEmblem className="w-5 h-5 shrink-0" />
-            )}
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>सुरक्षित व गोपनीय विवाह सेवा</span>
           </div>
         </div>
