@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { UserProfile } from '../types';
-import { Printer, X, Download, Share2, ShieldCheck } from 'lucide-react';
+import { Printer, X, Download, FileImage, FileText, ChevronDown, Check, ShieldCheck } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import { VerifiedBadge } from './VerifiedBadge';
 
 export const PrintBiodataModal: React.FC<{
   profile: UserProfile | null;
   onClose: () => void;
 }> = ({ profile, onClose }) => {
   const { siteConfig } = useApp();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
   if (!profile) return null;
 
@@ -15,18 +21,114 @@ export const PrintBiodataModal: React.FC<{
     window.print();
   };
 
+  const handleDownloadJpg = async () => {
+    if (!printRef.current) return;
+    setIsGenerating(true);
+    setIsDropdownOpen(false);
+
+    try {
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFFDF5',
+        logging: false
+      });
+
+      const image = canvas.toDataURL('image/jpeg', 0.95);
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `VanjariJodi_Biodata_${profile.fullName.replace(/\s+/g, '_')}.jpg`;
+      link.click();
+    } catch (err) {
+      console.error('Error generating JPG biodata:', err);
+      alert('बायोडाटा JPG डाउनलोड करताना त्रुटी आली. कृपया प्रिंट पर्याय वापरा.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!printRef.current) return;
+    setIsGenerating(true);
+    setIsDropdownOpen(false);
+
+    try {
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFFDF5',
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
+      pdf.save(`VanjariJodi_Biodata_${profile.fullName.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF biodata:', err);
+      alert('बायोडाटा PDF डाउनलोड करताना त्रुटी आली. कृपया प्रिंट पर्याय वापरा.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-slate-900/70 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-slate-900/75 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static">
       
-      {/* Top Action Bar (Hidden when printing) */}
+      {/* Top Action Bar */}
       <div className="fixed top-4 right-4 z-[110] flex items-center gap-2 print:hidden">
+        
+        {/* Download Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            disabled={isGenerating}
+            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-xl border border-amber-300 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <Download className="w-4 h-4 text-slate-950" />
+            <span>{isGenerating ? 'तयार होत आहे...' : 'बायोडाटा डाउनलोड करा'}</span>
+            <ChevronDown className="w-3.5 h-3.5 ml-1" />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white shadow-2xl border border-slate-200 py-2 z-[120] text-slate-800">
+              <button
+                onClick={handleDownloadJpg}
+                className="w-full text-left px-4 py-2.5 hover:bg-amber-50 flex items-center gap-3 text-xs font-bold text-slate-800"
+              >
+                <FileImage className="w-4 h-4 text-emerald-600" />
+                <span>JPG इमेज म्हणून डाउनलोड करा</span>
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                className="w-full text-left px-4 py-2.5 hover:bg-amber-50 flex items-center gap-3 text-xs font-bold text-slate-800 border-t border-slate-100"
+              >
+                <FileText className="w-4 h-4 text-[#A71930]" />
+                <span>PDF दस्तऐवज म्हणून डाउनलोड करा</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Print Button */}
         <button
           onClick={handlePrint}
           className="px-5 py-2.5 rounded-full bg-[#A71930] hover:bg-[#800C1E] text-white text-xs font-bold shadow-xl border border-amber-300 flex items-center gap-2 transition-all active:scale-95"
         >
           <Printer className="w-4 h-4 text-amber-300" />
-          <span>बायोडाटा प्रिंट करा (Print A4 PDF)</span>
+          <span className="hidden sm:inline">प्रिंट / A4 PDF</span>
         </button>
+
+        {/* Close Button */}
         <button
           onClick={onClose}
           className="p-2.5 rounded-full bg-white text-slate-700 hover:bg-slate-100 shadow-xl border border-slate-300"
@@ -36,7 +138,10 @@ export const PrintBiodataModal: React.FC<{
       </div>
 
       {/* Printable Sheet Wrapper */}
-      <div className="w-full max-w-3xl bg-[#FFFDF5] border-2 border-amber-400 rounded-3xl p-6 sm:p-10 shadow-2xl text-slate-800 my-auto print:border-none print:shadow-none print:p-0 print:w-full print:max-w-none print:bg-white">
+      <div
+        ref={printRef}
+        className="w-full max-w-3xl bg-[#FFFDF5] border-2 border-amber-400 rounded-3xl p-6 sm:p-10 shadow-2xl text-slate-800 my-auto print:border-none print:shadow-none print:p-0 print:w-full print:max-w-none print:bg-white"
+      >
         
         {/* Print Header */}
         <div className="text-center pb-4 border-b-2 border-[#A71930]/30 space-y-1">
@@ -70,9 +175,13 @@ export const PrintBiodataModal: React.FC<{
         {/* Profile Identity & Photo Banner */}
         <div className="mt-6 grid grid-cols-12 gap-6 items-center bg-white p-4 rounded-2xl border border-amber-200 shadow-sm">
           <div className="col-span-8 space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full bg-amber-100 text-[#A71930] text-xs font-bold border border-amber-300">
-              प्रोफाईल आयडी: {profile.id} | वंजारी समाज ({profile.subCaste})
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-block px-3 py-1 rounded-full bg-amber-100 text-[#A71930] text-xs font-bold border border-amber-300">
+                आयडी: {profile.id} | वंजारी समाज ({profile.subCaste})
+              </span>
+              <VerifiedBadge profile={profile} size="sm" showLabel={true} />
+            </div>
+
             <h2 className="text-2xl font-black text-[#A71930]">
               {profile.fullName}
             </h2>
@@ -85,12 +194,15 @@ export const PrintBiodataModal: React.FC<{
           </div>
 
           <div className="col-span-4 flex justify-end">
-            <div className="w-32 h-40 rounded-2xl overflow-hidden border-2 border-[#A71930] shadow-md bg-slate-100 p-1">
+            <div className="w-32 h-40 rounded-2xl overflow-hidden border-2 border-[#A71930] shadow-md bg-slate-100 p-1 relative">
               <img
-                src={profile.photos[0] || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'}
+                src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'}
                 alt={profile.fullName}
                 className="w-full h-full object-cover rounded-xl"
               />
+              <div className="absolute bottom-2 right-2 text-[8px] bg-black/60 text-amber-300 font-bold px-1 rounded">
+                वंजारी जोडी
+              </div>
             </div>
           </div>
         </div>
@@ -107,7 +219,7 @@ export const PrintBiodataModal: React.FC<{
             </div>
             <div>
               <span className="text-slate-500 block font-medium">वजन (Weight):</span>
-              <span className="font-bold text-slate-800">{profile.weight || '५५ किलो'}</span>
+              <span className="font-bold text-slate-800">{profile.weight || 'उपलब्ध नाही'}</span>
             </div>
             <div>
               <span className="text-slate-500 block font-medium">रक्तगट (Blood Group):</span>
@@ -118,7 +230,7 @@ export const PrintBiodataModal: React.FC<{
               <span className="font-bold text-slate-800">{profile.complexion || 'गोरा'}</span>
             </div>
             <div>
-              <span className="text-slate-500 block font-medium">वैवाहिक स्थिती (Marital Status):</span>
+              <span className="text-slate-500 block font-medium">वैवाहिक स्थिती:</span>
               <span className="font-bold text-[#A71930]">{profile.maritalStatus === 'never_married' ? 'अविवाहित' : profile.maritalStatus}</span>
             </div>
             <div>
@@ -161,11 +273,11 @@ export const PrintBiodataModal: React.FC<{
           <div className="grid grid-cols-2 gap-3 text-xs bg-white p-4 rounded-2xl border border-amber-200">
             <div>
               <span className="text-slate-500 block font-medium">वडिलांचे नाव व व्यवसाय:</span>
-              <span className="font-bold text-slate-900">{profile.fatherName || 'श्री. मुंडे'} ({profile.fatherOccupation})</span>
+              <span className="font-bold text-slate-900">{profile.fatherName || 'माहिती उपलब्ध'} ({profile.fatherOccupation})</span>
             </div>
             <div>
               <span className="text-slate-500 block font-medium">आईचे नाव व व्यवसाय:</span>
-              <span className="font-bold text-slate-900">{profile.motherName || 'सौ. मुंडे'} ({profile.motherOccupation})</span>
+              <span className="font-bold text-slate-900">{profile.motherName || 'माहिती उपलब्ध'} ({profile.motherOccupation})</span>
             </div>
             <div>
               <span className="text-slate-500 block font-medium">भाऊ व बहीण:</span>
@@ -173,7 +285,7 @@ export const PrintBiodataModal: React.FC<{
             </div>
             <div>
               <span className="text-slate-500 block font-medium">मामांचे नाव व गाव:</span>
-              <span className="font-bold text-slate-800">{profile.mamaName || 'श्री. सानप'} ({profile.mamaNative || profile.district})</span>
+              <span className="font-bold text-slate-800">{profile.mamaName || 'माहिती उपलब्ध'} ({profile.mamaNative || profile.district})</span>
             </div>
             <div className="col-span-2 pt-2 border-t border-amber-100">
               <span className="text-slate-500 block font-medium">नातेवाईक आडनावे (Relative Surnames):</span>

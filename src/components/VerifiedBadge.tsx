@@ -1,64 +1,79 @@
 import React from 'react';
-import { CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Sparkles, Award } from 'lucide-react';
+import { UserProfile } from '../types';
 
 interface VerifiedBadgeProps {
+  profile?: UserProfile;
   isVerified?: boolean;
   isFaceVerified?: boolean;
+  isIdVerified?: boolean;
+  isPhotoVerified?: boolean;
+  isPremiumVerified?: boolean;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   className?: string;
 }
 
 export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
-  isVerified = false,
-  isFaceVerified = false,
+  profile,
+  isVerified: propIsVerified,
+  isFaceVerified: propIsFaceVerified,
+  isIdVerified: propIsIdVerified,
+  isPhotoVerified: propIsPhotoVerified,
+  isPremiumVerified: propIsPremiumVerified,
   size = 'md',
-  showLabel = false,
+  showLabel = true,
   className = ''
 }) => {
-  if (!isVerified && !isFaceVerified) return null;
+  const isVerified = profile ? Boolean(profile.isVerified) : Boolean(propIsVerified);
+  const isFaceVerified = profile ? Boolean(profile.isFaceVerified) : Boolean(propIsFaceVerified);
+  const isIdVerified = profile ? Boolean(profile.isIdVerified || profile.aadhaarVerified) : Boolean(propIsIdVerified);
+  const isPhotoVerified = profile ? Boolean(profile.isPhotoVerified) : Boolean(propIsPhotoVerified);
+  const isPremiumVerified = profile ? Boolean(profile.isPremiumVerified || (profile.membership && profile.membership !== 'free')) : Boolean(propIsPremiumVerified);
 
-  const iconSizes = {
-    sm: 'w-3.5 h-3.5',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5'
-  };
+  if (!isVerified && !isFaceVerified && !isIdVerified && !isPhotoVerified && !isPremiumVerified) {
+    return null;
+  }
 
   const textSizes = {
-    sm: 'text-[10px]',
-    md: 'text-xs',
-    lg: 'text-sm'
+    sm: 'text-[10px] px-1.5 py-0.5',
+    md: 'text-xs px-2 py-0.5',
+    lg: 'text-sm px-2.5 py-1'
   };
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 font-bold ${className}`}
-      title={isFaceVerified ? "फेस ऑथेंटिकेशन द्वारे पडताळणीकृत प्रोफाईल (Verified Face)" : "पडताळणीकृत प्रोफाईल (Verified Profile)"}
-    >
-      <span className="relative inline-flex items-center justify-center text-blue-600">
-        <CheckCircle2 className={`${iconSizes[size]} fill-blue-600 text-white drop-shadow-sm`} />
-        {isFaceVerified && (
-          <span className="absolute -top-1 -right-1 flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-          </span>
-        )}
-      </span>
-      {showLabel && (
-        <span className={`px-1.5 py-0.5 rounded-full ${isFaceVerified ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'} font-bold ${textSizes[size]} inline-flex items-center gap-1`}>
-          {isFaceVerified ? (
-            <>
-              <ShieldCheck className="w-3 h-3 text-blue-600" />
-              <span>फेस व्हेरिफाइड</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-3 h-3 text-emerald-600" />
-              <span>व्हेरिफाइड</span>
-            </>
-          )}
+    <div className={`inline-flex items-center flex-wrap gap-1 ${className}`}>
+      {/* ID Verified Badge */}
+      {isIdVerified && (
+        <span className={`rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold ${textSizes[size]} inline-flex items-center gap-1 shadow-2xs`}>
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span>{showLabel ? 'ID प्रमाणित' : ''}</span>
         </span>
       )}
-    </span>
+
+      {/* Photo / Face Verified Badge */}
+      {(isPhotoVerified || isFaceVerified) && (
+        <span className={`rounded-full bg-blue-50 text-blue-800 border border-blue-300 font-bold ${textSizes[size]} inline-flex items-center gap-1 shadow-2xs`}>
+          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span>{showLabel ? 'फोटो प्रमाणित' : ''}</span>
+        </span>
+      )}
+
+      {/* Premium Member Badge */}
+      {isPremiumVerified && (
+        <span className={`rounded-full bg-amber-50 text-amber-900 border border-amber-300 font-bold ${textSizes[size]} inline-flex items-center gap-1 shadow-2xs`}>
+          <Award className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          <span>{showLabel ? 'प्रीमियम' : ''}</span>
+        </span>
+      )}
+
+      {/* General Verified Profile Badge */}
+      {isVerified && !isIdVerified && !isPhotoVerified && (
+        <span className={`rounded-full bg-purple-50 text-purple-800 border border-purple-300 font-bold ${textSizes[size]} inline-flex items-center gap-1 shadow-2xs`}>
+          <Sparkles className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+          <span>{showLabel ? 'प्रमाणित' : ''}</span>
+        </span>
+      )}
+    </div>
   );
 };

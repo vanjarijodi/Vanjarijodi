@@ -159,6 +159,7 @@ export const INITIAL_SITE_CONFIG: any = {
   blockContactSharingInChat: true,
   showDistrictFilter: true,
   showProfilesOnIndexPage: true,
+  hideEmptyProfilesSection: false,
   blurProfilePhotos: false,
   photoBlurPercent: 30,
   blurProfileNames: false,

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Camera, ShieldCheck, CheckCircle2, Sparkles, RefreshCw, AlertCircle, Upload, ScanFace } from 'lucide-react';
+import { X, Camera, ShieldCheck, CheckCircle2, Sparkles, RefreshCw, AlertCircle, ScanFace, Lock } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 interface FaceVerificationModalProps {
@@ -29,6 +29,8 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
       setScanProgress(0);
       setVerificationResult(null);
       setCameraError(null);
+    } else {
+      startCamera();
     }
   }, [isOpen]);
 
@@ -45,7 +47,7 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
       }
     } catch (err) {
       console.error('Camera access error:', err);
-      setCameraError('कॅमेरा ॲक्सेस उपलब्ध नाही. कृपया फाइलवरून फोटो अपलोड करा किंवा परवानगी द्या.');
+      setCameraError('थेट कॅमेरा ॲक्सेस मिळवता आला नाही. कृपया ब्राऊझर कॅमेरा परवानगी (Permissions) चालू करा. लाईव्ह कॅमेरा अनिवार्य आहे.');
     }
   };
 
@@ -73,18 +75,6 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setCapturedImage(reader.result as string);
-        stopCamera();
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleStartScan = () => {
     if (!capturedImage) return;
     setIsScanning(true);
@@ -98,7 +88,6 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
           const calculatedScore = Math.floor(Math.random() * 8) + 91; // 91% to 98%
           setVerificationResult({ score: calculatedScore, success: true });
           
-          // Submit face verification log
           if (currentUser) {
             submitFaceVerification({
               userId: currentUser.id,
@@ -130,8 +119,8 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
               <ScanFace className="w-6 h-6 text-amber-300" />
             </div>
             <div>
-              <h3 className="font-black text-lg sm:text-xl text-amber-100">AI चेहरा ऑथेंटिकेशन (Face Verification)</h3>
-              <p className="text-xs text-amber-200/80">ब्लू टिक (Verified Badge) साठी चेहरा स्कॅन करा</p>
+              <h3 className="font-black text-lg sm:text-xl text-amber-100">AI स्ट्रिक्ट लाईव्ह कॅमेरा ऑथेंटिकेशन</h3>
+              <p className="text-xs text-amber-200/80">ब्लू टिक (Verified Badge) साठी थेट कॅमेरा वापरणे बंधनकारक आहे</p>
             </div>
           </div>
           <button
@@ -157,13 +146,13 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
                 </span>
                 <h4 className="text-2xl font-black text-slate-800">अभिनंदन! चेहरा यशस्वीरित्या पडताळला गेला</h4>
                 <p className="text-sm text-slate-600 max-w-sm mx-auto">
-                  तुमच्या प्रोफाईलवर आता <strong className="text-blue-600">ब्लू टिक (Verified Badge)</strong> सक्रिय करण्यात आला आहे.
+                  तुमच्या प्रोफाईलवर आता <strong className="text-blue-600">फोटो प्रमाणित (Photo Verified)</strong> बॅज सक्रिय झाला आहे.
                 </p>
               </div>
 
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center gap-2 text-blue-900 text-sm font-bold">
                 <ShieldCheck className="w-5 h-5 text-blue-600" />
-                <span>तुमचे प्रोफाईल आता अधिक विश्वासार्ह व पसंतीस पात्र आहे.</span>
+                <span>तुमचे प्रोफाईल आता सुरक्षित व प्रमाणित मानले जाईल.</span>
               </div>
 
               <button
@@ -178,7 +167,7 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
             <div className="space-y-5">
               
               {/* Photo Display / Camera Viewport */}
-              <div className="relative w-full h-72 bg-slate-900 rounded-2xl overflow-hidden border-2 border-slate-200 flex items-center justify-center group">
+              <div className="relative w-full h-72 bg-slate-950 rounded-2xl overflow-hidden border-2 border-slate-300 flex items-center justify-center group shadow-inner">
                 
                 {capturedImage ? (
                   /* Captured Image View */
@@ -191,9 +180,8 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
                         <div className="w-48 h-48 border-2 border-dashed border-blue-400 rounded-full animate-spin relative flex items-center justify-center">
                           <div className="w-32 h-32 border-2 border-blue-300 rounded-full animate-ping opacity-50"></div>
                         </div>
-                        {/* Scanning beam */}
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_15px_#3b82f6] animate-bounce"></div>
-                        <div className="absolute bottom-4 bg-black/70 px-4 py-1.5 rounded-full text-white text-xs font-bold flex items-center gap-2">
+                        <div className="absolute bottom-4 bg-black/80 px-4 py-1.5 rounded-full text-white text-xs font-bold flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
                           <span>AI चेहरा ओळखत आहे... {scanProgress}%</span>
                         </div>
@@ -201,49 +189,52 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
                     )}
                   </div>
                 ) : cameraActive ? (
-                  /* Live Camera View */
-                  <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                  /* Live Camera View with Face Oval Guide */
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    
+                    {/* Oval Face Guide Overlay */}
+                    <div className="absolute w-48 h-60 border-2 border-dashed border-amber-400 rounded-[50%] pointer-events-none flex flex-col items-center justify-center bg-transparent shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]">
+                      <div className="w-full h-0.5 bg-amber-400/50"></div>
+                      <span className="text-[10px] text-amber-300 font-bold bg-black/60 px-2 py-0.5 rounded-full mt-2">
+                        चेहरा येथे ठेवा
+                      </span>
+                    </div>
+                  </div>
                 ) : (
                   /* Placeholder */
                   <div className="text-center p-6 text-slate-400 space-y-3">
                     <Camera className="w-12 h-12 mx-auto text-slate-500 stroke-1" />
-                    <p className="text-sm font-medium">लाइव्ह कॅमेरा सुरू करा किंवा तुमचा स्पष्ट चेहरा असलेला फोटो अपलोड करा</p>
-                  </div>
-                )}
-
-                {/* Face Frame Box */}
-                {!capturedImage && (
-                  <div className="absolute w-44 h-56 border-2 border-amber-400/80 rounded-3xl pointer-events-none flex items-center justify-center">
-                    <div className="w-full h-0.5 bg-amber-400/40"></div>
+                    <p className="text-sm font-medium">लाइव्ह कॅमेरा सुरू होत आहे...</p>
                   </div>
                 )}
               </div>
 
               {/* Camera Error Message if any */}
               {cameraError && (
-                <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl flex items-center gap-2 border border-red-200">
+                <div className="p-3.5 bg-red-50 text-red-700 text-xs rounded-xl flex items-center gap-2 border border-red-200">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{cameraError}</span>
                 </div>
               )}
 
+              {/* Strict Notice: No File Browsing */}
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 flex items-center gap-2 font-bold">
+                <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+                <span>गॅलरीतून फोटो जोडणे पूर्णपणे बंद केले आहे. फक्त थेट कॅमेऱ्याने फोटो घेणे आवश्यक आहे.</span>
+              </div>
+
               {/* Actions */}
               {!capturedImage ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="w-full">
                   <button
                     type="button"
                     onClick={cameraActive ? capturePhoto : startCamera}
-                    className="py-3 px-4 bg-[#A71930] hover:bg-[#800C1E] text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all text-sm"
+                    className="w-full py-3.5 px-4 bg-[#A71930] hover:bg-[#800C1E] text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all text-sm active:scale-95"
                   >
-                    <Camera className="w-4 h-4" />
-                    <span>{cameraActive ? 'फोटो घ्या (Capture)' : 'कॅमेरा सुरू करा'}</span>
+                    <Camera className="w-5 h-5 text-amber-300" />
+                    <span>{cameraActive ? 'फोटो घ्या (Capture Photo)' : 'कॅमेरा सुरू करा'}</span>
                   </button>
-
-                  <label className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl flex items-center justify-center gap-2 border border-slate-300 cursor-pointer transition-all text-sm">
-                    <Upload className="w-4 h-4 text-slate-600" />
-                    <span>फोटो अपलोड करा</span>
-                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                  </label>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
@@ -272,16 +263,6 @@ export const FaceVerificationModal: React.FC<FaceVerificationModalProps> = ({ is
                   </button>
                 </div>
               )}
-
-              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1">
-                <p className="font-bold flex items-center gap-1 text-amber-950">
-                  <ShieldCheck className="w-4 h-4 text-amber-700" />
-                  <span>सुरक्षितता आणि गोपनीयता टीप:</span>
-                </p>
-                <p className="text-slate-600 leading-relaxed">
-                  तुमचा फोटो फक्त तुमच्या प्रोफाइलचा चेहरा जुळवण्यासाठी वापरला जातो. पडताळणी पूर्ण झाल्यावर तुम्हाला तात्काळ ब्लू टिक बॅज मिळतो.
-                </p>
-              </div>
 
             </div>
           )}

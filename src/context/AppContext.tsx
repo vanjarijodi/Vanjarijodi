@@ -32,7 +32,8 @@ import {
   PayPerContactRequest,
   GuestSessionLog,
   UserActivityLog,
-  ProfileRemovalRequest
+  ProfileRemovalRequest,
+  ProfileReport
 } from '../types';
 import {
   INITIAL_PROFILES,
@@ -299,6 +300,14 @@ interface AppContextType {
   uploadAadhaarCard: (profileId: string, aadhaarUrl: string) => void;
   updateProfileDirect: (profileId: string, updatedFields: Partial<UserProfile>) => void;
   incrementProfileViews: (profileId: string) => void;
+
+  // Profile Reports & Privacy Controls
+  profileReports: ProfileReport[];
+  submitProfileReport: (report: ProfileReport) => void;
+  resolveProfileReport: (reportId: string, action: 'warning' | 'hide' | 'suspend' | 'dismiss') => void;
+  updateMemberPrivacy: (profileId: string, newPrivacy: UserProfile['privacy'], notifyMember?: boolean) => void;
+  updateMemberBadges: (profileId: string, badges: { isIdVerified?: boolean; isPhotoVerified?: boolean; isPremiumVerified?: boolean; isVerified?: boolean }) => void;
+  resetSampleProfiles: () => void;
 }
 
 const defaultSearchFilters: SearchFilterState = {
@@ -2260,6 +2269,96 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  // Profile Reports State
+  const [profileReports, setProfileReports] = useState<ProfileReport[]>(() => {
+    const saved = localStorage.getItem('vanjari_jodi_profile_reports');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('vanjari_jodi_profile_reports', JSON.stringify(profileReports));
+  }, [profileReports]);
+
+  const submitProfileReport = (report: ProfileReport) => {
+    setProfileReports((prev) => [report, ...prev]);
+    logActivity('profile_reported', `प्रोफाईल तक्रार दाखल: ${report.reportedProfileName} (${report.categoryLabel})`);
+    addNotification({
+      userId: 'admin',
+      title: 'New Profile Report',
+      titleMr: 'नवीन प्रोफाईल तक्रार प्राप्त झाली!',
+      message: `${report.reporterUserName} reported profile ${report.reportedProfileName}`,
+      messageMr: `${report.reporterUserName} यांनी ${report.reportedProfileName} बद्दल तक्रार दाखल केली आहे.`,
+      type: 'system',
+    });
+  };
+
+  const resolveProfileReport = (reportId: string, action: 'warning' | 'hide' | 'suspend' | 'dismiss') => {
+    setProfileReports((prev) =>
+      prev.map((r) => (r.id === reportId ? { ...r, status: 'resolved', resolvedAction: action } : r))
+    );
+
+    const targetReport = profileReports.find((r) => r.id === reportId);
+    if (targetReport) {
+      if (action === 'hide' || action === 'suspend') {
+        toggleBlockProfile(targetReport.reportedProfileId);
+      }
+    }
+
+    logActivity('profile_report_resolved', `तक्रार निरसन केले ID: ${reportId} (कृती: ${action})`);
+  };
+
+  const updateMemberPrivacy = (
+    profileId: string,
+    newPrivacy: UserProfile['privacy'],
+    notifyMember = false
+  ) => {
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id === profileId) {
+          return { ...p, privacy: { ...p.privacy, ...newPrivacy } };
+        }
+        return p;
+      })
+    );
+
+    if (currentUser?.id === profileId) {
+      setCurrentUser((prev) => (prev ? { ...prev, privacy: { ...prev.privacy, ...newPrivacy } } : null));
+    }
+
+    logActivity('member_privacy_updated', `प्रायव्हसी सेटिंग्ज अद्ययावत केले (प्रोफाईल: ${profileId})`);
+
+    if (notifyMember) {
+      addNotification({
+        userId: profileId,
+        title: 'Privacy Settings Updated',
+        titleMr: 'तुमची प्रायव्हसी / गोपनीयता सेटिंग बदलली आहे',
+        message: 'Admin or you updated profile privacy controls.',
+        messageMr: 'ॲडमिन / तुमच्याद्वारे प्रोफाईल गोपनीयता सेटिंग्ज यशस्वीरीत्या बदलण्यात आल्या आहेत.',
+        type: 'system',
+      });
+    }
+  };
+
+  const updateMemberBadges = (
+    profileId: string,
+    badges: { isIdVerified?: boolean; isPhotoVerified?: boolean; isPremiumVerified?: boolean; isVerified?: boolean }
+  ) => {
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id === profileId) {
+          return { ...p, ...badges };
+        }
+        return p;
+      })
+    );
+
+    if (currentUser?.id === profileId) {
+      setCurrentUser((prev) => (prev ? { ...prev, ...badges } : null));
+    }
+
+    logActivity('member_badges_updated', `सदस्य व्हेरिफिकेशन बॅज अद्ययावत केले (${profileId})`);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -2447,6 +2546,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         uploadAadhaarCard,
         updateProfileDirect,
         incrementProfileViews,
+        profileReports,
+        submitProfileReport,
+        resolveProfileReport,
+        updateMemberPrivacy,
+        updateMemberBadges,
+        resetSampleProfiles: () => {
+          setProfiles(INITIAL_PROFILES);
+          localStorage.setItem('vanjari_jodi_profiles', JSON.stringify(INITIAL_PROFILES));
+        },
       }}
     >
       {children}

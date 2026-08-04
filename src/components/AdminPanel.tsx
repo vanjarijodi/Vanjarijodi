@@ -227,6 +227,7 @@ export const AdminPanel: React.FC<{
     toggleBlockMemberAccess,
     toggleCustomAccess,
     adminSuggestMatch,
+    resetSampleProfiles,
   } = useApp();
 
   const [adminUsername, setAdminUsername] = useState('');
@@ -3658,6 +3659,90 @@ export const AdminPanel: React.FC<{
                       >
                         {siteConfig?.showDistrictFilter !== false ? 'चालू' : 'बंद'}
                       </button>
+                    </div>
+
+                    {/* 🎯 MAIN HOMEPAGE RECENT PROFILES LISTING TOGGLE CARD */}
+                    <div className="p-4 bg-amber-100/90 rounded-2xl border-2 border-amber-400 space-y-3 col-span-full shadow-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-300 pb-2">
+                        <div>
+                          <h5 className="font-extrabold text-[#A71930] text-xs sm:text-sm flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" />
+                            <span>मुख्य पानावर वधू-वर यादी (Recent Profiles) दाखवणे/लपवणे:</span>
+                          </h5>
+                          <p className="text-[11px] text-slate-700 font-medium">
+                            मुख्य होमपेजवर 'वंजारी वधू-वर यादी' (Recent Profiles Section) दिसावी की लपवावी ते नियंत्रित करा.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateSiteConfig({
+                              showProfilesOnIndexPage: !(siteConfig?.showProfilesOnIndexPage !== false),
+                            })
+                          }
+                          className={`px-4 py-2 rounded-xl text-xs font-black cursor-pointer shadow-md transition-all border ${
+                            siteConfig?.showProfilesOnIndexPage !== false
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-400'
+                              : 'bg-rose-700 hover:bg-rose-800 text-white border-rose-400'
+                          }`}
+                        >
+                          {siteConfig?.showProfilesOnIndexPage !== false
+                            ? '✅ मुख्य पानावर दाखवले आहे (ON)'
+                            : '❌ मुख्य पानावरून लपवले (OFF)'}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div className="p-3 bg-white rounded-xl border border-amber-200 flex items-center justify-between">
+                          <div>
+                            <span className="block text-slate-900 text-xs font-bold">
+                              प्रोफाईल्स नसताना (0 Profiles) विभाग लपवा:
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              कोणताही बायोडाटा उपलब्ध नसल्यास रिक्त कार्ड लपवेल
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateSiteConfig({
+                                hideEmptyProfilesSection: !siteConfig?.hideEmptyProfilesSection,
+                              })
+                            }
+                            className={`px-3 py-1 rounded-full text-[10px] font-black cursor-pointer ${
+                              siteConfig?.hideEmptyProfilesSection
+                                ? 'bg-amber-600 text-white'
+                                : 'bg-slate-300 text-slate-700'
+                            }`}
+                          >
+                            {siteConfig?.hideEmptyProfilesSection ? 'लपवेल (ON)' : 'दाखवेल (OFF)'}
+                          </button>
+                        </div>
+
+                        <div className="p-3 bg-white rounded-xl border border-amber-200 flex items-center justify-between">
+                          <div>
+                            <span className="block text-slate-900 text-xs font-bold">
+                              नमुना वधू-वर बायोडाटा (Sample Profiles):
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              पब्लिक व्ह्यूसाठी ५ प्रातिनिधिक बायोडाटा रीलोड करा
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm('तुम्ही सुरुवातीचे नमुना बायोडाटा पुन्हा लोड करू इच्छिता का?')) {
+                                resetSampleProfiles();
+                                alert('🎉 नमुना वधू-वर बायोडाटा यशस्वीरित्या रीलोड केले गेले!');
+                              }
+                            }}
+                            className="px-3 py-1 bg-amber-200 hover:bg-amber-300 text-[#800C1E] rounded-xl text-[10px] font-black cursor-pointer border border-amber-400"
+                          >
+                            🔄 रीलोड करा
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

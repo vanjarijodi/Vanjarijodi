@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { UserProfile } from '../types';
 import { PrintBiodataModal } from './PrintBiodataModal';
+import { ReportProfileModal } from './ReportProfileModal';
 import { VerifiedBadge } from './VerifiedBadge';
 import {
   X,
   ShieldCheck,
+  ShieldAlert,
   Heart,
   PhoneCall,
   MessageCircle,
@@ -63,6 +65,7 @@ export const ProfileDetailModal: React.FC<{
     return parts.join(', ');
   };
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   React.useEffect(() => {
@@ -103,6 +106,15 @@ export const ProfileDetailModal: React.FC<{
               </h2>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-red-800/80 hover:bg-red-900 text-amber-200 text-xs font-bold flex items-center gap-1.5 border border-red-400/50 transition-all"
+                title="तक्रार करा"
+              >
+                <ShieldAlert className="w-4 h-4 text-amber-300" />
+                <span className="hidden sm:inline">तक्रार नोंदवा</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setIsPrintModalOpen(true)}
@@ -564,6 +576,15 @@ export const ProfileDetailModal: React.FC<{
         <PrintBiodataModal
           profile={profile}
           onClose={() => setIsPrintModalOpen(false)}
+        />
+      )}
+
+      {/* Report Profile Modal */}
+      {isReportModalOpen && (
+        <ReportProfileModal
+          isOpen={isReportModalOpen}
+          profile={profile}
+          onClose={() => setIsReportModalOpen(false)}
         />
       )}
 

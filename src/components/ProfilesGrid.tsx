@@ -53,6 +53,16 @@ export const ProfilesGrid: React.FC<{
     return `${district}, ${city}`;
   };
 
+  // Check Admin Settings: Hide entire section if disabled by admin
+  if (siteConfig?.showProfilesOnIndexPage === false) {
+    return null;
+  }
+
+  // Hide empty section if admin configured hideEmptyProfilesSection and there are 0 profiles
+  if (siteConfig?.hideEmptyProfilesSection && filteredProfiles.length === 0) {
+    return null;
+  }
+
   const displayedProfiles = filteredProfiles.filter((p) => {
     if (activeTab === 'bride') return p.gender === 'bride';
     if (activeTab === 'groom') return p.gender === 'groom';
@@ -130,10 +140,28 @@ export const ProfilesGrid: React.FC<{
 
         {/* Profiles Grid */}
         {displayedProfiles.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-amber-200 p-8 shadow-sm">
-            <p className="text-slate-500 font-semibold mb-2 text-base">
-              {language === 'mr' ? 'कोणतेही जुळणारे प्रोफाईल आढळले नाहीत.' : 'No profiles found.'}
+          <div className="text-center py-12 px-6 bg-gradient-to-b from-amber-50/50 to-white rounded-3xl border-2 border-amber-200 p-8 shadow-sm max-w-2xl mx-auto space-y-4">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-[#A71930] border border-amber-300">
+              <User className="w-8 h-8 text-[#A71930]" />
+            </div>
+            <h3 className="text-lg font-black text-[#A71930]">
+              {language === 'mr' ? 'कोणतेही जुळणारे प्रोफाईल आढळले नाहीत' : 'No matching profiles found.'}
+            </h3>
+            <p className="text-slate-600 font-medium text-xs sm:text-sm leading-relaxed">
+              {language === 'mr'
+                ? 'सध्या प्रणालीत या श्रेणीमध्ये कोणतेही बायोडाटा उपलब्ध नाहीत किंवा सर्च फिल्टरनुसार शोध लागला नाही.'
+                : 'Currently there are no profiles available in this category or matching your search filter.'}
             </p>
+            <div className="p-3 bg-amber-100/70 rounded-2xl border border-amber-300 text-xs text-amber-900 font-bold flex flex-col sm:flex-row items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-[#A71930] shrink-0" />
+                <span>
+                  {language === 'mr'
+                    ? 'ॲडमिन टीप: मुख्य पानावरून हा विभाग दाखवणे/लपवणे ॲडमिन पॅनेलमध्ये शक्य आहे.'
+                    : 'Admin Note: Show/hide this section on index page via Admin Panel settings.'}
+                </span>
+              </span>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

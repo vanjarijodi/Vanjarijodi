@@ -79,9 +79,13 @@ export interface UserProfile {
   photos: string[];
   horoscopeUrl?: string;
   aadhaarVerified: boolean;
+  isIdVerified?: boolean;
+  isPhotoVerified?: boolean;
+  isPremiumVerified?: boolean;
   isFaceVerified?: boolean;
   faceVerifiedAt?: string;
   idProofUrl?: string;
+  idVerificationNumber?: string; // Optional Govt ID / Aadhaar Number
   isVerified: boolean;
   isFeatured: boolean;
   isApproved: boolean;
@@ -92,7 +96,12 @@ export interface UserProfile {
   privacy: {
     hideContact: boolean;
     hidePhoto: boolean;
+    contactVisibility?: 'visible_to_all' | 'visible_to_verified_only' | 'hidden';
+    photoVisibility?: 'visible_to_all' | 'visible_to_verified_only' | 'hidden';
+    biodataVisibility?: 'visible_to_all' | 'visible_to_verified_only' | 'hidden';
   };
+  completionPercentage?: number;
+  pendingUpdates?: Partial<UserProfile>;
   registrationType?: 'manual' | 'ocr_ai' | 'admin_direct';
   isRegisteredByAdmin?: boolean;
   isChatBlocked?: boolean;
@@ -102,6 +111,22 @@ export interface UserProfile {
   viewsCount?: number;
   pendingPhotoApproval?: boolean;
   aadhaarCardUrl?: string;
+}
+
+export interface ProfileReport {
+  id: string;
+  reporterUserId: string;
+  reporterUserName: string;
+  reporterUserMobile?: string;
+  reportedProfileId: string;
+  reportedProfileName: string;
+  reportedProfileMobile?: string;
+  category: 'fake_abusive' | 'misleading_info' | 'financial_fraud' | 'unauthorized_photos' | 'unprofessional_behavior' | 'other';
+  categoryLabel: string;
+  description: string;
+  proofImageUrl?: string;
+  createdAt: string;
+  status: 'pending' | 'warning_sent' | 'hidden' | 'suspended' | 'dismissed';
 }
 
 export interface ProfileRemovalRequest {
@@ -327,6 +352,8 @@ export interface AuditLog {
   details: string;
   user: string;
   timestamp: string;
+  affectedProfileId?: string;
+  affectedProfileName?: string;
 }
 
 export interface FaceVerificationLog {
@@ -447,6 +474,7 @@ export interface SiteConfig {
   blockContactSharingInChat?: boolean;
   showDistrictFilter?: boolean;
   showProfilesOnIndexPage?: boolean;
+  hideEmptyProfilesSection?: boolean;
   blurProfilePhotos?: boolean;
   photoBlurPercent?: number;
   blurProfileNames?: boolean;
