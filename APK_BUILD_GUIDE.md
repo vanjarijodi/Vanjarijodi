@@ -31,7 +31,7 @@
 ---
 
 ## ⚡ GitHub Action Workflow Details
-The automated build file is placed at: `.github/workflows/android-build.yml`
+The automated build file is placed at: `.github/workflows/android.yml`
 - Node.js 20 & Java JDK 17
 - Automated `npm run build` + `npx cap sync android`
 - Gradle build output: `android/app/build/outputs/apk/debug/app-debug.apk`

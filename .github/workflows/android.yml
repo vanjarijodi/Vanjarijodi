@@ -57,10 +57,10 @@ jobs:
       - name: Build Android Debug APK
         run: |
           cd android
-          echo "Attempting build using the local Gradle Wrapper..."
-          ./gradlew assembleDebug --no-daemon --stacktrace || {
-            echo "Local Gradle Wrapper build failed. Falling back to global Gradle 8.8..."
-            gradle assembleDebug --no-daemon --stacktrace
+          echo "Building using pre-installed global Gradle to maximize speed and stability..."
+          gradle assembleDebug --no-daemon --stacktrace || {
+            echo "Global Gradle build failed. Falling back to local Gradle Wrapper..."
+            ./gradlew assembleDebug --no-daemon --stacktrace
           }
 
       - name: Upload APK Artifact
