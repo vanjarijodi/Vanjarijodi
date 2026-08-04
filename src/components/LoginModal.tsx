@@ -50,7 +50,21 @@ export const LoginModal: React.FC<{
   const handleVerifyMemberOtpLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (memberOtpInput === '123456' || memberOtpInput.length === 6) {
-      const match = profiles.find((p) => p.mobile.includes(memberMobile) || p.gender === 'bride') || profiles[0];
+      const cleanInput = memberMobile.replace(/\D/g, '');
+      const match = profiles.find((p) => {
+        const cleanP = (p.mobile || '').replace(/\D/g, '');
+        return (cleanInput && cleanP.includes(cleanInput)) || (p.email && p.email.toLowerCase() === memberMobile.trim().toLowerCase());
+      });
+
+      if (!match) {
+        alert(
+          language === 'mr'
+            ? 'या मोबाईल नंबरची किंवा ई-मेलची नोंदणी सापडली नाही! कृपया आधी "मोफत नोंदणी" फॉर्म भरा.'
+            : 'No registered user found with this mobile/email. Please register first.'
+        );
+        return;
+      }
+
       if (match.isBlocked) {
         alert(language === 'mr' ? '🚫 क्षमस्व! तुमचे अकाऊंट ॲडमिनद्वारे ब्लॉक करण्यात आले आहे. कृपया अधिक माहितीसाठी ॲडमिनशी संपर्क साधा.' : 'Your account has been blocked by Admin.');
         return;
@@ -59,7 +73,7 @@ export const LoginModal: React.FC<{
       alert(language === 'mr' ? `सस्नेह नमस्कार ${match.fullName}! हयात सदस्य लॉगिन यशस्वी झाले.` : `Welcome ${match.fullName}! Login successful.`);
       onClose();
     } else {
-      alert(language === 'mr' ? 'चुकीचा OTP! कृपया बरोबर OTP प्रविष्ट करा (डेमो OTP: 123456)' : 'Invalid OTP! Use 123456');
+      alert(language === 'mr' ? 'चुकीचा OTP! कृपया बरोबर OTP प्रविष्ट करा' : 'Invalid OTP!');
     }
   };
 
@@ -70,7 +84,21 @@ export const LoginModal: React.FC<{
       alert(language === 'mr' ? 'मोबाईल नंबर किंवा ई-मेल टाका.' : 'Enter Mobile or Email.');
       return;
     }
-    const match = profiles.find((p) => p.mobile.includes(memberMobile)) || profiles[0];
+    const cleanInput = memberMobile.replace(/\D/g, '');
+    const match = profiles.find((p) => {
+      const cleanP = (p.mobile || '').replace(/\D/g, '');
+      return (cleanInput && cleanP.includes(cleanInput)) || (p.email && p.email.toLowerCase() === memberMobile.trim().toLowerCase());
+    });
+
+    if (!match) {
+      alert(
+        language === 'mr'
+          ? 'या मोबाईल नंबरची किंवा ई-मेलची नोंदणी सापडली नाही! कृपया आधी "मोफत नोंदणी" फॉर्म भरा.'
+          : 'No registered user found with this mobile/email. Please register first.'
+      );
+      return;
+    }
+
     if (match.isBlocked) {
       alert(language === 'mr' ? '🚫 क्षमस्व! तुमचे अकाऊंट ॲडमिनद्वारे ब्लॉक करण्यात आले आहे. कृपया अधिक माहितीसाठी ॲडमिनशी संपर्क साधा.' : 'Your account has been blocked by Admin.');
       return;

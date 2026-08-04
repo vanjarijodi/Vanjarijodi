@@ -367,8 +367,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return null;
       }
     }
-    // Default to first profile as logged in member for testing experience
-    return INITIAL_PROFILES[0];
+    // Default to null so new visitors start as guests until they log in or register
+    return null;
   });
 
   useEffect(() => {

@@ -196,8 +196,8 @@ export const AdminPanel: React.FC<{
     adminSuggestMatch,
   } = useApp();
 
-  const [adminUsername, setAdminUsername] = useState('admin');
-  const [adminPassword, setAdminPassword] = useState('admin123');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [adminLoginError, setAdminLoginError] = useState('');
 
   // Active Admin Tab State
@@ -416,7 +416,7 @@ export const AdminPanel: React.FC<{
       return;
     }
 
-    setAdminLoginError('अवैध युझरनेम किंवा पासवर्ड! (उदा. admin / admin123 किंवा सब-ॲडमिन क्रेडेन्शियल्स)');
+    setAdminLoginError('अवैध युझरनेम किंवा पासवर्ड!');
   };
 
   if (!isAdminLoggedIn) {
@@ -462,7 +462,7 @@ export const AdminPanel: React.FC<{
               <label className="block text-slate-800 mb-1">संकेतशब्द (Password)</label>
               <input
                 type="password"
-                placeholder="admin123"
+                placeholder="••••••••"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 className="w-full bg-white border-2 border-amber-200 rounded-xl px-3.5 py-2.5 text-slate-900 outline-none focus:border-[#A71930]"
