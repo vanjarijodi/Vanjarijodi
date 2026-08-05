@@ -91,6 +91,8 @@ interface AppContextType {
   setIsFilterOpen: (open: boolean) => void;
   isLoginOpen: boolean;
   setIsLoginOpen: (open: boolean) => void;
+  loginModalMode: 'member_otp' | 'member_pass' | 'guest';
+  setLoginModalMode: (mode: 'member_otp' | 'member_pass' | 'guest') => void;
   isRegisterOpen: boolean;
   setIsRegisterOpen: (open: boolean) => void;
   registrationStep: 'selector' | 'manual' | 'ocr_photo';
@@ -873,6 +875,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'profiles'>('home');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [loginModalMode, setLoginModalMode] = useState<'member_otp' | 'member_pass' | 'guest'>('member_otp');
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [selectedProfileForModal, setSelectedProfileForModal] = useState<UserProfile | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -904,9 +907,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           noticeBannerText: parsed.noticeBannerText || defaultText,
           noticeBannerBg: parsed.noticeBannerBg || 'crimson',
           heroHeading: parsed.heroHeading && !parsed.heroHeading.includes('सुसंस्कृत') ? parsed.heroHeading : 'वंजारी समाजातील वधू-वर शोधा',
-          heroSubheading: 'संत भगवान बाबा यांच्या आशीर्वादाने स्थापित मनपसंत आणि विश्वासू वंजारी विवाह मंच',
+          heroSubheading: 'संत भगवान बाबा यांच्या आशीर्वादाने स्थापित - पवित्र नात्यांची सुंदर सुरुवात',
           heroDescription: 'हजारो विश्वासू वंजारी कुटुंब जोडणारा महाराष्ट्रातील नंबर १ विवाह मंच',
-          logoSubtitle: 'विश्वासार्ह वंजारी विवाह मंच'
+          logoSubtitle: 'पवित्र नात्यांची सुंदर सुरुवात'
         };
       } catch (e) {
         return {
@@ -2395,6 +2398,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsFilterOpen,
         isLoginOpen,
         setIsLoginOpen,
+        loginModalMode,
+        setLoginModalMode,
         isRegisterOpen,
         setIsRegisterOpen,
         registrationStep,

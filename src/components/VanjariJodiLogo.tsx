@@ -15,14 +15,14 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
   themeColor = 'saffron',
   showSubtitle = true,
 }) => {
-  const renderSVGEmblem = () => (
+  const renderSVGEmblem = (extraClass = '') => (
     <svg
       viewBox="-20 -20 240 240"
       width={size}
       height={size}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`inline-block shrink-0 ${className}`}
+      className={`inline-block shrink-0 ${extraClass} ${className}`}
     >
       <defs>
         {/* Royal Saffron & Deep Maroon Gradients */}
@@ -208,14 +208,14 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
   );
 
   if (variant === 'emblem') {
-    return renderSVGEmblem();
+    return renderSVGEmblem('w-10 h-10 sm:w-[50px] sm:h-[50px]');
   }
 
   if (variant === 'stacked') {
     return (
       <div className={`flex flex-col items-center text-center space-y-2 ${className}`}>
         <div className="relative transform hover:scale-105 transition-transform duration-300">
-          {renderSVGEmblem()}
+          {renderSVGEmblem('w-20 h-20 sm:w-[100px] sm:h-[100px]')}
           <div className="absolute -bottom-1 -right-1 bg-amber-400 text-[#800C1E] text-[8px] font-black px-2 py-0.5 rounded-full shadow-md border border-white uppercase tracking-wider">
             १००% मोफत
           </div>
@@ -223,12 +223,12 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
 
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-1.5">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#800C1E] drop-shadow-sm">
+            <span className="text-xl sm:text-3xl font-black tracking-tight text-[#800C1E] drop-shadow-sm">
               वंजारी जोडी
             </span>
           </div>
           <span className="text-[10px] sm:text-xs uppercase font-black tracking-widest text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300/80 mt-1">
-            VANJARI JODI MATRIMONY
+            विश्वासू विवाह मंच
           </span>
         </div>
       </div>
@@ -239,28 +239,28 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
   return (
     <div className={`flex items-center gap-2 sm:gap-3.5 ${className}`}>
       <div className="relative shrink-0 transform hover:scale-105 transition-transform duration-300">
-        {renderSVGEmblem()}
-        <span className="absolute -top-1 -left-1 flex h-3.5 w-3.5">
+        {renderSVGEmblem('w-[36px] h-[36px] sm:w-[48px] sm:h-[48px] md:w-[54px] md:h-[54px]')}
+        <span className="absolute -top-1 -left-1 flex h-2 w-2 sm:h-3 sm:w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 bg-amber-500"></span>
         </span>
       </div>
       
       <div className="flex flex-col min-w-0 justify-center">
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           {/* Main Devanagari Title */}
-          <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-[#800C1E] leading-tight whitespace-nowrap drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+          <span className="text-base sm:text-2xl md:text-3xl font-black tracking-tight text-[#800C1E] leading-tight whitespace-nowrap drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
             वंजारी जोडी
           </span>
-          <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 text-[#800C1E] border border-amber-300 font-black uppercase tracking-wider shadow-sm shrink-0 hidden sm:inline-block">
+          <span className="text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 text-[#800C1E] border border-amber-300 font-black uppercase tracking-wider shadow-sm shrink-0 hidden sm:inline-block">
             अधिकृत
           </span>
         </div>
 
         {showSubtitle && (
-          <div className="flex items-center gap-1 min-w-0">
-            <p className="text-[10px] sm:text-xs font-extrabold text-amber-800 leading-none whitespace-nowrap">
-              VANJARI JODI • विश्वासू विवाह मंच
+          <div className="hidden sm:block mt-0.5">
+            <p className="text-[9px] sm:text-xs font-extrabold text-amber-800 leading-none whitespace-nowrap">
+              पवित्र नात्यांची सुंदर सुरुवात
             </p>
           </div>
         )}

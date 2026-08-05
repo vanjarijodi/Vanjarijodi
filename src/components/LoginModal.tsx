@@ -7,12 +7,19 @@ export const LoginModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-  const { t, language, setIsRegisterOpen, setCurrentUser, profiles, setIsAdminOpen, loginAsGuest, siteConfig } = useApp();
+  const { t, language, setIsRegisterOpen, setCurrentUser, profiles, setIsAdminOpen, loginAsGuest, siteConfig, loginModalMode } = useApp();
 
   const isGuestAllowed = siteConfig?.enableGuestLogin !== false;
 
   // Mode: 'member_otp' | 'member_pass' | 'guest'
   const [mode, setMode] = useState<'member_otp' | 'member_pass' | 'guest'>('member_otp');
+
+  // Synchronize modal sub-mode when opened or configured externally
+  React.useEffect(() => {
+    if (isOpen && loginModalMode) {
+      setMode(loginModalMode);
+    }
+  }, [isOpen, loginModalMode]);
 
   // Member Login States
   const [memberMobile, setMemberMobile] = useState('');

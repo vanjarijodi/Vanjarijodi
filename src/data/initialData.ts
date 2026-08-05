@@ -162,7 +162,7 @@ export const INITIAL_HERO_SLIDES: any[] = [
   {
     id: 'slide-1',
     imageUrl: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=1920',
-    title: 'विश्वासार्ह वंजारी विवाह मंच',
+    title: 'पवित्र नात्यांची सुंदर सुरुवात',
     subtitle: 'सत्यापित वधू-वरांची माहिती • सुरक्षित • गोपनीय'
   },
   {
@@ -189,14 +189,14 @@ export const INITIAL_COUNTERS: any[] = [
 export const INITIAL_SITE_CONFIG: any = {
   topBarText: '॥ श्री संत भगवान बाबा प्रसन्न ॥ — संत भगवान बाबा यांच्या आशीर्वादाने',
   logoTitle: 'वंजारी जोडी',
-  logoSubtitle: 'विश्वासार्ह वंजारी विवाह मंच',
+  logoSubtitle: 'पवित्र नात्यांची सुंदर सुरुवात',
   logoUrl: '',
   logoHeight: 52,
   paymentQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=vanjarijodi@upi&pn=VanjariJodi%20Matrimony',
   paymentUpiId: 'vanjarijodi@upi',
   paymentNote: 'PhonePe / Google Pay / Paytm द्वारे क्यूआर कोड स्कॅन करून किंवा UPI ID वर पेमेंट करा व UTR नंबर सादर करा.',
   heroHeading: 'वंजारी समाजातील वधू-वर शोधा',
-  heroSubheading: 'संत भगवान बाबा यांच्या आशीर्वादाने स्थापित मनपसंत आणि विश्वासू वंजारी विवाह मंच',
+  heroSubheading: 'संत भगवान बाबा यांच्या आशीर्वादाने स्थापित - पवित्र नात्यांची सुंदर सुरुवात',
   heroDescription: 'हजारो विश्वासू वंजारी कुटुंब जोडणारा महाराष्ट्रातील नंबर १ विवाह मंच',
   ctaButtonText: 'मोफत नोंदणी करा',
   contactPhone: '+91 98221 00000',
@@ -245,7 +245,7 @@ export const INITIAL_SITE_CONFIG: any = {
   offerModeText: '🎉 विशेष सण ऑफर: सध्या सर्व संपर्क अन-लॉक आणि नोंदणी पूर्णपणे मोफत!',
   disableAllPaymentsInOfferMode: true,
   isNoticeBannerEnabled: true,
-  noticeBannerText: '📢 विशेष ऑफर: वंजारी समाजातील सर्व वधू-वरांसाठी या आठवड्यात मोफत नोंदणी आणि संपर्क अनलॉक सुविधा सुरू आहे!',
+  noticeBannerText: '📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील वधू-वरांसाठी मोफत नोंदणी व संपर्क सुविधा उपलब्ध!',
   noticeBannerBg: 'saffron',
   guestPermissions: {
     viewProfiles: true,
@@ -259,7 +259,7 @@ export const INITIAL_SITE_CONFIG: any = {
   regOption1Icon: '📝',
   regOption2Title: '२. फोटो किंवा PDF द्वारे नोंदणी',
   regOption2Icon: '📁',
-  metaTitle: 'वंजारी जोडी (VanjariJodi) - विश्वासू वंजारी विवाह मंच',
+  metaTitle: 'वंजारी जोडी (VanjariJodi) - पवित्र नात्यांची सुंदर सुरुवात',
   metaDescription: 'वंजारी समाजातील वधू-वरांचे नंबर १ विवाह पोर्टल. संत भगवान बाबा यांच्या आशीर्वादाने.',
   metaKeywords: 'वंजारी जोडी, वंजारी विवाह, Vanjari Jodi, Vanjari Matrimony',
   adminCredentials: {

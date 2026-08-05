@@ -69,7 +69,7 @@ export const FeaturesSection: React.FC = () => {
             वंजारी समाजासाठी <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-amber-200 bg-clip-text text-transparent">सुरक्षित व आधुनिक</span> सेवा
           </h2>
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            विश्वासार्हता, गोपनीयता आणि आधुनिक तंत्रज्ञानाची सांगड घालून तयार केलेले नंबर १ मॅट्रीमोनी पोर्टल.
+            सुरक्षितता, गोपनीयता आणि आधुनिक तंत्रज्ञानाची सांगड घालून तयार केलेले नंबर १ मॅट्रीमोनी पोर्टल.
           </p>
         </div>
 

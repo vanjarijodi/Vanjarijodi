@@ -37,7 +37,7 @@ export const NoticeBanner: React.FC = () => {
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={() => setIsRegisterOpen(true)}
-          className="px-2.5 py-1 bg-white/20 hover:bg-white/30 text-current rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1 border border-current/20 shrink-0 shadow-sm"
+          className="hidden xs:flex px-2.5 py-1 bg-white/20 hover:bg-white/30 text-current rounded-lg text-xs font-black transition cursor-pointer items-center gap-1 border border-current/20 shrink-0 shadow-sm"
         >
           <span>नोंदणी करा</span>
           <ArrowRight className="w-3 h-3" />

@@ -4382,7 +4382,7 @@ export const AdminPanel: React.FC<{
                   <button
                     type="button"
                     onClick={() => {
-                      updateSiteConfig({ logoUrl: '', logoTitle: 'वंजारी जोडी', logoSubtitle: 'विश्वासू वंजारी विवाह मंच', logoHeight: 52 });
+                      updateSiteConfig({ logoUrl: '', logoTitle: 'वंजारी जोडी', logoSubtitle: 'पवित्र नात्यांची सुंदर सुरुवात', logoHeight: 52 });
                       alert('लोगो व शीर्षक मूळ डीफॉल्ट वर रिसेट केले गेले!');
                     }}
                     className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-[#A71930] rounded-xl text-xs font-bold border border-amber-300 flex items-center gap-1 cursor-pointer"
@@ -4450,7 +4450,7 @@ export const AdminPanel: React.FC<{
                         </label>
                         <input
                           type="text"
-                          value={siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'}
+                          value={siteConfig?.logoSubtitle || 'पवित्र नात्यांची सुंदर सुरुवात'}
                           onChange={(e) => updateSiteConfig({ logoSubtitle: e.target.value })}
                           className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 text-xs"
                         />

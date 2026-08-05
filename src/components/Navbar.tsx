@@ -31,7 +31,8 @@ export const Navbar: React.FC<{
     setIsAdminOpen,
     siteConfig,
     setCurrentView,
-    incrementApkDownloadCount
+    incrementApkDownloadCount,
+    setLoginModalMode
   } = useApp();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,7 +69,7 @@ export const Navbar: React.FC<{
               <button
                 onClick={handleApkDownload}
                 title="एंड्रॉइड ॲप (APK) डाउनलोड करा"
-                className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-1 transition-transform active:scale-95 border border-emerald-400 cursor-pointer shrink-0"
+                className="hidden md:flex px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] sm:text-xs font-bold shadow-sm items-center gap-1 transition-transform active:scale-95 border border-emerald-400 cursor-pointer shrink-0"
               >
                 <Smartphone className="w-3.5 h-3.5 text-emerald-200" />
                 <span className="hidden sm:inline">ॲप डाउनलोड</span>
@@ -80,7 +81,7 @@ export const Navbar: React.FC<{
             {/* REGISTRATION BUTTON */}
             <button
               onClick={() => setIsRegisterOpen(true)}
-              className="px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-[11px] sm:text-xs md:text-sm font-black shadow-md border border-amber-300/40 flex items-center gap-1 sm:gap-1.5 transition-transform active:scale-95 cursor-pointer shrink-0"
+              className="hidden sm:flex px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-[11px] sm:text-xs md:text-sm font-black shadow-md border border-amber-300/40 items-center gap-1 sm:gap-1.5 transition-transform active:scale-95 cursor-pointer shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300 shrink-0" />
               <span className="hidden xs:inline sm:inline">मोफत नोंदणी</span>
@@ -100,10 +101,13 @@ export const Navbar: React.FC<{
                 </span>
               </button>
             ) : (
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="hidden sm:flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* EXISTING MEMBER LOGIN BUTTON */}
                 <button
-                  onClick={() => setIsLoginOpen(true)}
+                  onClick={() => {
+                    setLoginModalMode('member_otp');
+                    setIsLoginOpen(true);
+                  }}
                   title="हयात नोंदणीकृत सदस्यांसाठी लॉगिन"
                   className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] sm:text-xs font-extrabold border border-slate-300 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
                 >
@@ -115,6 +119,7 @@ export const Navbar: React.FC<{
                 {siteConfig?.enableGuestLogin !== false && (
                   <button
                     onClick={() => {
+                      setLoginModalMode('guest');
                       setIsLoginOpen(true);
                     }}
                     title="मोबाईल नंबर + OTP पडताळणीसह पाहुणे / गेस्ट प्रवेश"
@@ -161,10 +166,14 @@ export const Navbar: React.FC<{
                       <span>मोफत नोंदणी करा</span>
                     </button>
 
-                    {!currentUser && (
+                     {!currentUser && (
                       <>
                         <button
-                          onClick={() => { setIsLoginOpen(true); setMenuOpen(false); }}
+                          onClick={() => {
+                            setLoginModalMode('member_otp');
+                            setIsLoginOpen(true);
+                            setMenuOpen(false);
+                          }}
                           className="w-full flex items-center gap-2 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold cursor-pointer"
                         >
                           <LogIn className="w-4 h-4 text-[#A71930]" />
@@ -173,7 +182,11 @@ export const Navbar: React.FC<{
 
                         {siteConfig?.enableGuestLogin !== false && (
                           <button
-                            onClick={() => { setIsLoginOpen(true); setMenuOpen(false); }}
+                            onClick={() => {
+                              setLoginModalMode('guest');
+                              setIsLoginOpen(true);
+                              setMenuOpen(false);
+                            }}
                             className="w-full flex items-center gap-2 p-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#800C1E] font-extrabold cursor-pointer border border-amber-300"
                           >
                             <UserCheck className="w-4 h-4 text-[#A71930]" />

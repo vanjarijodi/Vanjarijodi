@@ -166,7 +166,7 @@ export const PrintBiodataModal: React.FC<{
                 {siteConfig?.logoTitle || 'वंजारी जोडी'}
               </h1>
               <p className="text-xs font-bold text-amber-800">
-                {siteConfig?.logoSubtitle || 'विश्वासू वंजारी विवाह मंच'} — अधिकृत बायोडाटा
+                {siteConfig?.logoSubtitle || 'पवित्र नात्यांची सुंदर सुरुवात'} — अधिकृत बायोडाटा
               </p>
             </div>
           </div>

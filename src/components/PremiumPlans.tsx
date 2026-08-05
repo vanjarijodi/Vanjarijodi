@@ -122,7 +122,7 @@ export const PremiumPlans: React.FC = () => {
         <div className="mt-16 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 border border-amber-500/30 text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>१००% विश्वासार्हता व समाधान ग्वाही (100% Satisfaction Guarantee)</span>
+            <span>१००% खात्री व समाधान ग्वाही (100% Satisfaction Guarantee)</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-amber-300">
             संत भगवान बाबा यांच्या आशीर्वादाने स्थापित वंजारी विवाह व्यासपीठ
