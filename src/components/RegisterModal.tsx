@@ -52,8 +52,8 @@ export const RegisterModal: React.FC<{
   const [fullName, setFullName] = useState('');
   const [gender, setGender] = useState<Gender>('bride');
   const [dob, setDob] = useState('2000-01-01');
-  const [birthTime, setBirthTime] = useState('१०:३० AM');
-  const [birthPlace, setBirthPlace] = useState('बीड (Beed)');
+  const [birthTime, setBirthTime] = useState('');
+  const [birthPlace, setBirthPlace] = useState('');
   const [mobile, setMobile] = useState('');
   const [secondaryMobile, setSecondaryMobile] = useState('');
   const [email, setEmail] = useState('');
@@ -63,44 +63,42 @@ export const RegisterModal: React.FC<{
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
   const [district, setDistrict] = useState('बीड (Beed)');
-  const [taluka, setTaluka] = useState('परळी वैजनाथ');
-  const [city, setCity] = useState('परळी');
-  const [currentAddress, setCurrentAddress] = useState('बाणेर, पुणे');
-  const [nativeAddress, setNativeAddress] = useState('मु. पो. धर्मापुरी, ता. परळी, जि. बीड');
+  const [taluka, setTaluka] = useState('');
+  const [city, setCity] = useState('');
+  const [currentAddress, setCurrentAddress] = useState('');
+  const [nativeAddress, setNativeAddress] = useState('');
   const [subCaste, setSubCaste] = useState('वंजारी (NT-D)');
-  const [gotra, setGotra] = useState('काश्यप');
-  const [rashi, setRashi] = useState('धनु');
-  const [nakshatra, setNakshatra] = useState('मूळ');
-  const [gan, setGan] = useState('देव');
-  const [nadi, setNadi] = useState('आद्य');
+  const [gotra, setGotra] = useState('');
+  const [rashi, setRashi] = useState('');
+  const [nakshatra, setNakshatra] = useState('');
+  const [gan, setGan] = useState('');
+  const [nadi, setNadi] = useState('');
 
-  const [education, setEducation] = useState('M.Tech (Computer Science)');
-  const [occupation, setOccupation] = useState('Senior Software Engineer');
-  const [companyName, setCompanyName] = useState('TCS Pune');
-  const [income, setIncome] = useState('₹ 12 - 20 लाख वार्षिक');
-  const [height, setHeight] = useState("5'5\"");
-  const [weight, setWeight] = useState('58 kg');
-  const [bloodGroup, setBloodGroup] = useState('B+');
-  const [complexion, setComplexion] = useState('गोरा (Fair)');
+  const [education, setEducation] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [income, setIncome] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [bloodGroup, setBloodGroup] = useState('');
+  const [complexion, setComplexion] = useState('');
   const [maritalStatus, setMaritalStatus] = useState<MaritalStatus>('never_married');
 
   const [fatherName, setFatherName] = useState('');
-  const [fatherOcc, setFatherOcc] = useState('सेवानिवृत्त शिक्षक');
+  const [fatherOcc, setFatherOcc] = useState('');
   const [motherName, setMotherName] = useState('');
-  const [motherOcc, setMotherOcc] = useState('गृहिणी');
-  const [brothers, setBrothers] = useState(1);
-  const [brotherDetails, setBrotherDetails] = useState('१ लहान भाऊ (B.E. Mechanical)');
-  const [sisters, setSisters] = useState(1);
-  const [sisterDetails, setSisterDetails] = useState('१ मोठी बहीण (विवाहित)');
-  const [relativeSurnames, setRelativeSurnames] = useState('मुंडे, सानप, नागरे, काकड, घूगे, फड');
-  const [mamaName, setMamaName] = useState('श्री. रामभाऊ काकड');
-  const [mamaNative, setMamaNative] = useState('पाथर्डी, जि. अहिल्यानगर');
+  const [motherOcc, setMotherOcc] = useState('');
+  const [brothers, setBrothers] = useState(0);
+  const [brotherDetails, setBrotherDetails] = useState('');
+  const [sisters, setSisters] = useState(0);
+  const [sisterDetails, setSisterDetails] = useState('');
+  const [relativeSurnames, setRelativeSurnames] = useState('');
+  const [mamaName, setMamaName] = useState('');
+  const [mamaNative, setMamaNative] = useState('');
   const [familyType, setFamilyType] = useState('एकत्र कुटुंब');
-  const [expectations, setExpectations] = useState('पुणे किंवा छत्रपती संभाजीनगर येथे नोकरी करणारी सुशिक्षित, सुसंस्कृत वंजारी कन्या.');
+  const [expectations, setExpectations] = useState('');
 
-  const [photoUrls, setPhotoUrls] = useState<string[]>([
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800',
-  ]);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [primaryPhotoIndex, setPrimaryPhotoIndex] = useState<number>(0);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);

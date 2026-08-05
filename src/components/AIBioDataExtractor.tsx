@@ -161,49 +161,9 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
         throw new Error(data.error || 'बायोडाटा मधील माहिती वाचता आली नाही.');
       }
     } catch (err: any) {
-      console.warn('OCR Fallback triggered:', err);
-      // Smart offline fallback demo dataset if API key is not present in local container
-      const photoUrl = uploadedCloudinaryUrl || imagePreview || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80';
-      const fallbackData: ExtractedBioData = {
-        fullName: 'पूजा रामदास मुंडे',
-        gender: 'bride',
-        candidatePhotoUrl: photoUrl,
-        hasCandidatePhoto: true,
-        candidatePhotoDescription: 'वधूचा (मुलीचा) फोटो ऑटो-डिटेक्ट झाला व प्रोफाईलला जोडला गेला.',
-        dob: '2001-08-20',
-        birthTime: 'सकाळी ०८:१५ AM',
-        birthPlace: 'अंबाजोगाई, जि. बीड',
-        subCaste: 'वंजारी (NT-D)',
-        gotra: 'काश्यप',
-        rashi: 'मकर',
-        nakshatra: 'उत्तराषाढा',
-        height: "5'4\"",
-        weight: '54 kg',
-        complexion: 'गोरा (Fair)',
-        bloodGroup: 'O+',
-        education: 'MBBS (Gold Medalist)',
-        occupation: 'निवासी डॉक्टर (Resident Medical Officer)',
-        companyName: 'सिव्हिल हॉस्पिटल बीड',
-        income: '₹ 12 - 20 लाख',
-        fatherName: 'श्री. रामदास विष्णू मुंडे',
-        fatherOccupation: 'वर्ग १ शासकीय अधिकारी',
-        motherName: 'सौ. सुनिता रामदास मुंडे',
-        motherOccupation: 'शिक्षिका',
-        brothers: 1,
-        brotherDetails: '१ लहान भाऊ (B.E. Computer Science)',
-        sisters: 0,
-        relativeSurnames: ['मुंडे', 'सानप', 'नागरे', 'काकड', 'घूगे', 'आघाव', 'फड'],
-        mamaName: 'श्री. अशोकराव सानप',
-        mamaNative: 'परळी वैजनाथ',
-        mobile: '+91 94220 12345',
-        email: 'pooja.munde@gmail.com',
-        currentAddress: 'सिडको, छत्रपती संभाजीनगर',
-        nativeAddress: 'मु. पो. धर्मापुरी, ता. परळी, जि. बीड',
-        district: 'बीड (Beed)',
-        taluka: 'परळी वैजनाथ',
-        expectations: 'सुशिक्षित, व्यसनमुक्त, डॉक्टर किंवा क्लास १ अधिकारी वंजारी वर.',
-      };
-      setExtractedResult(fallbackData);
+      console.warn('OCR Extraction Error:', err);
+      setErrorMsg('फोटोवरून माहिती ऑटो-डिटेक्ट करता आली नाही. कृपया फोटो स्पष्ट आहे याची खात्री करा किंवा माहिती मॅन्युअली भरून सोयीस्कर नोंदणी करा.');
+      setExtractedResult(null);
     } finally {
       setIsExtracting(false);
     }
@@ -214,56 +174,6 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
       if (onExtracted) onExtracted(extractedResult);
       if (onExtractedData) onExtractedData(extractedResult);
     }
-  };
-
-  const handleLoadSampleBride = () => {
-    const sampleText = `
-    ॥ श्री गणेशाय नमः ॥
-    नाव: पूजा रामदास मुंडे
-    लिंग: वधू (मुलगी)
-    जन्मतारीख: २०/०८/२००१, जन्मवेळ: सकाळी ०८:१५ AM, जन्मठिकाण: अंबाजोगाई
-    जात: वंजारी (NT-D), गोत्र: काश्यप, राशी: मकर, नक्षत्र: उत्तराषाढा
-    उंची: ५ फूट ४ इंच, रंग: गोरा, रक्तगट: O+
-    शिक्षण: MBBS (सर्जन), शासकीय वैद्यकीय महाविद्यालय
-    नोकरी: निवासी डॉक्टर, बीड
-    उत्पन्न: १२ लाख वार्षिक
-    वडिलांचे नाव: श्री. रामदास विष्णू मुंडे (वर्ग १ अधिकारी)
-    आईचे नाव: सौ. सुनिता मुंडे (शिक्षिका)
-    भाऊ: १ (M.Tech Pune), बहीण: ०
-    नातेवाईक आडनावे: मुंडे, सानप, नागरे, काकड, घूगे, फड
-    मामांचे नाव: श्री. अशोकराव सानप, परळी वैजनाथ
-    सध्याचा पत्ता: सिडको, छत्रपती संभाजीनगर
-    कायमचा पत्ता: मु. पो. धर्मापुरी, ता. परळी, जि. बीड
-    मोबाईल: 98221 54321
-    `;
-    setActiveInputTab('text');
-    setRawTextPrompt(sampleText);
-    runExtraction(undefined, sampleText);
-  };
-
-  const handleLoadSampleGroom = () => {
-    const sampleText = `
-    ॥ श्री गणेशाय नमः ॥
-    नाव: ज्ञानेश्वर भगवान सानप
-    लिंग: वर (मुलगा)
-    जन्मतारीख: १५/०५/१९९७, जन्मवेळ: दुपारी ०२:३० PM, जन्मठिकाण: परळी वैजनाथ
-    जात: वंजारी (NT-D), गोत्र: वसिष्ठ, राशी: धनु, नक्षत्र: मूळ
-    उंची: ५ फूट १० इंच, रंग: निमगोरा, रक्तगट: B+
-    शिक्षण: B.E. Computer Science (COEP Pune)
-    नोकरी: सीनियर सॉफ्टवेअर इंजिनियर (TCS Pune)
-    उत्पन्न: १८ लाख वार्षिक
-    वडिलांचे नाव: श्री. भगवानराव सानप (कृषी उत्पन्न बाजार समिती)
-    आईचे नाव: सौ. कावेरी सानप (गृहिणी)
-    भाऊ: १ (व्यवसाय), बहीण: १ (विवाहित)
-    नातेवाईक आडनावे: सानप, मुंडे, नागरे, केदार, आघाव, चाटे
-    मामांचे नाव: श्री. तुकारामजी नागरे, बीड
-    सध्याचा पत्ता: बाणेर, पुणे
-    कायमचा पत्ता: परळी वैजनाथ, जि. बीड
-    मोबाईल: 94231 67890
-    `;
-    setActiveInputTab('text');
-    setRawTextPrompt(sampleText);
-    runExtraction(undefined, sampleText);
   };
 
   return (
@@ -384,24 +294,6 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
                 </>
               )}
             </button>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-semibold">नमुना बायोडाटा ऑटो-टेस्ट:</span>
-              <button
-                type="button"
-                onClick={handleLoadSampleBride}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/30 transition-all"
-              >
-                👰 वधू नमुना
-              </button>
-              <button
-                type="button"
-                onClick={handleLoadSampleGroom}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/30 transition-all"
-              >
-                🤵 वर नमुना
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -415,7 +307,7 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
             </label>
             <textarea
               rows={6}
-              placeholder="उदा. नाव: पूजा रामदास मुंडे, जन्मतारीख: २०/०८/२००१, शिक्षण: MBBS, नातेवाईक: मुंडे, सानप, नागरे..."
+              placeholder="उदा. नाव, जन्मतारीख, शिक्षण, पत्ता, मोबाईल व इतर माहितीचा बायोडाटा मेसेज इथे पेस्ट करा..."
               value={rawTextPrompt}
               onChange={(e) => setRawTextPrompt(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-200 outline-none focus:border-amber-500"
@@ -445,23 +337,6 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
                 </>
               )}
             </button>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleLoadSampleBride}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/30 transition-all"
-              >
-                👰 वधू बायोडाटा लोड करा
-              </button>
-              <button
-                type="button"
-                onClick={handleLoadSampleGroom}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/30 transition-all"
-              >
-                🤵 वर बायोडाटा लोड करा
-              </button>
-            </div>
           </div>
         </div>
       )}
