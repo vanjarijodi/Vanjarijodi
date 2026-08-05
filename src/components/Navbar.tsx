@@ -81,11 +81,10 @@ export const Navbar: React.FC<{
             {/* REGISTRATION BUTTON */}
             <button
               onClick={() => setIsRegisterOpen(true)}
-              className="hidden sm:flex px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-[11px] sm:text-xs md:text-sm font-black shadow-md border border-amber-300/40 items-center gap-1 sm:gap-1.5 transition-transform active:scale-95 cursor-pointer shrink-0"
+              className="flex px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-[10px] sm:text-xs md:text-sm font-black shadow-md border border-amber-300/40 items-center gap-1 transition-transform active:scale-95 cursor-pointer shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300 shrink-0" />
-              <span className="hidden xs:inline sm:inline">मोफत नोंदणी</span>
-              <span className="xs:hidden sm:hidden">नोंदणी</span>
+              <span>नोंदणी</span>
             </button>
 
             {/* LOGIN / DASHBOARD BUTTONS */}
@@ -101,7 +100,7 @@ export const Navbar: React.FC<{
                 </span>
               </button>
             ) : (
-              <div className="hidden sm:flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* EXISTING MEMBER LOGIN BUTTON */}
                 <button
                   onClick={() => {
@@ -109,7 +108,7 @@ export const Navbar: React.FC<{
                     setIsLoginOpen(true);
                   }}
                   title="हयात नोंदणीकृत सदस्यांसाठी लॉगिन"
-                  className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] sm:text-xs font-extrabold border border-slate-300 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
+                  className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs font-extrabold border border-slate-300 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
                 >
                   <LogIn className="w-3.5 h-3.5 text-[#A71930]" />
                   <span>लॉगिन</span>
@@ -123,11 +122,10 @@ export const Navbar: React.FC<{
                       setIsLoginOpen(true);
                     }}
                     title="मोबाईल नंबर + OTP पडताळणीसह पाहुणे / गेस्ट प्रवेश"
-                    className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 text-[#800C1E] text-[11px] sm:text-xs font-black border border-amber-300/90 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
+                    className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 text-[#800C1E] text-[10px] sm:text-xs font-black border border-amber-300/90 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
                   >
                     <UserCheck className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
-                    <span className="hidden sm:inline whitespace-nowrap">👤 गेस्ट प्रवेश</span>
-                    <span className="sm:hidden whitespace-nowrap">गेस्ट</span>
+                    <span className="whitespace-nowrap">👤 गेस्ट प्रवेश</span>
                   </button>
                 )}
               </div>
@@ -163,7 +161,7 @@ export const Navbar: React.FC<{
                       className="w-full flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-[#A71930] to-[#800C1E] text-amber-100 font-extrabold cursor-pointer shadow-sm"
                     >
                       <Sparkles className="w-4 h-4 text-amber-300" />
-                      <span>मोफत नोंदणी करा</span>
+                      <span>नोंदणी करा</span>
                     </button>
 
                      {!currentUser && (

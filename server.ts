@@ -153,16 +153,34 @@ Extract into this exact JSON structure:
         return res.status(400).json({ error: 'Either imageBase64 or textPrompt is required' });
       }
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: contentsPayload,
-        config: {
-          systemInstruction: systemPrompt,
-          responseMimeType: 'application/json',
-        },
-      });
+      const candidateModels = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+      let responseText = '';
+      let lastError: any = null;
 
-      const responseText = response.text || '{}';
+      for (const modelName of candidateModels) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: contentsPayload,
+            config: {
+              systemInstruction: systemPrompt,
+              responseMimeType: 'application/json',
+            },
+          });
+          if (response && response.text) {
+            responseText = response.text;
+            break;
+          }
+        } catch (err: any) {
+          console.warn(`Gemini attempt with model '${modelName}' failed:`, err?.message || err);
+          lastError = err;
+        }
+      }
+
+      if (!responseText) {
+        throw lastError || new Error('All Gemini model attempts failed');
+      }
+
       const parsedData = JSON.parse(responseText);
 
       return res.json({
@@ -171,8 +189,17 @@ Extract into this exact JSON structure:
       });
     } catch (error: any) {
       console.error('Error extracting BioData via Gemini:', error);
-      return res.status(500).json({
-        error: 'Failed to extract BioData: ' + (error.message || 'Unknown error'),
+      const isRateLimit =
+        error?.status === 429 ||
+        error?.message?.includes('429') ||
+        error?.message?.includes('Quota') ||
+        error?.message?.includes('Rate') ||
+        error?.message?.includes('exceeded');
+
+      return res.status(isRateLimit ? 429 : 500).json({
+        error: isRateLimit
+          ? 'AI वापर मर्यादा (Rate Limit) ओलांडली आहे. कृपया थोड्या वेळानंतर पुन्हा प्रयत्न करा किंवा बायोडाटा माहिती मॅन्युअली भरून सोयीस्कर नोंदणी पूर्ण करा.'
+          : 'बायोडाटा प्रोसेसिंग एरर: ' + (error.message || 'अज्ञात त्रुटी'),
       });
     }
   });

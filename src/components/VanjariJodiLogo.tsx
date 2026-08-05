@@ -217,7 +217,7 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
         <div className="relative transform hover:scale-105 transition-transform duration-300">
           {renderSVGEmblem('w-20 h-20 sm:w-[100px] sm:h-[100px]')}
           <div className="absolute -bottom-1 -right-1 bg-amber-400 text-[#800C1E] text-[8px] font-black px-2 py-0.5 rounded-full shadow-md border border-white uppercase tracking-wider">
-            १००% मोफत
+            १००% सुरक्षित
           </div>
         </div>
 

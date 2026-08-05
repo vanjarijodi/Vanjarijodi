@@ -198,7 +198,7 @@ export const INITIAL_SITE_CONFIG: any = {
   heroHeading: 'वंजारी समाजातील वधू-वर शोधा',
   heroSubheading: 'संत भगवान बाबा यांच्या आशीर्वादाने स्थापित - पवित्र नात्यांची सुंदर सुरुवात',
   heroDescription: 'हजारो विश्वासू वंजारी कुटुंब जोडणारा महाराष्ट्रातील नंबर १ विवाह मंच',
-  ctaButtonText: 'मोफत नोंदणी करा',
+  ctaButtonText: 'नोंदणी करा',
   contactPhone: '+91 98221 00000',
   contactWhatsapp: '+91 98221 00000',
   contactEmail: 'contact@vanjarijodi.org',
@@ -236,16 +236,16 @@ export const INITIAL_SITE_CONFIG: any = {
   hideDistrictHeadquarters: false,
   hideOfficeAddress: false,
   guestBannerTitle: 'वंजारीजोडी वधू-वर सूचक केंद्र (Guest Preview)',
-  guestBannerText: 'तुमचा योग्य जीवनसाथी शोधण्यासाठी आजच मोफत नोंदणी करा! संपूर्ण प्रोफाईल आणि संपर्क क्रमांक पाहण्यासाठी येथे क्लिक करा.',
-  guestBannerButtonText: 'लॉगिन / मोफत नोंदणी करा',
+  guestBannerText: 'तुमचा योग्य जीवनसाथी शोधण्यासाठी आजच नोंदणी करा! संपूर्ण प्रोफाईल आणि संपर्क क्रमांक पाहण्यासाठी येथे क्लिक करा.',
+  guestBannerButtonText: 'लॉगिन / नोंदणी करा',
   enableGuestBannerTrigger: true,
   unlockContactFee: 50,
   isPayPerContactEnabled: true,
   isOfferModeEnabled: false,
-  offerModeText: '🎉 विशेष सण ऑफर: सध्या सर्व संपर्क अन-लॉक आणि नोंदणी पूर्णपणे मोफत!',
+  offerModeText: '🎉 विशेष सण ऑफर: सध्या सर्व संपर्क अन-लॉक आणि नोंदणी सुविधा उपलब्ध!',
   disableAllPaymentsInOfferMode: true,
   isNoticeBannerEnabled: true,
-  noticeBannerText: '📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील वधू-वरांसाठी मोफत नोंदणी व संपर्क सुविधा उपलब्ध!',
+  noticeBannerText: '📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील वधू-वरांसाठी अधिकृत नोंदणी व संपर्क सुविधा उपलब्ध!',
   noticeBannerBg: 'saffron',
   guestPermissions: {
     viewProfiles: true,
@@ -341,7 +341,7 @@ export const INITIAL_SITE_CONFIG: any = {
     },
     {
       id: 'box-4',
-      title: 'मोफत नोंदणी व विवाह जोडी',
+      title: 'सुरक्षित नोंदणी व विवाह जोडी',
       desc: 'संत भगवान बाबा यांच्या आशीर्वादाने समाजातील हजारो यशस्वी विवाह.',
       iconName: 'Heart',
       isEnabled: true
@@ -364,8 +364,8 @@ export const COMMUNITY_FAQS = [
   {
     qMr: 'वंजारीजोडी वर नोंदणी कशी करावी?',
     qEn: 'How to register on VanjariJodi?',
-    aMr: 'मुख्यपृष्ठावरील "मोफत नोंदणी" बटनावर क्लिक करा. तुमची वैयक्तिक माहिती, शिक्षण, व्यवसाय, पत्ता आणि फोटो अपलोड करून ५ सोप्या टप्प्यात नोंदणी पूर्ण करा.',
-    aEn: 'Click on "Free Register" button on homepage. Fill your basic details, education, occupation, address, and photos in 5 easy steps.'
+    aMr: 'मुख्यपृष्ठावरील "नोंदणी करा" बटनावर क्लिक करा. तुमची वैयक्तिक माहिती, शिक्षण, व्यवसाय, पत्ता आणि फोटो अपलोड करून ५ सोप्या टप्प्यात नोंदणी पूर्ण करा.',
+    aEn: 'Click on "Register" button on homepage. Fill your basic details, education, occupation, address, and photos in 5 easy steps.'
   },
   {
     qMr: 'प्रोफाईल पडताळणी कशी होते?',

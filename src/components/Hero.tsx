@@ -109,7 +109,7 @@ export const Hero: React.FC = () => {
             {/* Key Trust Highlights */}
             <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap text-[9px] sm:text-xs font-black text-amber-200 pt-0.5">
               <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-500/20 border border-amber-400/40 shadow-sm backdrop-blur-sm">
-                १००% मोफत नोंदणी
+                सुरक्षित नोंदणी
               </span>
               <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-500/20 border border-amber-400/40 shadow-sm backdrop-blur-sm">
                 सुरक्षित व गोपनीय
@@ -132,7 +132,7 @@ export const Hero: React.FC = () => {
             className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-600 text-[#800C1E] text-xs sm:text-sm font-black shadow-md border border-amber-300 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95 group cursor-pointer"
           >
             <UserPlus className="w-4 h-4 text-[#800C1E] group-hover:scale-110 transition-transform shrink-0" />
-            <span>१. नवीन मोफत नोंदणी करा</span>
+            <span>१. नवीन नोंदणी करा</span>
           </button>
 
           {/* Option 2: Existing Member Login */}

@@ -40,10 +40,10 @@ export const GuestRestrictionModal: React.FC = () => {
           </div>
           
           <h3 className="font-extrabold text-xl text-white">
-            मोफत नोंदणी आवश्यक!
+            खाते नोंदणी आवश्यक!
           </h3>
           <p className="text-xs text-amber-200 mt-1">
-            Free Registration Required
+            Account Registration Required
           </p>
         </div>
 
@@ -55,7 +55,7 @@ export const GuestRestrictionModal: React.FC = () => {
               <span>{restrictedFeatureName || 'ही सुविधा'} अतिथी युझर्ससाठी मर्यादित आहे</span>
             </div>
             <p className="text-sm font-medium text-slate-800 leading-relaxed pt-1">
-              "तुमचा योग्य जीवनसाथी शोधण्यासाठी आजच मोफत नोंदणी करा! संपूर्ण प्रोफाईल आणि संपर्क क्रमांक पाहण्यासाठी येथे क्लिक करा."
+              "तुमचा योग्य जीवनसाथी शोधण्यासाठी आजच नोंदणी करा! संपूर्ण प्रोफाईल आणि संपर्क क्रमांक पाहण्यासाठी येथे क्लिक करा."
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export const GuestRestrictionModal: React.FC = () => {
               className="w-full py-3.5 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 font-extrabold rounded-xl shadow-lg border border-amber-300 flex items-center justify-center gap-2 transition cursor-pointer text-sm"
             >
               <UserPlus className="w-4 h-4 text-amber-300" />
-              <span>मोफत नोंदणी करा (Register Free)</span>
+              <span>नवीन नोंदणी करा (Register Now)</span>
             </button>
 
             <button

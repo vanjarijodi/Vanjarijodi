@@ -15,7 +15,7 @@ export const translations: Record<Language, Record<string, string>> = {
     contact: 'संपर्क',
     admin: 'ॲडमिन पॅनेल',
     login: 'लॉगिन',
-    register: 'मोफत नोंदणी',
+    register: 'नोंदणी करा',
     dashboard: 'माझे डॅशबोर्ड',
     logout: 'लॉगआउट',
     install_app: 'ॲप इन्स्टॉल करा',
@@ -23,7 +23,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Hero Section
     hero_title: 'वंजारी समाजातील योग्य जोडीदार शोधा',
-    hero_subtitle: 'हजारो पडताळणी केलेले वंजारी वधू आणि वर प्रोफाईल. १००% सुरक्षित, मोफत आणि सुलभ.',
+    hero_subtitle: 'हजारो पडताळणी केलेले वंजारी वधू आणि वर प्रोफाईल. १००% सुरक्षित आणि सुलभ.',
     looking_for: 'मला हवे आहे:',
     bride: 'वधू (मुलीचे प्रोफाईल)',
     groom: 'वर (मुलाचे प्रोफाईल)',
@@ -72,7 +72,7 @@ export const translations: Record<Language, Record<string, string>> = {
     aadhaar_not_verified: 'आधार अपूर्ण',
 
     // Registration Form
-    reg_title: 'वंजारीजोडी मोफत नोंदणी करा',
+    reg_title: 'वंजारीजोडी नोंदणी करा',
     reg_step1: '१. वैयक्तिक माहिती',
     reg_step2: '२. पत्ता व समाज',
     reg_step3: '३. शिक्षण व नोकरी',

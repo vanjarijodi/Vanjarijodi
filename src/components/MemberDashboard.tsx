@@ -26,7 +26,8 @@ import {
   Award,
   Upload,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from 'lucide-react';
 
 export const MemberDashboard: React.FC = () => {
@@ -41,6 +42,7 @@ export const MemberDashboard: React.FC = () => {
     shortlistedIds,
     setSelectedProfileForModal,
     setIsLoginOpen,
+    setLoginModalMode,
     setIsRegisterOpen,
     setIsPaymentOpen,
     notifications,
@@ -103,26 +105,42 @@ export const MemberDashboard: React.FC = () => {
             </h1>
 
             <p className="text-sm sm:text-base text-amber-100/90 max-w-2xl mx-auto font-medium leading-relaxed">
-              {siteConfig?.guestBannerText || 'वंजारी समाजातील सुशिक्षित वधू आणि वरांचे अस्सल प्रोफाईल पाहण्यासाठी व पालकांशी थेट संपर्क साधण्यासाठी कृपया मोफत नोंदणी करा किंवा लॉगिन करा.'}
+              {siteConfig?.guestBannerText || 'वंजारी समाजातील सुशिक्षित वधू आणि वरांचे अस्सल प्रोफाईल पाहण्यासाठी व पालकांशी थेट संपर्क साधण्यासाठी कृपया नोंदणी करा किंवा लॉगिन करा.'}
             </p>
 
-            {/* CTA Registration / Login Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            {/* CTA Registration / Login / Guest Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setIsRegisterOpen(true)}
-                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#800C1E] font-black text-sm shadow-xl flex items-center gap-2 border border-amber-200 transition-all active:scale-95"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#800C1E] font-black text-xs sm:text-sm shadow-xl flex items-center gap-2 border border-amber-200 transition-all active:scale-95 cursor-pointer"
               >
-                <UserPlus className="w-5 h-5 text-[#800C1E]" />
-                <span>१. नवीन मोफत नोंदणी करा</span>
+                <UserPlus className="w-4 h-4 text-[#800C1E]" />
+                <span>१. नवीन नोंदणी करा</span>
               </button>
 
               <button
-                onClick={() => setIsLoginOpen(true)}
-                className="px-8 py-3.5 rounded-2xl bg-white hover:bg-amber-100 text-[#A71930] font-black text-sm shadow-xl flex items-center gap-2 border border-amber-300 transition-all active:scale-95"
+                onClick={() => {
+                  setLoginModalMode('member_otp');
+                  setIsLoginOpen(true);
+                }}
+                className="px-6 py-3 rounded-2xl bg-white hover:bg-amber-100 text-[#A71930] font-black text-xs sm:text-sm shadow-xl flex items-center gap-2 border border-amber-300 transition-all active:scale-95 cursor-pointer"
               >
-                <LogIn className="w-5 h-5 text-[#A71930]" />
-                <span>२. विद्यमान सदस्य लॉगिन</span>
+                <LogIn className="w-4 h-4 text-[#A71930]" />
+                <span>२. सदस्य लॉगिन</span>
               </button>
+
+              {siteConfig?.enableGuestLogin !== false && (
+                <button
+                  onClick={() => {
+                    setLoginModalMode('guest');
+                    setIsLoginOpen(true);
+                  }}
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-200 via-amber-300 to-amber-200 hover:from-amber-300 hover:to-amber-400 text-[#800C1E] font-black text-xs sm:text-sm shadow-xl flex items-center gap-2 border border-amber-400 transition-all active:scale-95 cursor-pointer"
+                >
+                  <UserCheck className="w-4 h-4 text-[#800C1E]" />
+                  <span>३. गेस्ट प्रवेश (Guest Login)</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -203,14 +221,14 @@ export const MemberDashboard: React.FC = () => {
                   तुम्ही अजून नोंदणी केली नाही का?
                 </h4>
                 <p className="text-xs text-slate-700 font-medium">
-                  फक्त २ मिनिटांत मोफत फॉर्म भरून वंजारी समाजात योग्य स्थळ शोधा.
+                  फक्त २ मिनिटांत फॉर्म भरून वंजारी समाजात योग्य स्थळ शोधा.
                 </p>
               </div>
               <button
                 onClick={() => setIsRegisterOpen(true)}
                 className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#A71930] to-[#C82333] text-amber-100 font-black text-xs shadow-md border border-amber-300/40 hover:brightness-110 shrink-0"
               >
-                मोफत नोंदणी फॉर्म भरा →
+                नोंदणी फॉर्म भरा →
               </button>
             </div>
 

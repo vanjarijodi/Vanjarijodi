@@ -946,7 +946,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Site Configuration & SEO
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
-    const defaultText = '📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील वधू-वरांसाठी मोफत नोंदणी व संपर्क सुविधा उपलब्ध!';
+    const defaultText = '📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील वधू-वरांसाठी अधिकृत नोंदणी व संपर्क सुविधा उपलब्ध!';
     const saved = localStorage.getItem('vanjari_jodi_site_config');
     if (saved) {
       try {

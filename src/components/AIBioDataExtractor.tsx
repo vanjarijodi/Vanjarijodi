@@ -162,7 +162,10 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
       }
     } catch (err: any) {
       console.warn('OCR Extraction Error:', err);
-      setErrorMsg('फोटोवरून माहिती ऑटो-डिटेक्ट करता आली नाही. कृपया फोटो स्पष्ट आहे याची खात्री करा किंवा माहिती मॅन्युअली भरून सोयीस्कर नोंदणी करा.');
+      setErrorMsg(
+        err.message ||
+          'फोटोवरून माहिती ऑटो-डिटेक्ट करता आली नाही. कृपया फोटो स्पष्ट आहे याची खात्री करा किंवा माहिती मॅन्युअली भरून सोयीस्कर नोंदणी करा.'
+      );
       setExtractedResult(null);
     } finally {
       setIsExtracting(false);

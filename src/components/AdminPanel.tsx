@@ -4125,7 +4125,7 @@ export const AdminPanel: React.FC<{
                             type="text"
                             value={siteConfig?.noticeBannerText || ''}
                             onChange={(e) => updateSiteConfig({ noticeBannerText: e.target.value })}
-                            placeholder="उदा. 📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील सर्व वधू-वरांसाठी मोफत नोंदणी सुविधा सुरू आहे!"
+                            placeholder="उदा. 📢 ॥ श्री संत भगवान बाबा प्रसन्न ॥ — वंजारी समाजातील सर्व वधू-वरांसाठी अधिकृत नोंदणी सुविधा सुरू आहे!"
                             className="w-full bg-white border-2 border-amber-300 rounded-xl px-3.5 py-2 text-slate-900 font-bold text-xs outline-none focus:border-[#A71930]"
                           />
                         </div>
@@ -4599,7 +4599,7 @@ export const AdminPanel: React.FC<{
                           title: newSlideTitle,
                           subtitle: newSlideSubtitle,
                           imageUrl: newSlideImageUrl,
-                          ctaText: 'मोफत नोंदणी करा',
+                          ctaText: 'नोंदणी करा',
                           ctaLink: 'register',
                         });
                         setNewSlideTitle('');
@@ -4886,7 +4886,7 @@ export const AdminPanel: React.FC<{
                   <span>अतिथी युझर परवानगी नियंत्रण मॅट्रिक्स (Granular Guest Access Control)</span>
                 </h3>
                 <p className="text-xs text-slate-700 font-medium">
-                  अतिथी (Guest) युझर्सना कोणकोणत्या सुविधा पाहायची परवानगी द्यायची ते ठरवा. एखादी सुविधा बंद केल्यास युझरला मोफत नोंदणी करण्याचा सुंदर मॅसेज दिसेल.
+                  अतिथी (Guest) युझर्सना कोणकोणत्या सुविधा पाहायची परवानगी द्यायची ते ठरवा. एखादी सुविधा बंद केल्यास युझरला नोंदणी करण्याचा सुंदर मॅसेज दिसेल.
                 </p>
               </div>
 

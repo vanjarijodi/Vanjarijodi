@@ -74,7 +74,7 @@ export const LoginModal: React.FC<{
       if (!match) {
         alert(
           language === 'mr'
-            ? 'या मोबाईल नंबरची किंवा ई-मेलची नोंदणी सापडली नाही! कृपया आधी "मोफत नोंदणी" फॉर्म भरा.'
+            ? 'या मोबाईल नंबरची किंवा ई-मेलची नोंदणी सापडली नाही! कृपया आधी "नवीन नोंदणी" फॉर्म भरा.'
             : 'No registered user found with this mobile/email. Please register first.'
         );
         return;
@@ -108,7 +108,7 @@ export const LoginModal: React.FC<{
     if (!match) {
       alert(
         language === 'mr'
-          ? 'या मोबाईल नंबरची किंवा ई-मेलची नोंदणी सापडली नाही! कृपया आधी "मोफत नोंदणी" फॉर्म भरा.'
+          ? 'या मोबाईल नंबरची किंवा ई-मेलची नोंदणी सापडली नाही! कृपया आधी "नवीन नोंदणी" फॉर्म भरा.'
           : 'No registered user found with this mobile/email. Please register first.'
       );
       return;
@@ -199,7 +199,7 @@ export const LoginModal: React.FC<{
               }}
               className="px-3 py-1.5 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 rounded-xl text-xs font-black shadow flex items-center gap-1 shrink-0"
             >
-              <span>मोफत नोंदणी</span>
+              <span>नवीन नोंदणी</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
