@@ -51,6 +51,14 @@ import {
   INITIAL_FACE_VERIFICATIONS
 } from '../data/initialData';
 import { translations } from '../data/translations';
+import {
+  syncDocToFirestore,
+  deleteDocFromFirestore,
+  listenToProfiles,
+  listenToSiteConfig,
+  listenToChatMessages,
+  listenToAdminSupport
+} from '../utils/firestoreSync';
 
 interface AppContextType {
   language: Language;
@@ -370,6 +378,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('vanjari_jodi_profiles', JSON.stringify(profiles));
   }, [profiles]);
 
+  // Real-time Firestore Sync Listeners
+  useEffect(() => {
+    const unsubProfiles = listenToProfiles((firestoreProfiles) => {
+      setProfiles(firestoreProfiles);
+    }, INITIAL_PROFILES);
+
+    const unsubConfig = listenToSiteConfig((remoteConfig) => {
+      if (remoteConfig) {
+        setSiteConfig((prev) => ({ ...prev, ...remoteConfig }));
+      }
+    }, INITIAL_SITE_CONFIG);
+
+    const unsubChats = listenToChatMessages((remoteChats) => {
+      if (remoteChats) {
+        setChatMessages(remoteChats);
+      }
+    });
+
+    const unsubSupport = listenToAdminSupport((remoteSupport) => {
+      if (remoteSupport) {
+        setAdminSupportMessages(remoteSupport);
+      }
+    });
+
+    return () => {
+      unsubProfiles();
+      unsubConfig();
+      unsubChats();
+      unsubSupport();
+    };
+  }, []);
+
   // 3. Current logged in user (or default demo user)
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     const savedUser = localStorage.getItem('vanjari_jodi_current_user');
@@ -680,6 +720,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       voiceUrl,
     };
     setChatMessages((prev) => [...prev, newMsg]);
+    syncDocToFirestore('chatMessages', newMsg.id, newMsg);
 
     return { success: true };
   };
@@ -931,7 +972,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [siteConfig]);
 
   const updateSiteConfig = (partial: Partial<SiteConfig>) => {
-    setSiteConfig((prev) => ({ ...prev, ...partial }));
+    setSiteConfig((prev) => {
+      const updated = { ...prev, ...partial };
+      syncDocToFirestore('siteConfig', 'mainConfig', updated);
+      return updated;
+    });
   };
 
   // Feature Toggles
@@ -1174,6 +1219,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const profileToSave = { ...newProfile, isApproved: isApprovedStatus };
     setProfiles((prev) => [profileToSave, ...prev]);
     setCurrentUser(profileToSave);
+    syncDocToFirestore('profiles', profileToSave.id, profileToSave);
     logActivity('New Registration', `नवीन प्रोफाईल जोडले: ${profileToSave.fullName} (${profileToSave.gender === 'bride' ? 'वधू' : 'वर'}) ${isApprovedStatus ? '[ऑटो मोड ऑटो मंजूर]' : '[ॲडमिन मंजुरी प्रलंबित]'}`, profileToSave.fullName);
   };
 
@@ -1215,6 +1261,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setAdminSupportMessages((prev) => [...prev, newMsg]);
+    syncDocToFirestore('adminSupportMessages', newMsg.id, newMsg);
     logActivity('Support Chat', `${senderName} ने ॲडमिनला मेसेज पाठवला`, senderName);
   };
 
@@ -1240,6 +1287,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setAdminSupportMessages((prev) => [...prev, newMsg]);
+    syncDocToFirestore('adminSupportMessages', newMsg.id, newMsg);
     logActivity('Admin Reply', `ॲडमिनने ${targetUser?.fullName || targetSenderId} ला उत्तर दिले`, 'Admin');
   };
 
@@ -2260,7 +2308,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateProfileDirect = (profileId: string, updatedFields: Partial<UserProfile>) => {
     setProfiles((prev) =>
-      prev.map((p) => (p.id === profileId ? { ...p, ...updatedFields } : p))
+      prev.map((p) => {
+        if (p.id === profileId) {
+          const updated = { ...p, ...updatedFields };
+          syncDocToFirestore('profiles', updated.id, updated);
+          return updated;
+        }
+        return p;
+      })
     );
     if (currentUser?.id === profileId) {
       setCurrentUser((prev) => (prev ? { ...prev, ...updatedFields } : prev));

@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "profiles": {
+      "title": "User Profiles",
+      "description": "Vanjari Jodi Matrimonial User Profiles",
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "gender": { "type": "string" },
+        "mobile": { "type": "string" }
+      }
+    },
+    "siteConfig": {
+      "title": "Site Configurations",
+      "description": "Global settings and branding for Vanjari Jodi",
+      "properties": {
+        "siteName": { "type": "string" }
+      }
+    },
+    "chatMessages": {
+      "title": "Chat Messages",
+      "description": "User to User Chat Messages",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" }
+      }
+    },
+    "adminSupportMessages": {
+      "title": "Admin Support Chat Messages",
+      "description": "Support Messages sent to Admin",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" }
+      }
+    }
+  }
+}
