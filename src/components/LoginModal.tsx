@@ -21,8 +21,12 @@ export const LoginModal: React.FC<{
     }
   }, [isOpen, loginModalMode]);
 
+  // Verification Method: 'app_otp' | 'whatsapp' | 'email'
+  const [verificationMethod, setVerificationMethod] = useState<'app_otp' | 'whatsapp' | 'email'>('app_otp');
+
   // Member Login States
   const [memberMobile, setMemberMobile] = useState('');
+  const [memberEmail, setMemberEmail] = useState('');
   const [memberOtpSent, setMemberOtpSent] = useState(false);
   const [memberOtpInput, setMemberOtpInput] = useState('');
   const [generatedMemberOtp, setGeneratedMemberOtp] = useState('849201');
@@ -248,46 +252,159 @@ export const LoginModal: React.FC<{
           {/* MODE 1: Existing Member OTP Login */}
           {mode === 'member_otp' && (
             <div className="space-y-3 bg-white p-4 rounded-2xl border border-amber-300 shadow-sm">
-              <div className="flex items-center gap-2 border-b pb-2 border-amber-200">
-                <PhoneCall className="w-4 h-4 text-[#A71930]" />
-                <h3 className="font-extrabold text-xs sm:text-sm text-slate-900">
-                  हयात / नोंदणीकृत सदस्य - OTP द्वारे लॉगिन
-                </h3>
+              <div className="flex items-center justify-between border-b pb-2 border-amber-200">
+                <div className="flex items-center gap-2">
+                  <PhoneCall className="w-4 h-4 text-[#A71930]" />
+                  <h3 className="font-extrabold text-xs sm:text-sm text-slate-900">
+                    सदस्य लॉगिन - ३ सोपे पडताळणी पर्याय
+                  </h3>
+                </div>
+              </div>
+
+              {/* 3 Verification Method Selector Tabs */}
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-amber-50 rounded-xl border border-amber-200 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setVerificationMethod('app_otp')}
+                  className={`py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                    verificationMethod === 'app_otp'
+                      ? 'bg-[#A71930] text-amber-100 shadow font-black'
+                      : 'text-slate-700 hover:bg-amber-100'
+                  }`}
+                >
+                  <span>⚡ इन-अॅप OTP</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVerificationMethod('whatsapp')}
+                  className={`py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                    verificationMethod === 'whatsapp'
+                      ? 'bg-emerald-600 text-white shadow font-black'
+                      : 'text-slate-700 hover:bg-emerald-50'
+                  }`}
+                >
+                  <span>💬 WhatsApp</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVerificationMethod('email')}
+                  className={`py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                    verificationMethod === 'email'
+                      ? 'bg-blue-600 text-white shadow font-black'
+                      : 'text-slate-700 hover:bg-blue-50'
+                  }`}
+                >
+                  <span>📧 ई-मेल OTP</span>
+                </button>
               </div>
 
               <form onSubmit={handleVerifyMemberOtpLogin} className="space-y-3 text-xs sm:text-sm font-semibold">
-                <div>
-                  <label className="block text-slate-800 font-extrabold mb-1">
-                    📱 नोंदणीकृत १० अंकी मोबाईल नंबर:
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="tel"
-                      placeholder="उदा. 9822145890"
-                      value={memberMobile}
-                      onChange={(e) => setMemberMobile(e.target.value)}
-                      maxLength={10}
-                      className="flex-1 bg-amber-50/50 border-2 border-amber-200 rounded-xl px-3.5 py-2 text-slate-900 outline-none focus:border-[#A71930] font-mono font-bold"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSendMemberOtp}
-                      className="px-3.5 py-2 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 font-black rounded-xl text-xs shadow shrink-0 cursor-pointer"
-                    >
-                      OTP पाठवा
-                    </button>
+                {verificationMethod === 'app_otp' && (
+                  <div>
+                    <label className="block text-slate-800 font-extrabold mb-1">
+                      📱 नोंदणीकृत १० अंकी मोबाईल नंबर:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        placeholder="उदा. 9822145890"
+                        value={memberMobile}
+                        onChange={(e) => setMemberMobile(e.target.value)}
+                        maxLength={10}
+                        className="flex-1 bg-amber-50/50 border-2 border-amber-200 rounded-xl px-3.5 py-2 text-slate-900 outline-none focus:border-[#A71930] font-mono font-bold"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendMemberOtp}
+                        className="px-3.5 py-2 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 font-black rounded-xl text-xs shadow shrink-0 cursor-pointer"
+                      >
+                        OTP पाठवा
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {verificationMethod === 'whatsapp' && (
+                  <div className="space-y-2 bg-emerald-50 p-3 rounded-xl border border-emerald-300">
+                    <label className="block text-emerald-950 font-black">
+                      💬 १० अंकी मोबाईल नंबर टाका व WhatsApp १-क्लिक पडताळा:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        placeholder="उदा. 9822145890"
+                        value={memberMobile}
+                        onChange={(e) => setMemberMobile(e.target.value)}
+                        maxLength={10}
+                        className="flex-1 bg-white border-2 border-emerald-300 rounded-xl px-3.5 py-2 text-slate-900 outline-none focus:border-emerald-600 font-mono font-bold"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!memberMobile || memberMobile.length < 10) {
+                            alert('कृपया वैध १० अंकी मोबाईल नंबर टाका.');
+                            return;
+                          }
+                          const code = Math.floor(100000 + Math.random() * 900000).toString();
+                          setGeneratedMemberOtp(code);
+                          setMemberOtpInput(code);
+                          setMemberOtpSent(true);
+                          const waText = encodeURIComponent(`नमस्कार वंजारी जोडी टीम, माझा लॉगिन पडताळणी कोड आहे: ${code}`);
+                          window.open(`https://wa.me/919420950303?text=${waText}`, '_blank');
+                        }}
+                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>WhatsApp वर पाठवा</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {verificationMethod === 'email' && (
+                  <div className="space-y-2 bg-blue-50 p-3 rounded-xl border border-blue-200">
+                    <label className="block text-blue-950 font-black">
+                      📧 तुमची नोंदणीकृत ई-मेल आयडी:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        placeholder="उदा. pooja.munde@gmail.com"
+                        value={memberEmail}
+                        onChange={(e) => {
+                          setMemberEmail(e.target.value);
+                          setMemberMobile(e.target.value);
+                        }}
+                        className="flex-1 bg-white border-2 border-blue-200 rounded-xl px-3.5 py-2 text-slate-900 outline-none focus:border-blue-600 font-bold"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!memberEmail || !memberEmail.includes('@')) {
+                            alert('कृपया वैध ई-मेल आयडी टाका.');
+                            return;
+                          }
+                          const code = Math.floor(100000 + Math.random() * 900000).toString();
+                          setGeneratedMemberOtp(code);
+                          setMemberOtpSent(true);
+                          alert(`ई-मेल पडताळणी कोड पाठवला आहे: ${code}`);
+                        }}
+                        className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs shadow cursor-pointer"
+                      >
+                        ई-मेल OTP पाठवा
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {memberOtpSent && (
                   <div className="space-y-2 pt-1 animate-in fade-in duration-200">
                     <div className="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-[11px] text-emerald-800 font-extrabold flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>OTP पाठवला गेला! पडताळणी कोड: <strong>{generatedMemberOtp}</strong> प्रविष्ट करा.</span>
+                      <span>पडताळणी कोड प्राप्त झाला! कोड: <strong>{generatedMemberOtp}</strong> प्रविष्ट करा.</span>
                     </div>
                     <div>
                       <label className="block text-slate-800 font-extrabold mb-1">
-                        🔑 ६ अंकी OTP टाका:
+                        🔑 ६ अंकी पडताळणी OTP:
                       </label>
                       <input
                         type="text"
