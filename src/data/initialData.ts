@@ -268,12 +268,12 @@ export const INITIAL_SITE_CONFIG: any = {
     password: 'password'
   },
   apkSettings: {
-    apkUrl: 'https://vanjarijodi.org/downloads/VanjariJodi_v2.4.0.apk',
-    appVersion: 'v2.4.0',
+    apkUrl: 'https://vanjarijodi.org/downloads/VanjariJodi_v2.5.0.apk',
+    appVersion: 'v2.5.0',
     isEnabled: true,
-    releaseNotes: 'नवीन अपडेट: AI चेहरा पडताळणी ऑथेंटिकेशन आणि जलद सर्व्हर सपोर्ट.',
-    downloadCount: 14200,
-    fileSizeMb: '12.4 MB'
+    releaseNotes: 'नवीन अपडेट v2.5.0: Android 14 सुसंगतता, वेगवान बिल्ड सिस्टीम, सुधारित UI/UX अनुभव आणि ऑप्टिमाइज्ड डेटा सिंक.',
+    downloadCount: 14650,
+    fileSizeMb: '12.8 MB'
   },
   socialLinks: [
     {
