@@ -202,6 +202,8 @@ export const AdminPanel: React.FC<{
     adminSuggestMatch,
     resetSampleProfiles,
     updateProfileDirect,
+    sendPushNotification,
+    notifications,
   } = useApp();
 
   const [selectedEditProfile, setSelectedEditProfile] = useState<UserProfile | null>(null);
@@ -210,6 +212,11 @@ export const AdminPanel: React.FC<{
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminLoginError, setAdminLoginError] = useState('');
+
+  // Active Admin Category Hub State
+  const [activeCategory, setActiveCategory] = useState<
+    'members_hub' | 'notifications_hub' | 'payments_hub' | 'controls_hub' | 'system_hub'
+  >('members_hub');
 
   // Active Admin Tab State
   const [activeTab, setActiveTab] = useState<
@@ -229,6 +236,7 @@ export const AdminPanel: React.FC<{
     | 'user_analytics'
     | 'plans_setup'
     | 'support_chat'
+    | 'push_notification'
     | 'profile_likes'
     | 'promo_codes'
     | 'branding'
@@ -237,6 +245,14 @@ export const AdminPanel: React.FC<{
     | 'audit_logs'
     | 'privacy_controls'
   >('members');
+
+  // Push Notification Form State
+  const [pushTargetMode, setPushTargetMode] = useState<'all' | 'individual'>('all');
+  const [pushTargetUserId, setPushTargetUserId] = useState<string>('');
+  const [pushTitleMr, setPushTitleMr] = useState<string>('वंजारी जोडी - विशेष सूचना 📢');
+  const [pushMessageMr, setPushMessageMr] = useState<string>('');
+  const [pushSearchTerm, setPushSearchTerm] = useState<string>('');
+  const [pushSentSuccessMsg, setPushSentSuccessMsg] = useState<string>('');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [paySearchTerm, setPaySearchTerm] = useState('');
@@ -717,6 +733,35 @@ export const AdminPanel: React.FC<{
     authorizeAllContactRequests();
   };
 
+  // Push Notification Handler
+  const handleSendPushNotification = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pushMessageMr.trim()) {
+      alert('कृपया पुश नोटिफिकेशन संदेश (Message) टाईप करा.');
+      return;
+    }
+
+    const targetId = pushTargetMode === 'all' ? 'all' : pushTargetUserId;
+    if (pushTargetMode === 'individual' && !pushTargetUserId) {
+      alert('कृपया पुश नोटिफिकेशन पाठवण्यासाठी विशिष्ट सदस्य निवडा!');
+      return;
+    }
+
+    const targetUserObj = profiles.find((p) => p.id === pushTargetUserId);
+    const recipientLabel = pushTargetMode === 'all'
+      ? 'सर्व सदस्यांना (All Members)'
+      : `${targetUserObj?.fullName || pushTargetUserId} (${targetUserObj?.mobile || ''})`;
+
+    sendPushNotification(targetId, pushTitleMr, pushMessageMr);
+
+    setPushSentSuccessMsg(`🎉 पुश सूचना '${recipientLabel}' कडे यशस्वीरीत्या पाठवली गेली!`);
+    setTimeout(() => {
+      setPushSentSuccessMsg('');
+    }, 6000);
+
+    setPushMessageMr('');
+  };
+
   const handleApproveSelectedChatRequests = () => {
     selectedChatReqIds.forEach((id) => authorizeContactRequest(id));
     setSelectedChatReqIds([]);
@@ -821,348 +866,384 @@ export const AdminPanel: React.FC<{
           )}
         </div>
 
-        {/* 1. RESPONSIVE MOBILE-FRIENDLY ADMIN TAB STRIP */}
-        <div className="bg-amber-50/90 border-b border-amber-300 p-2 sm:p-3 shrink-0">
-          <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-1.5 sm:gap-2 text-xs font-bold overflow-x-auto pb-1 sm:pb-0 scrollbar-none whitespace-nowrap">
-            
-            {/* Group 1: Sub-Admins & Members */}
-            {!currentSubAdmin && (
-              <button
-                onClick={() => setActiveTab('sub_admins')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'sub_admins'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">सब-ॲडमिन ({subAdmins.length})</span>
-              </button>
-            )}
+        {/* 1. RESPONSIVE MOBILE-FRIENDLY CATEGORY HUBS & SUB-TABS */}
+        <div className="bg-amber-50/90 border-b border-amber-300 p-2 sm:p-3 shrink-0 space-y-2">
+          {/* Top Level Category Hub Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 sm:gap-2 text-xs font-bold">
+            <button
+              onClick={() => {
+                setActiveCategory('members_hub');
+                if (!['members', 'pending', 'profile_edits', 'profile_removal', 'add_profile'].includes(activeTab)) {
+                  setActiveTab('members');
+                }
+              }}
+              className={`p-2.5 rounded-2xl flex items-center justify-between gap-1.5 transition-all cursor-pointer ${
+                activeCategory === 'members_hub'
+                  ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold ring-2 ring-amber-300'
+                  : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Users className={`w-4 h-4 shrink-0 ${activeCategory === 'members_hub' ? 'text-amber-300' : 'text-[#A71930]'}`} />
+                <span className="truncate">👥 सदस्य</span>
+              </div>
+              {(pendingMembers.length > 0 || pendingProfileEdits.filter(e => e.status === 'pending').length > 0) && (
+                <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shrink-0">
+                  {pendingMembers.length + pendingProfileEdits.filter(e => e.status === 'pending').length}
+                </span>
+              )}
+            </button>
 
-            {hasPermission('face_verification') && (
-              <button
-                onClick={() => setActiveTab('face_verification')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'face_verification'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Camera className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span className="truncate">चेहरा पडताळणी ({faceVerificationLogs.filter(l => l.status === 'pending').length})</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setActiveCategory('notifications_hub');
+                if (!['push_notification', 'support_chat', 'chat_approvals', 'profile_likes', 'face_verification'].includes(activeTab)) {
+                  setActiveTab('push_notification');
+                }
+              }}
+              className={`p-2.5 rounded-2xl flex items-center justify-between gap-1.5 transition-all cursor-pointer ${
+                activeCategory === 'notifications_hub'
+                  ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold ring-2 ring-amber-300'
+                  : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Bell className={`w-4 h-4 shrink-0 ${activeCategory === 'notifications_hub' ? 'text-amber-300' : 'text-[#A71930]'}`} />
+                <span className="truncate">📢 नोटिफिकेशन्स</span>
+              </div>
+              {(unreadAdminChatCount > 0 || pendingChatRequests.length > 0) && (
+                <span className="px-1.5 py-0.5 rounded-full bg-rose-600 text-amber-100 text-[10px] font-black animate-pulse shrink-0">
+                  {unreadAdminChatCount + pendingChatRequests.length}
+                </span>
+              )}
+            </button>
 
-            {hasPermission('apk_manager') && (
-              <button
-                onClick={() => setActiveTab('apk_manager')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'apk_manager'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Download className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">APK अपलोडर</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setActiveCategory('payments_hub');
+                if (!['payment_requests', 'pay_per_contact', 'plans_setup', 'promo_codes'].includes(activeTab)) {
+                  setActiveTab('payment_requests');
+                }
+              }}
+              className={`p-2.5 rounded-2xl flex items-center justify-between gap-1.5 transition-all cursor-pointer ${
+                activeCategory === 'payments_hub'
+                  ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold ring-2 ring-amber-300'
+                  : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <CreditCard className={`w-4 h-4 shrink-0 ${activeCategory === 'payments_hub' ? 'text-amber-300' : 'text-[#A71930]'}`} />
+                <span className="truncate">💳 पेमेंट्स</span>
+              </div>
+              {(paymentRequests.filter(p => p.status === 'pending').length > 0) && (
+                <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black shrink-0">
+                  {paymentRequests.filter(p => p.status === 'pending').length}
+                </span>
+              )}
+            </button>
 
-            {hasPermission('index_controls') && (
-              <button
-                onClick={() => setActiveTab('index_controls')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'index_controls'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Globe className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">इंडेक्स व सोशल मीडिया</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setActiveCategory('controls_hub');
+                if (!['apk_manager', 'index_controls', 'branding', 'stories', 'guest_permissions'].includes(activeTab)) {
+                  setActiveTab('apk_manager');
+                }
+              }}
+              className={`p-2.5 rounded-2xl flex items-center justify-between gap-1.5 transition-all cursor-pointer ${
+                activeCategory === 'controls_hub'
+                  ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold ring-2 ring-amber-300'
+                  : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Layout className={`w-4 h-4 shrink-0 ${activeCategory === 'controls_hub' ? 'text-amber-300' : 'text-[#A71930]'}`} />
+                <span className="truncate">📱 ॲप व साईट</span>
+              </div>
+            </button>
 
-            {hasPermission('manage_profiles') && (
-              <button
-                onClick={() => setActiveTab('members')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'members'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">मान्य सदस्य ({approvedMembers.length})</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setActiveCategory('system_hub');
+                if (!['sub_admins', 'user_analytics', 'recycle_bin', 'audit_logs', 'privacy_controls'].includes(activeTab)) {
+                  setActiveTab('sub_admins');
+                }
+              }}
+              className={`p-2.5 rounded-2xl flex items-center justify-between gap-1.5 transition-all cursor-pointer ${
+                activeCategory === 'system_hub'
+                  ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold ring-2 ring-amber-300'
+                  : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <ShieldCheck className={`w-4 h-4 shrink-0 ${activeCategory === 'system_hub' ? 'text-amber-300' : 'text-[#A71930]'}`} />
+                <span className="truncate">🔒 सिस्टीम</span>
+              </div>
+            </button>
+          </div>
 
-            {hasPermission('manage_profiles') && (
-              <button
-                onClick={() => setActiveTab('pending')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'pending'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <CheckCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">प्रलंबित ({pendingMembers.length})</span>
-              </button>
-            )}
-
-            {hasPermission('manage_profiles') && (
-              <button
-                onClick={() => setActiveTab('profile_edits')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'profile_edits'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Edit3 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">माहिती बदल ({pendingProfileEdits.filter((e) => e.status === 'pending').length})</span>
-              </button>
-            )}
-
-            {hasPermission('manage_profiles') && (
-              <button
-                onClick={() => setActiveTab('profile_removal')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'profile_removal'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <HeartHandshake className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                <span className="truncate">लग्न जुळले / काढणे अर्ज ({profileRemovalRequests.filter(r => r.status === 'pending').length})</span>
-              </button>
-            )}
-
-            {/* Group 2: Chat & Approvals */}
-            {hasPermission('support_chat') && (
-              <button
-                onClick={() => setActiveTab('chat_approvals')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'chat_approvals'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">व्हॉट्सॲप मंजुरी ({pendingChatRequests.length})</span>
-              </button>
-            )}
-
-            {hasPermission('support_chat') && (
-              <button
-                onClick={() => setActiveTab('support_chat')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'support_chat'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <MessageSquare className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">ॲडमिन चॅट ({unreadAdminChatCount})</span>
-              </button>
-            )}
-
-            {hasPermission('manage_profiles') && (
-              <button
-                onClick={() => setActiveTab('profile_likes')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'profile_likes'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
-                <span className="truncate">प्रोफाईल लाईक्स</span>
-              </button>
-            )}
-
-            {/* Group 3: Promo & Payments */}
-            {hasPermission('payment_requests') && (
+          {/* Sub-Tabs Row depending on Active Category */}
+          <div className="flex items-center gap-1.5 text-xs font-bold overflow-x-auto pt-1 pb-0.5 scrollbar-none whitespace-nowrap">
+            {activeCategory === 'members_hub' && (
               <>
                 <button
-                  onClick={() => setActiveTab('plans_setup')}
-                  className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    activeTab === 'plans_setup'
-                      ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                      : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+                  onClick={() => setActiveTab('members')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'members' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
                   }`}
                 >
-                  <Gift className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                  <span className="truncate">💎 प्लॅन्स व दर (Plans)</span>
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>मान्य सदस्य ({approvedMembers.length})</span>
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('payment_requests')}
-                  className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    activeTab === 'payment_requests'
-                      ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                      : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+                  onClick={() => setActiveTab('pending')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'pending' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
                   }`}
                 >
-                  <CreditCard className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                  <span className="truncate">पेमेंट मंजुरी ({paymentRequests.filter((p) => p.status === 'pending').length})</span>
+                  <CheckCircle className="w-3.5 h-3.5 text-amber-500" />
+                  <span>प्रलंबित ({pendingMembers.length})</span>
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('pay_per_contact')}
-                  className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    activeTab === 'pay_per_contact'
-                      ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                      : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
+                  onClick={() => setActiveTab('profile_edits')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'profile_edits' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
                   }`}
                 >
-                  <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="truncate">पे-पर-काँटॅक्ट ({payPerContactRequests.filter((p) => p.status === 'pending').length})</span>
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>माहिती बदल ({pendingProfileEdits.filter(e => e.status === 'pending').length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('profile_removal')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'profile_removal' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <HeartHandshake className="w-3.5 h-3.5 text-rose-500" />
+                  <span>विवाह जमला / काढणे अर्ज ({profileRemovalRequests.filter(r => r.status === 'pending').length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('add_profile')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'add_profile' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>➕ नवीन बायोडाटा जोडा</span>
                 </button>
               </>
             )}
 
-            {hasPermission('site_settings') && (
-              <button
-                onClick={() => setActiveTab('guest_permissions')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'guest_permissions'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">अतिथी परवानग्या</span>
-              </button>
+            {activeCategory === 'notifications_hub' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('push_notification')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'push_notification' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Megaphone className="w-3.5 h-3.5 text-amber-400" />
+                  <span>📢 पुश नोटिफिकेशन पाठवा (वैयक्तिक / सर्व)</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('support_chat')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'support_chat' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>💬 सदस्य चॅट ({unreadAdminChatCount})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('chat_approvals')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'chat_approvals' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>📞 व्हॉट्सॲप / संपर्क मंजुरी ({pendingChatRequests.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('profile_likes')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'profile_likes' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                  <span>❤️ बायोडाटा पसंती</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('face_verification')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'face_verification' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Camera className="w-3.5 h-3.5 text-blue-500" />
+                  <span>📷 चेहरा पडताळणी ({faceVerificationLogs.filter(l => l.status === 'pending').length})</span>
+                </button>
+              </>
             )}
 
-            {hasPermission('audit_logs') && (
-              <button
-                onClick={() => setActiveTab('user_analytics')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'user_analytics'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <BarChart3 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span className="truncate">युझर ॲनालिटिक्स</span>
-              </button>
+            {activeCategory === 'payments_hub' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('payment_requests')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'payment_requests' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>💳 पेमेंट मंजुरी ({paymentRequests.filter(p => p.status === 'pending').length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('pay_per_contact')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'pay_per_contact' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>📞 पे-पर-काँटॅक्ट ({payPerContactRequests.filter(p => p.status === 'pending').length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('plans_setup')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'plans_setup' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Gift className="w-3.5 h-3.5" />
+                  <span>💎 प्लॅन्स व दर (Plans)</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('promo_codes')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'promo_codes' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>🏷️ प्रोमो कोड्स ({promoCodes.length})</span>
+                </button>
+              </>
             )}
 
-            {hasPermission('site_settings') && (
-              <button
-                onClick={() => setActiveTab('promo_codes')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'promo_codes'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Tag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">प्रोमो कोड्स ({promoCodes.length})</span>
-              </button>
+            {activeCategory === 'controls_hub' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('apk_manager')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'apk_manager' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>📱 APK अँड्रॉइड ॲप अपलोडर</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('index_controls')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'index_controls' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>🌐 इंडेक्स व सोशल मीडिया</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('branding')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'branding' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>🎨 स्लाईड्स व ब्रँडिंग</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('stories')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'stories' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>🌸 यशोगाथा (Success Stories)</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('guest_permissions')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'guest_permissions' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>👤 अतिथी परवानग्या</span>
+                </button>
+              </>
             )}
 
-            {hasPermission('add_profiles') && (
-              <button
-                onClick={() => setActiveTab('add_profile')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'add_profile'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <UserPlus className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">नवीन बायोडाटा</span>
-              </button>
-            )}
+            {activeCategory === 'system_hub' && (
+              <>
+                {!currentSubAdmin && (
+                  <button
+                    onClick={() => setActiveTab('sub_admins')}
+                    className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                      activeTab === 'sub_admins' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                    }`}
+                  >
+                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                    <span>🔑 सब-ॲडमिन व्यवस्थापन ({subAdmins.length})</span>
+                  </button>
+                )}
 
-            {/* Group 4: System Settings & Trash */}
-            {hasPermission('index_controls') && (
-              <button
-                onClick={() => setActiveTab('index_controls')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'index_controls'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Globe className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">इंडेक्स व ४ कप्पे</span>
-              </button>
-            )}
+                <button
+                  onClick={() => setActiveTab('user_analytics')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'user_analytics' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-blue-500" />
+                  <span>📊 युझर ॲनालिटिक्स</span>
+                </button>
 
-            {hasPermission('branding') && (
-              <button
-                onClick={() => setActiveTab('branding')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'branding'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <ImageIcon className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">ब्रँडिंग व स्लाईड्स</span>
-              </button>
-            )}
+                <button
+                  onClick={() => setActiveTab('recycle_bin')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'recycle_bin' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                  <span>🗑️ रिसायकल बिन ({recycleBin.length})</span>
+                </button>
 
-            {hasPermission('recycle_bin') && (
-              <button
-                onClick={() => setActiveTab('recycle_bin')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'recycle_bin'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                <span className="truncate">हटवलेले बायोडाटा ({recycleBin.length})</span>
-              </button>
-            )}
+                <button
+                  onClick={() => setActiveTab('audit_logs')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'audit_logs' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span>📜 सिस्टीम ऑडिट लॉग्स</span>
+                </button>
 
-            {hasPermission('audit_logs') && (
-              <button
-                onClick={() => setActiveTab('audit_logs')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'audit_logs'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Database className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">ऑडिट लॉग्स</span>
-              </button>
+                <button
+                  onClick={() => setActiveTab('privacy_controls')}
+                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'privacy_controls' ? 'bg-[#A71930] text-amber-100 font-black shadow' : 'bg-white border border-amber-200 text-slate-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <Settings2 className="w-3.5 h-3.5" />
+                  <span>⚙️ गोपनीयता व पासवर्ड</span>
+                </button>
+              </>
             )}
-
-            {hasPermission('site_settings') && (
-              <button
-                onClick={() => setActiveTab('privacy_controls')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'privacy_controls'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Settings2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">गोपनीयता सेटिंग्ज</span>
-              </button>
-            )}
-
-            {hasPermission('sub_admins') && (
-              <button
-                onClick={() => setActiveTab('sub_admins')}
-                className={`p-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'sub_admins'
-                    ? 'bg-[#A71930] text-amber-100 shadow-md border-2 border-amber-300 font-extrabold'
-                    : 'bg-white text-slate-800 hover:bg-amber-100 border border-amber-300'
-                }`}
-              >
-                <Crown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="truncate">सब-ॲडमिन व्यवस्थापन</span>
-              </button>
-            )}
-
           </div>
         </div>
 
@@ -2320,6 +2401,290 @@ export const AdminPanel: React.FC<{
                   );
                 }}
               />
+            </div>
+          )}
+
+          {/* TAB: PUSH NOTIFICATION MANAGER */}
+          {activeTab === 'push_notification' && (
+            <div className="space-y-6">
+              {/* Header Banner */}
+              <div className="p-5 bg-gradient-to-r from-[#A71930] via-[#C82333] to-[#800C1E] text-amber-100 rounded-3xl shadow-xl border-2 border-amber-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-amber-400/20 text-amber-300 rounded-2xl border border-amber-300/40">
+                    <Megaphone className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-amber-100">
+                      पुश नोटिफिकेशन्स केंद्र (Push Notification Center)
+                    </h3>
+                    <p className="text-xs text-amber-200 font-bold">
+                      ॲप व वेबसाईटवरील सर्व सदस्यांना एकाच वेळी किंवा वैयक्तिक एका सदस्याला मोबाईल सूचना पाठवा.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {pushSentSuccessMsg && (
+                <div className="p-4 bg-emerald-100 border-2 border-emerald-400 text-emerald-900 rounded-2xl text-xs font-black flex items-center justify-between shadow-md animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                    <span>{pushSentSuccessMsg}</span>
+                  </div>
+                  <button onClick={() => setPushSentSuccessMsg('')} className="text-emerald-700 hover:text-emerald-950 font-bold">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Form Column */}
+                <div className="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl border-2 border-amber-300 shadow-lg space-y-5">
+                  <form onSubmit={handleSendPushNotification} className="space-y-5 text-xs font-bold text-slate-800">
+                    
+                    {/* Target Audience Selector */}
+                    <div>
+                      <label className="block text-sm font-black text-[#800C1E] mb-2">
+                        १. सूचना कोणाला पाठवायची आहे? (Select Target Audience)
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label
+                          onClick={() => setPushTargetMode('all')}
+                          className={`p-3.5 rounded-2xl border-2 flex items-center gap-3 cursor-pointer transition-all ${
+                            pushTargetMode === 'all'
+                              ? 'bg-amber-50 border-[#A71930] text-[#A71930] shadow-md'
+                              : 'bg-white border-slate-200 hover:border-amber-300 text-slate-700'
+                          }`}
+                        >
+                          <div className={`p-2 rounded-xl ${pushTargetMode === 'all' ? 'bg-[#A71930] text-amber-300' : 'bg-slate-100 text-slate-500'}`}>
+                            <Users className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-xs">📢 सर्व सदस्य (All Members)</div>
+                            <div className="text-[10px] text-slate-500 font-medium">
+                              एकूण {approvedMembers.length} सदस्यांना ब्रॉडकास्ट
+                            </div>
+                          </div>
+                        </label>
+
+                        <label
+                          onClick={() => setPushTargetMode('individual')}
+                          className={`p-3.5 rounded-2xl border-2 flex items-center gap-3 cursor-pointer transition-all ${
+                            pushTargetMode === 'individual'
+                              ? 'bg-amber-50 border-[#A71930] text-[#A71930] shadow-md'
+                              : 'bg-white border-slate-200 hover:border-amber-300 text-slate-700'
+                          }`}
+                        >
+                          <div className={`p-2 rounded-xl ${pushTargetMode === 'individual' ? 'bg-[#A71930] text-amber-300' : 'bg-slate-100 text-slate-500'}`}>
+                            <UserCheck className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-xs">👤 वैयक्तिक एक सदस्य (Individual)</div>
+                            <div className="text-[10px] text-slate-500 font-medium">
+                              विशिष्ट एका सदस्याला नोटिफिकेशन
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* If Individual: Member Search & Select */}
+                    {pushTargetMode === 'individual' && (
+                      <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-300 space-y-3">
+                        <label className="block text-xs font-black text-[#800C1E]">
+                          सदस्य निवडा (Search & Select Member):
+                        </label>
+                        
+                        <div className="relative">
+                          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                          <input
+                            type="text"
+                            placeholder="नाव, मोबाईल, किंवा आयडी टाईप करा..."
+                            value={pushSearchTerm}
+                            onChange={(e) => setPushSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-bold outline-none focus:border-[#A71930]"
+                          />
+                        </div>
+
+                        {/* Member Selection List */}
+                        <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                          {profiles
+                            .filter((p) =>
+                              p.fullName.toLowerCase().includes(pushSearchTerm.toLowerCase()) ||
+                              p.mobile.includes(pushSearchTerm) ||
+                              p.id.toLowerCase().includes(pushSearchTerm.toLowerCase()) ||
+                              p.district.toLowerCase().includes(pushSearchTerm.toLowerCase())
+                            )
+                            .slice(0, 15)
+                            .map((m) => (
+                              <div
+                                key={m.id}
+                                onClick={() => setPushTargetUserId(m.id)}
+                                className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                                  pushTargetUserId === m.id
+                                    ? 'bg-[#A71930] text-amber-100 border-amber-300 font-black shadow'
+                                    : 'bg-white hover:bg-amber-100/50 border-amber-200 text-slate-800'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <img
+                                    src={m.photoUrl || (m.gender === 'bride' ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100')}
+                                    alt={m.fullName}
+                                    className="w-9 h-9 rounded-full object-cover border border-amber-300"
+                                  />
+                                  <div>
+                                    <div className="font-extrabold text-xs">{m.fullName}</div>
+                                    <div className="text-[10px] opacity-80 font-medium">
+                                      {m.gender === 'bride' ? 'वधू' : 'वर'} • {m.district} • {m.mobile}
+                                    </div>
+                                  </div>
+                                </div>
+                                {pushTargetUserId === m.id && (
+                                  <Check className="w-4 h-4 text-amber-300 shrink-0" />
+                                )}
+                              </div>
+                            ))}
+                        </div>
+
+                        {pushTargetUserId && (
+                          <div className="p-2 bg-emerald-100 text-emerald-900 rounded-xl text-xs font-black flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            <span>निवडलेला सदस्य: {profiles.find(p => p.id === pushTargetUserId)?.fullName} ({profiles.find(p => p.id === pushTargetUserId)?.mobile})</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Quick Marathi Preset Message Templates */}
+                    <div>
+                      <label className="block text-xs font-black text-[#800C1E] mb-1.5">
+                        तयार टेंप्लेट निवडा (Quick Marathi Templates):
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPushTitleMr('वंजारी जोडी - नवीन वधू-वर');
+                            setPushMessageMr('🎉 वंजारी जोडीवर नवीन वधू-वर बायोडाटा जोडले गेले आहेत. आताच ॲप उघडून बायोडाटा तपासा!');
+                          }}
+                          className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-[#800C1E] rounded-xl text-[11px] font-bold border border-amber-300 cursor-pointer"
+                        >
+                          🎉 नवीन वधू-वर
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPushTitleMr('वंजारी जोडी - अपूर्ण बायोडाटा');
+                            setPushMessageMr('⚠️ आपला बायोडाटा अद्याप अपूर्ण आहे. चांगल्या स्थळांच्या प्रतिसादासाठी फोटो व संपूर्ण माहिती जोडा.');
+                          }}
+                          className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-[#800C1E] rounded-xl text-[11px] font-bold border border-amber-300 cursor-pointer"
+                        >
+                          ⚠️ बायोडाटा माहिती भरा
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPushTitleMr('वंजारी जोडी - डिस्काउंट ऑफर');
+                            setPushMessageMr('👑 प्रीमियम सबस्क्रिप्शनवर विशेष सवलत! संपर्क क्रमांक अनलॉक करा व थेट संवाद साधा.');
+                          }}
+                          className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-[#800C1E] rounded-xl text-[11px] font-bold border border-amber-300 cursor-pointer"
+                        >
+                          👑 ऑफर संदेश
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPushTitleMr('वंजारी जोडी - नवीन संपर्क विनंती');
+                            setPushMessageMr('💌 तुम्हाला एका सदस्याकडून पसंती / संपर्क विनंती प्राप्त झाली आहे. तपासून प्रतिसाद द्या.');
+                          }}
+                          className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-[#800C1E] rounded-xl text-[11px] font-bold border border-amber-300 cursor-pointer"
+                        >
+                          💌 संपर्क विनंती
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Notification Title */}
+                    <div>
+                      <label className="block text-xs font-black text-slate-800 mb-1">
+                        सूचना शीर्षक (Title - मराठी/English)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="उदा. वंजारी जोडी - नवीन वधू-वर अपडेट"
+                        value={pushTitleMr}
+                        onChange={(e) => setPushTitleMr(e.target.value)}
+                        className="w-full bg-white border-2 border-amber-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 outline-none focus:border-[#A71930]"
+                      />
+                    </div>
+
+                    {/* Notification Message */}
+                    <div>
+                      <label className="block text-xs font-black text-slate-800 mb-1">
+                        सूचना संदेश (Message Body)
+                      </label>
+                      <textarea
+                        rows={4}
+                        placeholder="सदस्यांच्या मोबाईलवर दिसायचा संदेश येथे टाईप करा..."
+                        value={pushMessageMr}
+                        onChange={(e) => setPushMessageMr(e.target.value)}
+                        className="w-full bg-white border-2 border-amber-200 rounded-xl p-3 text-xs font-bold text-slate-900 outline-none focus:border-[#A71930]"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] text-amber-100 font-black rounded-2xl text-xs shadow-xl border border-amber-300/40 flex items-center justify-center gap-2 cursor-pointer transition-transform active:scale-98"
+                    >
+                      <Send className="w-4 h-4 text-amber-300" />
+                      <span>पुश सूचना पाठवा (Send Push Notification)</span>
+                    </button>
+                  </form>
+                </div>
+
+                {/* History Side Panel */}
+                <div className="lg:col-span-5 space-y-4">
+                  <div className="bg-white p-5 rounded-3xl border-2 border-amber-300 shadow-lg space-y-4">
+                    <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+                      <h4 className="text-sm font-black text-[#A71930] flex items-center gap-2">
+                        <Bell className="w-4 h-4 text-[#A71930]" />
+                        <span>पाठवलेल्या नोटिफिकेशन्स इतिहास</span>
+                      </h4>
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#800C1E] font-extrabold text-[10px]">
+                        {notifications.length}
+                      </span>
+                    </div>
+
+                    {notifications.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500 text-xs font-medium">
+                        अद्याप एकही पुश सूचना पाठवली गेलेली नाही.
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
+                        {notifications.map((n) => (
+                          <div key={n.id} className="p-3 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-extrabold text-[#A71930]">{n.titleMr || n.title}</span>
+                              <span className="text-[10px] text-slate-500 font-mono">
+                                {new Date(n.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-800 font-bold">{n.messageMr || n.message}</p>
+                            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-amber-200/60 text-slate-500">
+                              <span>
+                                लक्षित: <strong className="text-slate-700">{n.userId === 'all' ? '📢 सर्व सदस्य' : `👤 ${n.userId}`}</strong>
+                              </span>
+                              <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                <span>पाठवले गेले</span>
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

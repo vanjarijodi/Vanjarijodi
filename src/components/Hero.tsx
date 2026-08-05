@@ -122,37 +122,58 @@ export const Hero: React.FC = () => {
           </div>
         </div>
 
-        {/* 3 Primary Entry Options - Beautifully Compact & Centered */}
-        <div className="pt-1 flex flex-col items-center justify-center gap-2 sm:gap-3 w-full max-w-sm sm:max-w-md mx-auto relative z-20">
+        {/* 3 Primary Entry Options - Distinct, Premium Royal Color Palette */}
+        <div className="pt-2 flex flex-col items-center justify-center gap-2.5 sm:gap-3.5 w-full max-w-sm sm:max-w-md mx-auto relative z-20">
           
-          {/* Option 1: New Free Registration */}
+          {/* Option 1: New Free Registration (Shimmering Golden Emerald) */}
           <button
             type="button"
             onClick={handleOpenRegister}
-            className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-500 hover:to-amber-600 text-[#800C1E] text-xs sm:text-sm font-black shadow-md border border-amber-300 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95 group cursor-pointer"
+            className="w-full px-4 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 text-xs sm:text-sm font-black shadow-lg shadow-amber-500/20 border-2 border-amber-300 flex items-center justify-between transition-all transform hover:-translate-y-0.5 active:scale-98 group cursor-pointer"
           >
-            <UserPlus className="w-4 h-4 text-[#800C1E] group-hover:scale-110 transition-transform shrink-0" />
-            <span>१. नवीन नोंदणी करा</span>
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-xl bg-[#800C1E] text-amber-300 shadow group-hover:scale-110 transition-transform shrink-0">
+                <UserPlus className="w-4 h-4" />
+              </div>
+              <span className="tracking-wide">१. नवीन मोफत नोंदणी करा</span>
+            </div>
+            <span className="text-[10px] bg-[#800C1E] text-amber-200 px-2 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+              Free
+            </span>
           </button>
 
-          {/* Option 2: Existing Member Login */}
+          {/* Option 2: Existing Member Login (Deep Royal Crimson Maroon) */}
           <button
             type="button"
             onClick={handleOpenLogin}
-            className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-[#FFFDF5] hover:bg-amber-50 text-[#800C1E] text-xs sm:text-sm font-black shadow-md border border-amber-400/80 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95 group cursor-pointer"
+            className="w-full px-4 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-[#800C1E] via-[#A71930] to-[#800C1E] hover:from-[#A71930] hover:to-[#800C1E] text-amber-100 text-xs sm:text-sm font-black shadow-lg shadow-red-950/30 border-2 border-amber-400 flex items-center justify-between transition-all transform hover:-translate-y-0.5 active:scale-98 group cursor-pointer"
           >
-            <LogIn className="w-4 h-4 text-[#800C1E] group-hover:scale-110 transition-transform shrink-0" />
-            <span>२. विद्यमान सदस्य लॉगिन</span>
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-xl bg-amber-400 text-[#800C1E] shadow group-hover:scale-110 transition-transform shrink-0">
+                <LogIn className="w-4 h-4" />
+              </div>
+              <span className="tracking-wide text-amber-100">२. विद्यमान सदस्य लॉगिन</span>
+            </div>
+            <span className="text-[10px] bg-amber-400/20 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-extrabold">
+              लॉगिन
+            </span>
           </button>
 
-          {/* Option 3: Guest Entry */}
+          {/* Option 3: Guest Entry (Deep Royal Sapphire Dark Velvet) */}
           <button
             type="button"
             onClick={handleOpenGuest}
-            className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-[#A71930] via-[#800C1E] to-[#A71930] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-xs sm:text-sm font-black shadow-md border border-amber-300/60 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95 group cursor-pointer"
+            className="w-full px-4 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 hover:from-slate-800 hover:to-indigo-900 text-amber-200 text-xs sm:text-sm font-black shadow-lg shadow-indigo-950/40 border-2 border-indigo-400/60 hover:border-amber-400 flex items-center justify-between transition-all transform hover:-translate-y-0.5 active:scale-98 group cursor-pointer"
           >
-            <UserCheck className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform shrink-0" />
-            <span>३. पाहुणे / गेस्ट प्रवेश (Guest Login)</span>
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-xl bg-indigo-600/80 border border-indigo-300/40 text-amber-200 shadow group-hover:scale-110 transition-transform shrink-0">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <span className="tracking-wide">३. पाहुणे / गेस्ट प्रवेश (Guest)</span>
+            </div>
+            <span className="text-[10px] bg-indigo-500/20 border border-indigo-300/30 text-indigo-200 px-2 py-0.5 rounded-full font-extrabold">
+              डेमो
+            </span>
           </button>
         </div>
 

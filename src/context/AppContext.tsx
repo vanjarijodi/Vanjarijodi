@@ -57,7 +57,8 @@ import {
   listenToProfiles,
   listenToSiteConfig,
   listenToChatMessages,
-  listenToAdminSupport
+  listenToAdminSupport,
+  listenToNotifications
 } from '../utils/firestoreSync';
 
 interface AppContextType {
@@ -183,6 +184,7 @@ interface AppContextType {
   notifications: NotificationItem[];
   markNotificationRead: (id: string) => void;
   addBroadcastNotification: (titleMr: string, messageMr: string) => void;
+  sendPushNotification: (targetUserId: string, titleMr: string, messageMr: string) => void;
   unlockContact: (profileId: string) => void;
   unlockedContacts: string[];
 
@@ -402,11 +404,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
+    const unsubNotifications = listenToNotifications((remoteNotifs) => {
+      if (remoteNotifs && remoteNotifs.length > 0) {
+        setNotifications(remoteNotifs);
+      }
+    });
+
     return () => {
       unsubProfiles();
       unsubConfig();
       unsubChats();
       unsubSupport();
+      unsubNotifications();
     };
   }, []);
 
@@ -747,30 +756,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addNotification = (item: Omit<NotificationItem, 'id' | 'createdAt' | 'isRead'>) => {
     const newNotif: NotificationItem = {
       ...item,
-      id: 'notif-' + Date.now(),
+      id: 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
       createdAt: new Date().toISOString(),
       isRead: false,
     };
     setNotifications((prev) => [newNotif, ...prev]);
+    syncDocToFirestore('notifications', newNotif.id, newNotif);
+
+    // Trigger Web Browser Notification API if permission granted
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(newNotif.titleMr || newNotif.title, {
+          body: newNotif.messageMr || newNotif.message,
+          icon: '/favicon.ico',
+        });
+      } catch (e) {
+        // Ignore iframe restriction or permission errors
+      }
+    }
   };
 
   const markNotificationRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    setNotifications((prev) =>
+      prev.map((n) => {
+        if (n.id === id) {
+          const updated = { ...n, isRead: true };
+          syncDocToFirestore('notifications', n.id, updated);
+          return updated;
+        }
+        return n;
+      })
+    );
   };
 
   const addBroadcastNotification = (titleMr: string, messageMr: string) => {
-    const newNotif: NotificationItem = {
-      id: 'notif-' + Date.now(),
+    addNotification({
       userId: 'all',
       title: 'VanjariJodi Notice',
       titleMr,
       message: messageMr,
       messageMr,
       type: 'system',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
+    });
+  };
+
+  const sendPushNotification = (targetUserId: string, titleMr: string, messageMr: string) => {
+    addNotification({
+      userId: targetUserId,
+      title: 'VanjariJodi Push Notification',
+      titleMr: titleMr || 'वंजारी जोडी पुश सूचना',
+      message: messageMr,
+      messageMr: messageMr,
+      type: 'system',
+    });
+    logActivity(
+      'Push Notification Sent',
+      `पुश सूचना पाठवली [लक्षित: ${targetUserId === 'all' ? 'सर्व सदस्य' : targetUserId}]: ${titleMr}`,
+      'Admin'
+    );
   };
 
   // 10. Success Stories
@@ -1273,6 +1316,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAdminSupportMessages((prev) => [...prev, newMsg]);
     syncDocToFirestore('adminSupportMessages', newMsg.id, newMsg);
     logActivity('Support Chat', `${senderName} ने ॲडमिनला मेसेज पाठवला`, senderName);
+
+    // Instant Notification to Admin
+    addNotification({
+      userId: 'admin',
+      title: 'New Member Message Received',
+      titleMr: '📩 सदस्याकडून नवीन संदेश प्राप्त!',
+      message: `${senderName}: ${message}`,
+      messageMr: `${senderName} (${mobile || 'मोबाईल नाही'}): ${message}`,
+      type: 'chat',
+    });
   };
 
   const replyAdminSupportMessage = (
@@ -2516,6 +2569,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notifications,
         markNotificationRead,
         addBroadcastNotification,
+        sendPushNotification,
         unlockContact,
         unlockedContacts,
         contactRequests,

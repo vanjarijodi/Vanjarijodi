@@ -7,7 +7,7 @@ import {
   onSnapshot,
   getDocs
 } from 'firebase/firestore';
-import { UserProfile, SiteConfig, ChatMessage, SuccessStory, PaymentRequest, ContactRequest, AdminSupportMessage } from '../types';
+import { UserProfile, SiteConfig, ChatMessage, SuccessStory, PaymentRequest, ContactRequest, AdminSupportMessage, NotificationItem } from '../types';
 
 // Generic document write helper with graceful error handling
 export const syncDocToFirestore = async (colName: string, docId: string, data: any) => {
@@ -136,6 +136,31 @@ export const listenToAdminSupport = (onUpdate: (messages: AdminSupportMessage[])
     });
   } catch (err) {
     console.warn('Firestore listen error:', err);
+    return () => {};
+  }
+};
+
+// Real-time notifications listener
+export const listenToNotifications = (onUpdate: (notifications: NotificationItem[]) => void) => {
+  try {
+    const colRef = collection(db, 'notifications');
+    return onSnapshot(colRef, (snapshot) => {
+      const items: NotificationItem[] = [];
+      snapshot.forEach((d) => {
+        const data = d.data() as NotificationItem;
+        if (data && data.id) {
+          items.push(data);
+        }
+      });
+      items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      if (items.length > 0) {
+        onUpdate(items);
+      }
+    }, (err) => {
+      console.warn('Firestore snapshot error for notifications:', err);
+    });
+  } catch (err) {
+    console.warn('Firestore listen error for notifications:', err);
     return () => {};
   }
 };

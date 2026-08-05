@@ -27,6 +27,7 @@ import { ProfileRemovalModal } from './components/ProfileRemovalModal';
 import { SplashScreen } from './components/SplashScreen';
 import { BlessingsSection } from './components/BlessingsSection';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 const MainAppContent: React.FC = () => {
   const {
@@ -66,7 +67,7 @@ const MainAppContent: React.FC = () => {
 
       {/* Main Content Area */}
       {currentView === 'home' && (
-        <main className="flex-1">
+        <main className="flex-1 pb-16 md:pb-0">
           {/* Full Screen Hero with Auto Sliding Images & Dark Overlay & Quick Search */}
           <Hero />
 
@@ -100,13 +101,22 @@ const MainAppContent: React.FC = () => {
       )}
 
       {currentView === 'dashboard' && (
-        <main className="flex-1">
+        <main className="flex-1 pb-16 md:pb-0">
           <MemberDashboard />
+        </main>
+      )}
+
+      {currentView === 'profiles' && (
+        <main className="flex-1 pb-16 md:pb-0 pt-4">
+          <ProfilesGrid />
         </main>
       )}
 
       {/* Footer */}
       <Footer />
+
+      {/* Mobile Sticky Bottom Navigation Bar */}
+      <MobileBottomNav />
 
       {/* Modals Container */}
       <ProfileDetailModal
