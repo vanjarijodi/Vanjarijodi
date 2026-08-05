@@ -4,6 +4,7 @@ import { MAHARASHTRA_DISTRICTS } from '../data/initialData';
 import { UserProfile, Gender, MaritalStatus } from '../types';
 import { AIBioDataExtractor } from './AIBioDataExtractor';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { compressAndResizeImage } from '../utils/imageCompressor';
 import { VanjariJodiLogo } from './VanjariJodiLogo';
 import {
   X,
@@ -165,16 +166,17 @@ export const RegisterModal: React.FC<{
 
     setIsUploadingPhoto(true);
     for (const file of filesToUpload) {
-      if (file.size > 800 * 1024) {
-        setPhotoError(`फोटोचा आकार ${(file.size / 1024).toFixed(0)} KB आहे! कृपया ८०० KB पेक्षा कमी आकाराचा फोटो निवडा.`);
-        continue;
-      }
-
-      const res = await uploadToCloudinary(file, 'vanjarijodi_candidates');
-      if (res.success && res.url) {
-        setPhotoUrls((prev) => [...prev, res.url]);
-      } else {
-        setPhotoError(res.error || 'फोटो अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+      try {
+        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        const res = await uploadToCloudinary(comp.file, 'vanjarijodi_candidates');
+        if (res.success && res.url) {
+          setPhotoUrls((prev) => [...prev, res.url]);
+        } else {
+          setPhotoError(res.error || 'फोटो अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+        }
+      } catch (err: any) {
+        console.warn('Photo processing error:', err);
+        setPhotoError('फोटो अपलोड करण्यात समस्या आली.');
       }
     }
     setIsUploadingPhoto(false);
@@ -195,17 +197,21 @@ export const RegisterModal: React.FC<{
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 600 * 1024) {
-      setAadhaarError(`कागदपत्राचा आकार ${(file.size / 1024).toFixed(0)} KB आहे! कृपया ६०० KB पेक्षा लहान फाईल (PDF/फोटो) निवडा.`);
-      return;
-    }
-
     setIsUploadingAadhaar(true);
-    const res = await uploadToCloudinary(file, 'vanjarijodi_documents');
-    if (res.success && res.url) {
-      setAadhaarDocUrl(res.url);
-    } else {
-      setAadhaarError(res.error || 'कागदपत्र अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+    try {
+      let fileToUpload: File = file;
+      if (file.type.startsWith('image/')) {
+        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        fileToUpload = comp.file;
+      }
+      const res = await uploadToCloudinary(fileToUpload, 'vanjarijodi_documents');
+      if (res.success && res.url) {
+        setAadhaarDocUrl(res.url);
+      } else {
+        setAadhaarError(res.error || 'कागदपत्र अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+      }
+    } catch (err) {
+      setAadhaarError('कागदपत्र प्रक्रिया करताना अडचण आली.');
     }
     setIsUploadingAadhaar(false);
   };

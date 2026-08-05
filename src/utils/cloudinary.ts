@@ -15,17 +15,17 @@ export const CLOUDINARY_CLOUD_NAME = (import.meta as any).env?.VITE_CLOUDINARY_C
 export const CLOUDINARY_API_KEY = (import.meta as any).env?.VITE_CLOUDINARY_API_KEY || '884727253851869';
 export const CLOUDINARY_UPLOAD_PRESET = (import.meta as any).env?.VITE_CLOUDINARY_UPLOAD_PRESET || 'vanjari_preset';
 
-export const MAX_FILE_SIZE_BYTES = 600 * 1024; // 600 KB
+export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 /**
- * Validates file size against 600 KB limit.
+ * Validates file size against 10 MB limit.
  */
 export const validateFileSize = (file: File | Blob): { valid: boolean; errorMsg?: string } => {
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    const sizeInKB = (file.size / 1024).toFixed(0);
+    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
     return {
       valid: false,
-      errorMsg: `फाईलचा आकार ${sizeInKB} KB आहे! फाईल 600 KB पेक्षा कमी असावी. (File size exceeds 600 KB limit)`,
+      errorMsg: `फाईलचा आकार ${sizeInMB} MB आहे! कृपया १० MB पेक्षा कमी आकाराची फाईल निवडा.`,
     };
   }
   return { valid: true };

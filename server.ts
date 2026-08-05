@@ -130,14 +130,22 @@ Extract into this exact JSON structure:
       let contentsPayload: any;
 
       if (imageBase64) {
-        // Strip data URI prefix if present
-        const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+        let cleanBase64 = imageBase64;
+        let detectedMimeType = mimeType || 'image/jpeg';
+
+        // Extract real MIME type and clean base64 string
+        const match = imageBase64.match(/^data:(image\/[a-zA-Z0-9\+\-\.]+);base64,/);
+        if (match) {
+          detectedMimeType = match[1];
+          cleanBase64 = imageBase64.replace(/^data:[^;]+;base64,/, '');
+        }
+
         contentsPayload = {
           parts: [
             {
               inlineData: {
                 data: cleanBase64,
-                mimeType,
+                mimeType: detectedMimeType,
               },
             },
             {
@@ -181,7 +189,18 @@ Extract into this exact JSON structure:
         throw lastError || new Error('All Gemini model attempts failed');
       }
 
-      const parsedData = JSON.parse(responseText);
+      // Robustly sanitize JSON response from markdown blocks or unexpected wrapper text
+      let jsonString = responseText.trim();
+      if (jsonString.startsWith('```')) {
+        jsonString = jsonString.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      }
+      const firstBrace = jsonString.indexOf('{');
+      const lastBrace = jsonString.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      }
+
+      const parsedData = JSON.parse(jsonString);
 
       return res.json({
         success: true,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { uploadToCloudinary, validateFileSize } from '../utils/cloudinary';
+import { compressAndResizeImage } from '../utils/imageCompressor';
 import {
   Sparkles,
   Camera,
@@ -89,27 +90,27 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate 600 KB
-      const val = validateFileSize(file);
-      if (!val.valid) {
-        setErrorMsg(val.errorMsg || 'फाईलचा आकार ६०० KB पेक्षा जास्त आहे.');
-        return;
-      }
-
-      setSelectedFile(file);
       setErrorMsg(null);
+      
+      try {
+        // Auto-compress high resolution camera/document photos
+        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        
+        setSelectedFile(comp.file);
+        setImagePreview(comp.dataUrl);
 
-      // Local preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Direct Cloudinary Upload
-      const uploadRes = await uploadToCloudinary(file, 'vanjarijodi_ocr_files');
-      if (uploadRes.success && uploadRes.url) {
-        setUploadedCloudinaryUrl(uploadRes.url);
+        // Upload compressed file to Cloudinary in background
+        const uploadRes = await uploadToCloudinary(comp.file, 'vanjarijodi_ocr_files');
+        if (uploadRes.success && uploadRes.url) {
+          setUploadedCloudinaryUrl(uploadRes.url);
+        }
+      } catch (err) {
+        console.warn('File processing error:', err);
+        // Fallback: use raw file if compression fails
+        setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result as string);
+        reader.readAsDataURL(file);
       }
     }
   };
