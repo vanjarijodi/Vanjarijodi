@@ -37,14 +37,14 @@ jobs:
       - name: Setup Global Gradle Environment
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.8'
+          gradle-version: '8.9'
           validate-wrappers: false
 
       - name: Regenerate Fresh Gradle Wrapper
         run: |
           cd android
-          echo "Generating official Gradle 8.8 wrapper..."
-          gradle wrapper --gradle-version 8.8 --distribution-type bin
+          echo "Generating official Gradle 8.9 wrapper..."
+          gradle wrapper --gradle-version 8.9 --distribution-type bin
           chmod +x gradlew
 
       - name: Install Dependencies
