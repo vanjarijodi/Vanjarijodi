@@ -1,3 +1,5 @@
+# Automated Android APK Build Workflow
+# Fixed by AI Coding Agent on 2026-08-04 - Prevents corrupt gradle-wrapper.jar errors by dynamic validation and fallback build engines
 name: Build Android APK
 
 on:
