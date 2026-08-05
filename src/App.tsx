@@ -26,6 +26,7 @@ import { GuestRestrictionModal } from './components/GuestRestrictionModal';
 import { ProfileRemovalModal } from './components/ProfileRemovalModal';
 import { SplashScreen } from './components/SplashScreen';
 import { BlessingsSection } from './components/BlessingsSection';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 
 const MainAppContent: React.FC = () => {
   const {
@@ -160,6 +161,9 @@ const MainAppContent: React.FC = () => {
 
       {/* Floating Direct Member-to-Admin Support Chat Widget */}
       <AdminSupportChatWidget />
+
+      {/* Prompts to Install PWA Call-to-Action Banner */}
+      <PWAInstallPrompt />
 
     </div>
   );

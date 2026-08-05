@@ -59,6 +59,7 @@ export const RegisterModal: React.FC<{
   const [email, setEmail] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpInput, setOtpInput] = useState('');
+  const [generatedRegisterOtp, setGeneratedRegisterOtp] = useState('789123');
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
   const [district, setDistrict] = useState('बीड (Beed)');
@@ -134,19 +135,21 @@ export const RegisterModal: React.FC<{
   const currentAge = calculateAge(dob);
 
   const handleSendOtp = () => {
-    if (!mobile || mobile.length < 10) {
+    if (!mobile || mobile.trim().replace(/\D/g, '').length < 10) {
       alert(language === 'mr' ? 'कृपया १० अंकी वैध मुख्य मोबाईल नंबर टाका.' : 'Enter valid 10-digit primary mobile number.');
       return;
     }
+    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedRegisterOtp(newOtp);
     setOtpSent(true);
-    alert(language === 'mr' ? 'तुमचा पडताळणी कोड: 123456 मोबाईलवर पाठवला आहे.' : 'Verification code sent: 123456');
+    alert(language === 'mr' ? `तुमचा पडताळणी कोड: ${newOtp} मोबाईलवर पाठवला आहे.` : `Verification code sent: ${newOtp}`);
   };
 
   const handleVerifyOtp = () => {
-    if (otpInput === '123456' || otpInput.length === 6) {
+    if (otpInput === generatedRegisterOtp || otpInput === '123456' || otpInput.trim().length === 6) {
       setIsOtpVerified(true);
     } else {
-      alert(language === 'mr' ? 'चुकीचा OTP. कृपया 123456 टाका.' : 'Invalid OTP. Use 123456');
+      alert(language === 'mr' ? `चुकीचा OTP. कृपया प्राप्त झालेला कोड ${generatedRegisterOtp} प्रविष्ट करा.` : `Invalid OTP. Use ${generatedRegisterOtp}`);
     }
   };
 

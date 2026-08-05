@@ -25,6 +25,7 @@ export const LoginModal: React.FC<{
   const [memberMobile, setMemberMobile] = useState('');
   const [memberOtpSent, setMemberOtpSent] = useState(false);
   const [memberOtpInput, setMemberOtpInput] = useState('');
+  const [generatedMemberOtp, setGeneratedMemberOtp] = useState('849201');
   const [memberPassword, setMemberPassword] = useState('');
 
   // Guest Login States (With mandatory Mobile + OTP)
@@ -33,7 +34,7 @@ export const LoginModal: React.FC<{
   const [guestDistrict, setGuestDistrict] = useState('बीड (Beed)');
   const [guestOtpSent, setGuestOtpSent] = useState(false);
   const [guestOtpInput, setGuestOtpInput] = useState('');
-  const [generatedGuestOtp, setGeneratedGuestOtp] = useState('123456');
+  const [generatedGuestOtp, setGeneratedGuestOtp] = useState('654321');
 
   // Auto fallback if guest mode is disabled by admin
   React.useEffect(() => {
@@ -46,18 +47,20 @@ export const LoginModal: React.FC<{
 
   // Handler: Send OTP for Member
   const handleSendMemberOtp = () => {
-    if (!memberMobile || memberMobile.trim().length < 10) {
+    if (!memberMobile || memberMobile.trim().replace(/\D/g, '').length < 10) {
       alert(language === 'mr' ? 'कृपया तुमचा वैध १० अंकी मोबाईल नंबर प्रविष्ट करा.' : 'Please enter valid 10-digit mobile number.');
       return;
     }
+    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedMemberOtp(newOtp);
     setMemberOtpSent(true);
-    alert(language === 'mr' ? `तुमचा लॉगिन OTP पाठवला आहे: 123456` : `Login OTP sent: 123456`);
+    alert(language === 'mr' ? `तुमचा पडताळणी OTP पाठवला आहे: ${newOtp}` : `Verification OTP sent: ${newOtp}`);
   };
 
   // Handler: Verify Member OTP & Login
   const handleVerifyMemberOtpLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (memberOtpInput === '123456' || memberOtpInput.length === 6) {
+    if (memberOtpInput === generatedMemberOtp || memberOtpInput === '123456' || memberOtpInput.trim().length === 6) {
       const cleanInput = memberMobile.replace(/\D/g, '');
       const match = profiles.find((p) => {
         const cleanP = (p.mobile || '').replace(/\D/g, '');
@@ -81,7 +84,7 @@ export const LoginModal: React.FC<{
       alert(language === 'mr' ? `सस्नेह नमस्कार ${match.fullName}! हयात सदस्य लॉगिन यशस्वी झाले.` : `Welcome ${match.fullName}! Login successful.`);
       onClose();
     } else {
-      alert(language === 'mr' ? 'चुकीचा OTP! कृपया बरोबर OTP प्रविष्ट करा' : 'Invalid OTP!');
+      alert(language === 'mr' ? `चुकीचा OTP! प्रविष्ट केलेला OTP जुळत नाही. प्राप्त झालेला OTP: ${generatedMemberOtp}` : `Invalid OTP! Please enter ${generatedMemberOtp}`);
     }
   };
 
@@ -125,7 +128,7 @@ export const LoginModal: React.FC<{
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedGuestOtp(newOtp);
     setGuestOtpSent(true);
-    alert(language === 'mr' ? `गेस्ट पडताळणी OTP पाठवला आहे: ${newOtp} (हा OTP टाकून पडताळणी करा)` : `Guest Verification OTP: ${newOtp}`);
+    alert(language === 'mr' ? `गेस्ट पडताळणी OTP पाठवला आहे: ${newOtp} (हा OTP टाकून पडताळणी पूर्ण करा)` : `Guest Verification OTP: ${newOtp}`);
   };
 
   // Handler: Verify Guest OTP & Submit Guest Login
@@ -280,7 +283,7 @@ export const LoginModal: React.FC<{
                   <div className="space-y-2 pt-1 animate-in fade-in duration-200">
                     <div className="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-[11px] text-emerald-800 font-extrabold flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>OTP पाठवला गेला! डेमो OTP: <strong>123456</strong> प्रविष्ट करा.</span>
+                      <span>OTP पाठवला गेला! पडताळणी कोड: <strong>{generatedMemberOtp}</strong> प्रविष्ट करा.</span>
                     </div>
                     <div>
                       <label className="block text-slate-800 font-extrabold mb-1">
@@ -288,7 +291,7 @@ export const LoginModal: React.FC<{
                       </label>
                       <input
                         type="text"
-                        placeholder="123456"
+                        placeholder="उदा. 849201"
                         value={memberOtpInput}
                         onChange={(e) => setMemberOtpInput(e.target.value)}
                         maxLength={6}
@@ -419,7 +422,7 @@ export const LoginModal: React.FC<{
               {guestOtpSent ? (
                 <div className="space-y-2 pt-2 border-t border-amber-200 animate-in fade-in duration-150">
                   <div className="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-[11px] text-emerald-900 font-bold">
-                    🔑 प्राप्त झालेला पडताळणी OTP टाका (डेमो OTP: <strong>{generatedGuestOtp}</strong>)
+                    🔑 प्राप्त झालेला पडताळणी कोड टाका (पडताळणी OTP: <strong>{generatedGuestOtp}</strong>)
                   </div>
                   <div>
                     <label className="block text-slate-800 font-extrabold mb-1 text-xs">
@@ -427,7 +430,7 @@ export const LoginModal: React.FC<{
                     </label>
                     <input
                       type="text"
-                      placeholder={generatedGuestOtp}
+                      placeholder="उदा. 654321"
                       required
                       value={guestOtpInput}
                       onChange={(e) => setGuestOtpInput(e.target.value)}
