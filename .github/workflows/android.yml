@@ -28,6 +28,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Configure Android SDK and Local Properties
+        run: |
+          mkdir -p android
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Setup Global Gradle Environment
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -37,7 +43,7 @@ jobs:
       - name: Regenerate Fresh Gradle Wrapper
         run: |
           cd android
-          echo "Generating official, uncorrupted Gradle 8.8 wrapper..."
+          echo "Generating official Gradle 8.8 wrapper..."
           gradle wrapper --gradle-version 8.8 --distribution-type bin
           chmod +x gradlew
 
