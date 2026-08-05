@@ -11,6 +11,10 @@ export interface CloudinaryUploadResult {
   error?: string;
 }
 
+export const CLOUDINARY_CLOUD_NAME = 'gwir433e';
+export const CLOUDINARY_API_KEY = '884727253851869';
+export const CLOUDINARY_UPLOAD_PRESET = 'vanjari_preset';
+
 export const MAX_FILE_SIZE_BYTES = 600 * 1024; // 600 KB
 
 /**
