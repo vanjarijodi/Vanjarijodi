@@ -1,4 +1,5 @@
 import React from 'react';
+import { useApp } from '../context/AppContext';
 
 interface LogoProps {
   className?: string;
@@ -12,12 +13,18 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
   className = '',
   size = 54,
   variant = 'full',
-  themeColor = 'saffron',
   showSubtitle = true,
 }) => {
+  const { siteConfig } = useApp();
+
+  const customLogoUrl = siteConfig?.logoUrl;
+  const logoTitle = siteConfig?.logoTitle || 'वंजारी जोडी';
+  const logoSubtitle = siteConfig?.logoSubtitle || 'वर-वधू शोध';
+
+  // SVG Emblem matching the Bride & Groom Heart-Circle Emblem
   const renderSVGEmblem = (extraClass = '') => (
     <svg
-      viewBox="-20 -20 240 240"
+      viewBox="0 0 240 240"
       width={size}
       height={size}
       fill="none"
@@ -25,232 +32,180 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
       className={`inline-block shrink-0 ${extraClass} ${className}`}
     >
       <defs>
-        {/* Royal Saffron & Deep Maroon Gradients */}
-        <linearGradient id="vjRedRoyal" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#991B1B" />
-          <stop offset="50%" stopColor="#800C1E" />
-          <stop offset="100%" stopColor="#450A0A" />
-        </linearGradient>
+        {/* Soft Background Radial */}
+        <radialGradient id="vjBgSoft" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFDF9" />
+          <stop offset="100%" stopColor="#FFF7EC" />
+        </radialGradient>
 
-        <linearGradient id="vjSaffronPheta" x1="0%" y1="0%" x2="100%" y2="100%">
+        {/* Orange Arc Gradient */}
+        <linearGradient id="vjOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FF9100" />
-          <stop offset="40%" stopColor="#FF6D00" />
-          <stop offset="85%" stopColor="#D83A00" />
-          <stop offset="100%" stopColor="#800C1E" />
+          <stop offset="50%" stopColor="#E65100" />
+          <stop offset="100%" stopColor="#BF360C" />
         </linearGradient>
 
-        <linearGradient id="vjGoldLustre" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFF176" />
-          <stop offset="35%" stopColor="#F59E0B" />
-          <stop offset="70%" stopColor="#D97706" />
-          <stop offset="100%" stopColor="#78350F" />
+        {/* Teal Arc Gradient */}
+        <linearGradient id="vjTealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#26A69A" />
+          <stop offset="50%" stopColor="#00695C" />
+          <stop offset="100%" stopColor="#004D40" />
         </linearGradient>
 
-        <radialGradient id="vjGlowAura" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FEF3C7" stopOpacity="0.8" />
-          <stop offset="60%" stopColor="#FDE68A" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#FEF3C7" stopOpacity="0" />
-        </radialGradient>
+        {/* Gold Accent */}
+        <linearGradient id="vjGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFE082" />
+          <stop offset="50%" stopColor="#FFB300" />
+          <stop offset="100%" stopColor="#FF8F00" />
+        </linearGradient>
 
-        <radialGradient id="vjFlameGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FEF08A" stopOpacity="1" />
-          <stop offset="40%" stopColor="#F59E0B" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
-        </radialGradient>
-
-        <filter id="vjDropShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#780216" floodOpacity="0.4" />
-        </filter>
-
-        <filter id="vjGoldShine" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#F59E0B" floodOpacity="0.6" />
+        {/* Soft Shadow */}
+        <filter id="vjSoftShadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#800C1E" floodOpacity="0.15" />
         </filter>
       </defs>
 
-      {/* Outer Divine Aura Glow */}
-      <circle cx="100" cy="100" r="92" fill="url(#vjGlowAura)" />
+      {/* Outer Soft Circle Background */}
+      <circle cx="120" cy="120" r="110" fill="url(#vjBgSoft)" filter="url(#vjSoftShadow)" />
 
-      {/* Traditional Folk Sun Rays & Rangoli Accents */}
-      <g opacity="0.45">
-        {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle, i) => (
-          <line
-            key={i}
-            x1="100"
-            y1="100"
-            x2={100 + 88 * Math.cos((angle * Math.PI) / 180)}
-            y2={100 + 88 * Math.sin((angle * Math.PI) / 180)}
-            stroke="url(#vjGoldLustre)"
-            strokeWidth="1.2"
-            strokeDasharray="2 4"
-          />
-        ))}
-      </g>
+      {/* Outer Ornate Circular Border */}
+      <circle cx="120" cy="120" r="102" stroke="url(#vjTealGrad)" strokeWidth="3" />
+      <circle cx="120" cy="120" r="96" stroke="url(#vjOrangeGrad)" strokeWidth="2" strokeDasharray="4 3" opacity="0.8" />
+      <circle cx="120" cy="120" r="92" stroke="url(#vjGoldGrad)" strokeWidth="1.5" />
 
-      {/* Outer Decorative Folk Ring with Red & White Rangoli Motifs */}
-      <circle cx="100" cy="100" r="82" stroke="url(#vjGoldLustre)" strokeWidth="2.5" opacity="0.85" />
-      <circle cx="100" cy="100" r="77" stroke="#FEF3C7" strokeWidth="1" strokeDasharray="3 3" opacity="0.9" />
-
-      {/* Traditional White & Red Folk Rangoli Corner Motifs around circle */}
-      {[0, 90, 180, 270].map((angle, i) => {
+      {/* Decorative Ornate Beads around Outer Ring */}
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
         const rad = (angle * Math.PI) / 180;
-        const cx = 100 + 82 * Math.cos(rad);
-        const cy = 100 + 82 * Math.sin(rad);
+        const cx = 120 + 99 * Math.cos(rad);
+        const cy = 120 + 99 * Math.sin(rad);
         return (
-          <g key={i} transform={`translate(${cx}, ${cy}) rotate(${angle})`}>
-            <circle cx="0" cy="0" r="4" fill="#800C1E" stroke="#FFF" strokeWidth="0.8" />
-            <path d="M-6,-6 L0,-10 L6,-6 L0,-2 Z" fill="#F59E0B" />
-          </g>
+          <circle key={i} cx={cx} cy={cy} r="3" fill={i % 2 === 0 ? "#E65100" : "#00695C"} />
         );
       })}
 
-      {/* Inner Royal Shield Background */}
-      <circle cx="100" cy="100" r="72" fill="url(#vjRedRoyal)" filter="url(#vjDropShadow)" />
-      <circle cx="100" cy="100" r="71" stroke="url(#vjGoldLustre)" strokeWidth="1.5" opacity="0.8" />
+      {/* Auspicious Star / Bindi Accent Above */}
+      <polygon points="120,38 122.5,45 130,45 124,49.5 126.5,57 120,52.5 113.5,57 116,49.5 110,45 117.5,45" fill="url(#vjOrangeGrad)" />
 
-      {/* ROYAL MARATHA SAFFRON TURBAN (शाही फेटा) */}
-      <g filter="url(#vjGoldShine)">
-        {/* Turban Fan / Plume (तुरा/शिरपेच) rising upwards */}
+      {/* Flowing Interlocking Heart Loops (Orange & Teal) */}
+      <g strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* Left Orange Heart Loop */}
         <path
-          d="M 90,50 C 86,22 102,8 120,10 C 110,26 102,38 106,50 Z"
-          fill="url(#vjSaffronPheta)"
-          stroke="url(#vjGoldLustre)"
-          strokeWidth="1.2"
+          d="M 120,185 C 80,185 45,150 45,115 C 45,85 70,65 95,75 C 110,81 120,95 120,105"
+          stroke="url(#vjOrangeGrad)"
         />
+        {/* Right Teal Heart Loop */}
         <path
-          d="M 94,46 C 96,28 108,18 114,16 C 108,26 104,36 102,46 Z"
-          fill="url(#vjGoldLustre)"
-          opacity="0.7"
+          d="M 120,185 C 160,185 195,150 195,115 C 195,85 170,65 145,75 C 130,81 120,95 120,105"
+          stroke="url(#vjTealGrad)"
         />
-
-        {/* Turban Folds / Pleats */}
-        <path
-          d="M 50,70 C 65,48 112,42 150,64 C 138,80 102,84 50,70 Z"
-          fill="url(#vjSaffronPheta)"
-          stroke="#FBBF24"
-          strokeWidth="1"
-        />
-        <path
-          d="M 48,64 C 58,44 106,44 138,56 C 124,78 80,82 48,64 Z"
-          fill="url(#vjSaffronPheta)"
-          stroke="#FDE047"
-          strokeWidth="0.8"
-        />
-        <path
-          d="M 62,54 C 78,38 120,40 144,58 C 132,68 94,70 62,54 Z"
-          fill="url(#vjSaffronPheta)"
-          stroke="#FFF"
-          strokeWidth="0.5"
-          opacity="0.9"
-        />
-
-        {/* Royal Jewel Kalgi Brooch */}
-        <path
-          d="M 100,70 L 104,48 L 100,40 L 96,48 Z"
-          fill="url(#vjGoldLustre)"
-          stroke="#FFFFFF"
-          strokeWidth="1"
-        />
-        <circle cx="100" cy="54" r="3.5" fill="#DC2626" stroke="#FFF" strokeWidth="0.8" />
-        <circle cx="100" cy="64" r="2" fill="#FEF08A" />
       </g>
 
-      {/* SACRED SACRIFICIAL FLAME (मंगल पवित्र ज्योत) ABOVE RINGS */}
-      <circle cx="100" cy="98" r="12" fill="url(#vjFlameGlow)" />
-      <path
-        d="M 100,86 C 105,94 107,100 100,108 C 93,100 95,94 100,86 Z"
-        fill="#F59E0B"
-        stroke="#FFF"
-        strokeWidth="0.8"
-      />
-      <path
-        d="M 100,90 C 103,96 104,100 100,105 C 96,100 97,96 100,90 Z"
-        fill="#FEF08A"
-      />
-
-      {/* INTERLOCKING WEDDING RINGS FORMING SACRED HEART (पवित्र विवाह बंधने) */}
-      <g transform="translate(0, 10)">
-        {/* Left Golden Wedding Ring */}
-        <path
-          d="M 80,110 C 65,90 45,106 65,126 L 80,141 L 95,126 C 115,106 95,90 80,110 Z"
-          fill="#FFFDFB"
-          stroke="url(#vjGoldLustre)"
-          strokeWidth="4"
-        />
-        {/* Right Golden Wedding Ring */}
-        <path
-          d="M 120,110 C 105,90 85,106 105,126 L 120,141 L 135,126 C 155,106 135,90 120,110 Z"
-          fill="#FFF1F2"
-          stroke="url(#vjGoldLustre)"
-          strokeWidth="4"
-        />
-
-        {/* Sacred Red Silk Gathbandhan Knot */}
-        <path
-          d="M 82,122 Q 100,100 118,122 Q 100,138 82,122 Z"
-          fill="url(#vjSaffronPheta)"
-          stroke="url(#vjGoldLustre)"
-          strokeWidth="1.2"
-        />
-
-        {/* Center Auspicious Mangalsutra Gem */}
-        <circle cx="100" cy="122" r="4" fill="url(#vjGoldLustre)" stroke="#780216" strokeWidth="0.8" />
-        <circle cx="91" cy="117" r="2.2" fill="#FEF08A" />
-        <circle cx="109" cy="117" r="2.2" fill="#FEF08A" />
+      {/* BRIDE ILLUSTRATION (Left) */}
+      <g id="bride">
+        {/* Head / Ghunghat */}
+        <path d="M 68,98 C 68,82 82,72 96,82 C 92,98 88,112 85,125 C 75,122 68,112 68,98 Z" fill="#00695C" />
+        <path d="M 72,92 C 72,84 80,78 90,82" stroke="#FFD54F" strokeWidth="2" fill="none" />
+        {/* Face */}
+        <circle cx="85" cy="98" r="10" fill="#FFCC80" />
+        {/* Bindi */}
+        <circle cx="89" cy="95" r="1.5" fill="#C62828" />
+        {/* Saree / Torso */}
+        <path d="M 76,112 Q 85,110 95,120 Q 90,138 80,135 Z" fill="#004D40" stroke="#FFB300" strokeWidth="1" />
+        {/* Gold Necklace */}
+        <path d="M 80,108 Q 85,114 90,108" fill="none" stroke="#FFD54F" strokeWidth="2" />
       </g>
 
-      {/* Sacred Tilak */}
+      {/* GROOM ILLUSTRATION (Right) */}
+      <g id="groom">
+        {/* Turban / Pheta */}
+        <path d="M 144,82 C 144,72 156,68 168,74 C 172,82 168,92 162,96 C 150,96 144,90 144,82 Z" fill="#E65100" />
+        <path d="M 148,76 Q 160,72 166,80" stroke="#FFD54F" strokeWidth="2" fill="none" />
+        {/* Face */}
+        <circle cx="155" cy="98" r="10" fill="#FFCC80" />
+        {/* Kurta / Torso */}
+        <path d="M 145,112 Q 155,110 165,120 Q 160,138 150,135 Z" fill="#FFA000" stroke="#E65100" strokeWidth="1" />
+      </g>
+
+      {/* JOINED HANDS (NAMASTE GESTURE IN CENTER) */}
+      <g transform="translate(120, 115)">
+        <path
+          d="M -6,10 L -2,-4 C -2,-8 2,-8 2,-4 L 6,10 C 2,13 -2,13 -6,10 Z"
+          fill="#FFE0B2"
+          stroke="#E65100"
+          strokeWidth="1"
+        />
+        {/* Heart icon inside hands */}
+        <path
+          d="M 0,2 C -3,-2 -7,1 0,6 C 7,1 3,-2 0,2 Z"
+          fill="#E65100"
+        />
+      </g>
+
+      {/* Decorative Golden Heart Bottom Center */}
       <path
-        d="M 100,92 Q 103,78 100,68 Q 97,78 100,92 Z"
-        fill="#F59E0B"
+        d="M 120,140 C 110,128 92,138 108,154 L 120,166 L 132,154 C 148,138 130,128 120,140 Z"
+        fill="url(#vjGoldGrad)"
+        opacity="0.95"
       />
-      <circle cx="100" cy="85" r="1.8" fill="#FFFFFF" />
+      <path
+        d="M 120,145 C 114,136 102,142 112,153 L 120,160 L 128,153 C 138,142 126,136 120,145 Z"
+        fill="#E65100"
+      />
     </svg>
   );
 
+  // If custom logo URL is provided by admin
+  const renderCustomLogoImg = (imgHeight = size) => (
+    <img
+      src={customLogoUrl}
+      alt={logoTitle}
+      style={{ maxHeight: `${imgHeight}px` }}
+      className={`object-contain shrink-0 ${className}`}
+      onError={(e) => {
+        // If image URL fails to load, fallback to SVG
+        (e.target as HTMLElement).style.display = 'none';
+      }}
+    />
+  );
+
+  const logoGraphic = customLogoUrl ? renderCustomLogoImg(size) : renderSVGEmblem();
+
   if (variant === 'emblem') {
-    return renderSVGEmblem('w-10 h-10 sm:w-[50px] sm:h-[50px]');
+    return <div className="inline-flex items-center shrink-0">{logoGraphic}</div>;
   }
 
   if (variant === 'stacked') {
     return (
       <div className={`flex flex-col items-center text-center space-y-2 ${className}`}>
         <div className="relative transform hover:scale-105 transition-transform duration-300">
-          {renderSVGEmblem('w-20 h-20 sm:w-[100px] sm:h-[100px]')}
-          <div className="absolute -bottom-1 -right-1 bg-amber-400 text-[#800C1E] text-[8px] font-black px-2 py-0.5 rounded-full shadow-md border border-white uppercase tracking-wider">
-            १००% सुरक्षित
-          </div>
+          {logoGraphic}
         </div>
 
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xl sm:text-3xl font-black tracking-tight text-[#800C1E] drop-shadow-sm">
-              वंजारी जोडी
-            </span>
-          </div>
-          <span className="text-[10px] sm:text-xs uppercase font-black tracking-widest text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300/80 mt-1">
-            विश्वासू विवाह मंच
+          <span className="text-xl sm:text-3xl font-black tracking-tight text-[#E65100] drop-shadow-sm">
+            {logoTitle}
           </span>
+          {showSubtitle && (
+            <span className="text-[10px] sm:text-xs uppercase font-black tracking-widest text-[#00695C] bg-amber-100 px-3 py-0.5 rounded-full border border-amber-300/80 mt-1">
+              {logoSubtitle}
+            </span>
+          )}
         </div>
       </div>
     );
   }
 
-  // Default 'full' or 'horizontal' brand logo
+  // Default 'full' or 'horizontal' brand logo layout
   return (
-    <div className={`flex items-center gap-2 sm:gap-3.5 ${className}`}>
+    <div className={`flex items-center gap-2.5 sm:gap-3.5 ${className}`}>
       <div className="relative shrink-0 transform hover:scale-105 transition-transform duration-300">
-        {renderSVGEmblem('w-[36px] h-[36px] sm:w-[48px] sm:h-[48px] md:w-[54px] md:h-[54px]')}
-        <span className="absolute -top-1 -left-1 flex h-2 w-2 sm:h-3 sm:w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 bg-amber-500"></span>
-        </span>
+        {logoGraphic}
       </div>
-      
+
       <div className="flex flex-col min-w-0 justify-center">
         <div className="flex items-center gap-1 sm:gap-1.5">
-          {/* Main Devanagari Title */}
-          <span className="text-base sm:text-2xl md:text-3xl font-black tracking-tight text-[#800C1E] leading-tight whitespace-nowrap drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-            वंजारी जोडी
+          <span className="text-base sm:text-2xl md:text-3xl font-black tracking-tight text-[#E65100] leading-tight whitespace-nowrap drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+            {logoTitle}
           </span>
           <span className="text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 text-[#800C1E] border border-amber-300 font-black uppercase tracking-wider shadow-sm shrink-0 hidden sm:inline-block">
             अधिकृत
@@ -258,9 +213,9 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
         </div>
 
         {showSubtitle && (
-          <div className="hidden sm:block mt-0.5">
-            <p className="text-[9px] sm:text-xs font-extrabold text-amber-800 leading-none whitespace-nowrap">
-              पवित्र नात्यांची सुंदर सुरुवात
+          <div className="mt-0.5">
+            <p className="text-[9px] sm:text-xs font-black text-[#00695C] leading-none whitespace-nowrap">
+              {logoSubtitle}
             </p>
           </div>
         )}
@@ -268,3 +223,4 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
     </div>
   );
 };
+

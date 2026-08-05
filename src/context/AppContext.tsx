@@ -960,7 +960,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           heroHeading: parsed.heroHeading && !parsed.heroHeading.includes('सुसंस्कृत') ? parsed.heroHeading : 'वंजारी समाजातील वधू-वर शोधा',
           heroSubheading: 'संत भगवान बाबा यांच्या आशीर्वादाने स्थापित - पवित्र नात्यांची सुंदर सुरुवात',
           heroDescription: 'हजारो विश्वासू वंजारी कुटुंब जोडणारा महाराष्ट्रातील नंबर १ विवाह मंच',
-          logoSubtitle: 'पवित्र नात्यांची सुंदर सुरुवात'
+          logoSubtitle: parsed.logoSubtitle || 'वर-वधू शोध'
         };
       } catch (e) {
         return {

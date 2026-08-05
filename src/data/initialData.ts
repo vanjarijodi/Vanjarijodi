@@ -189,7 +189,7 @@ export const INITIAL_COUNTERS: any[] = [
 export const INITIAL_SITE_CONFIG: any = {
   topBarText: '॥ श्री संत भगवान बाबा प्रसन्न ॥ — संत भगवान बाबा यांच्या आशीर्वादाने',
   logoTitle: 'वंजारी जोडी',
-  logoSubtitle: 'पवित्र नात्यांची सुंदर सुरुवात',
+  logoSubtitle: 'वर-वधू शोध',
   logoUrl: '',
   logoHeight: 52,
   paymentQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=vanjarijodi@upi&pn=VanjariJodi%20Matrimony',
