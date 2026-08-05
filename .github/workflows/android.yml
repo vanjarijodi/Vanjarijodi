@@ -1,5 +1,4 @@
-# Automated Android APK Build Workflow
-# Fixed by AI Coding Agent on 2026-08-04 - Prevents corrupt gradle-wrapper.jar errors by dynamic validation and fallback build engines
+# Automated Android APK Build Workflow for Vanjari Jodi
 name: Build Android APK
 
 on:
@@ -29,20 +28,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Clean Local Gradle Wrapper Files
-        run: |
-          cd android
-          echo "Removing local wrapper files to prevent any manifest/corruption validation errors..."
-          rm -f gradle/wrapper/gradle-wrapper.jar
-          rm -f gradle/wrapper/gradle-wrapper.properties
-          rm -f gradlew
-          rm -f gradlew.bat
-
-      - name: Setup Gradle
+      - name: Setup Global Gradle Environment
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.8'
           validate-wrappers: false
+
+      - name: Regenerate Fresh Gradle Wrapper
+        run: |
+          cd android
+          echo "Generating official, uncorrupted Gradle 8.8 wrapper..."
+          gradle wrapper --gradle-version 8.8 --distribution-type bin
+          chmod +x gradlew
 
       - name: Install Dependencies
         run: npm ci || npm install --legacy-peer-deps
@@ -56,8 +53,8 @@ jobs:
       - name: Build Android Debug APK
         run: |
           cd android
-          echo "Building using the official system Gradle 8.8 runner..."
-          gradle assembleDebug --no-daemon --stacktrace
+          echo "Building Android Debug APK..."
+          ./gradlew assembleDebug --no-daemon --stacktrace || gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -65,5 +62,6 @@ jobs:
           name: VanjariJodi-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
 
 
