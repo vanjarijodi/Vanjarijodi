@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { UserProfile } from '../types';
 import { VerifiedBadge } from './VerifiedBadge';
 import { FaceVerificationModal } from './FaceVerificationModal';
+import { uploadToCloudinary } from '../utils/cloudinary';
 import {
   User,
   Heart,
@@ -22,7 +23,10 @@ import {
   ChevronRight,
   ScanFace,
   HeartHandshake,
-  Award
+  Award,
+  Upload,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 export const MemberDashboard: React.FC = () => {
@@ -44,11 +48,37 @@ export const MemberDashboard: React.FC = () => {
     siteConfig,
     isFaceAuthModalOpen,
     setIsFaceAuthModalOpen,
-    setIsProfileRemovalModalOpen
+    setIsProfileRemovalModalOpen,
+    uploadAadhaarCard
   } = useApp();
 
   const [tab, setTab] = useState<'overview' | 'interests' | 'shortlist' | 'notifications' | 'membership' | 'privacy'>('overview');
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [docUploadError, setDocUploadError] = useState<string | null>(null);
+  const [docSuccessMsg, setDocSuccessMsg] = useState<string | null>(null);
+
+  const handleDashboardAadhaarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDocUploadError(null);
+    setDocSuccessMsg(null);
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    if (file.size > 600 * 1024) {
+      setDocUploadError(`कागदपत्राचा आकार ${(file.size / 1024).toFixed(0)} KB आहे. कृपया ६०० KB पेक्षा लहान फाईल (PDF/फोटो) निवडा.`);
+      return;
+    }
+
+    setIsUploadingDoc(true);
+    const res = await uploadToCloudinary(file, 'vanjarijodi_documents');
+    if (res.success && res.url) {
+      uploadAadhaarCard(currentUser.id, res.url);
+      setDocSuccessMsg('तुमचे आधार / ओळखपत्र ऑनलाईन क्लाऊडवर यशस्वीपणे जतन झाले आहे!');
+    } else {
+      setDocUploadError(res.error || 'कागदपत्र अपलोड करताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.');
+    }
+    setIsUploadingDoc(false);
+  };
 
   // 1. GUEST VIEW (Unauthenticated User) - Bright Auspicious Gold-Bordered Preview Section
   if (!currentUser) {
@@ -421,9 +451,16 @@ export const MemberDashboard: React.FC = () => {
 
               <div className="bg-[#FFFDF5] p-5 rounded-2xl border border-amber-200 space-y-2.5">
                 <span className="text-[#A71930] font-extrabold text-sm block border-b border-amber-200 pb-1">
-                  ३. कागदपत्रे व पत्रिका
+                  ३. कागदपत्रे व पत्रिका माहिती
                 </span>
-                <p><strong className="text-slate-600">आधार व्हेरीफाईड:</strong> <span className="text-emerald-700 font-bold">होय (प्रमाणित)</span></p>
+                <p>
+                  <strong className="text-slate-600">आधार / ओळखपत्र:</strong>{' '}
+                  {currentUser.idProofUrl || currentUser.aadhaarCardUrl ? (
+                    <span className="text-emerald-700 font-extrabold">अपलोड व ऑनलाइन जतन आहे ✓</span>
+                  ) : (
+                    <span className="text-amber-700 font-bold">नाही (खालील सेक्शनमधून अपलोड करा)</span>
+                  )}
+                </p>
                 <p><strong className="text-slate-600">पत्रिका PDF:</strong> डिजिटल पत्रिका जोडली आहे</p>
                 <button
                   onClick={() => alert('पत्रिका PDF डाऊनलोड सुरू झाली आहे.')}
@@ -433,6 +470,128 @@ export const MemberDashboard: React.FC = () => {
                   <span>माझी पत्रिका पहा</span>
                 </button>
               </div>
+            </div>
+
+            {/* 4. Aadhaar / ID Card Document Management Card */}
+            <div className="bg-[#FFFDF5] p-6 rounded-3xl border-2 border-amber-300 shadow-md space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-200 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-r from-[#800C1E] to-[#A71930] text-amber-100 shadow">
+                    <ShieldCheck className="w-6 h-6 text-amber-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-base sm:text-lg font-black text-[#A71930] flex items-center gap-2">
+                      <span>आधार कार्ड व ओळखपत्र व्यवस्थापन (Aadhaar & ID Proof)</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 font-bold">
+                      (नोंदणीनंतर इथे कधीही आधार जोडता किंवा अपडेट करता येते. क्लाउडवर साठवले जाते.)
+                    </p>
+                  </div>
+                </div>
+
+                {currentUser.idProofUrl || currentUser.aadhaarCardUrl ? (
+                  <span className="px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black border border-emerald-300 flex items-center gap-1.5 shadow-xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>कागदपत्र ऑनलाइन जतन आहे</span>
+                  </span>
+                ) : (
+                  <span className="px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-300">
+                    कागदपत्र अद्याप जोडलेले नाही (ऐच्छिक)
+                  </span>
+                )}
+              </div>
+
+              {docSuccessMsg && (
+                <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-emerald-800 text-xs font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{docSuccessMsg}</span>
+                </div>
+              )}
+
+              {docUploadError && (
+                <div className="p-3 bg-rose-100 border border-rose-300 rounded-xl text-rose-800 text-xs font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{docUploadError}</span>
+                </div>
+              )}
+
+              {/* Existing Document Display or Upload Field */}
+              {currentUser.idProofUrl || currentUser.aadhaarCardUrl ? (
+                <div className="bg-white p-4 rounded-2xl border border-amber-300 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-xs font-black text-slate-900">
+                        📄 तुमचा ऑनलाइन जोडलेला आधार कार्ड / आयडी दस्तऐवज:
+                      </p>
+                      <p className="text-[11px] text-slate-600 font-medium">
+                        हे कागदपत्र क्लाउड फायरीबेस व क्लाउडनरीवर सुरक्षित साठवलेले आहे.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a
+                        href={currentUser.idProofUrl || currentUser.aadhaarCardUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#A71930] text-xs font-black border border-amber-300 flex items-center gap-1.5 transition-all shadow-xs"
+                      >
+                        <Eye className="w-4 h-4 text-[#A71930]" />
+                        <span>कागदपत्र उघडा / पहा</span>
+                      </a>
+
+                      <label className="px-4 py-2 rounded-xl bg-[#A71930] hover:bg-[#800C1E] text-amber-100 text-xs font-black cursor-pointer flex items-center gap-1.5 transition-all shadow-xs">
+                        {isUploadingDoc ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-amber-200" />
+                            <span>अपलोड होत आहे...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 text-amber-200" />
+                            <span>कागदपत्र बदला (Change / Update)</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={handleDashboardAadhaarUpload}
+                          disabled={isUploadingDoc}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white p-5 rounded-2xl border-2 border-dashed border-amber-300 text-center space-y-3">
+                  <div className="max-w-md mx-auto space-y-1">
+                    <p className="text-xs text-slate-900 font-black">
+                      इथे क्लिक करून तुमचे आधार कार्ड किंवा ओळखपत्राची फाईल (PDF किंवा फोटो) अपलोड करा.
+                    </p>
+                    <p className="text-[11px] text-slate-600 font-medium">
+                      (टीप: आधार अपलोड अनिवार्य नाही, परंतु अपलोड केल्यास तुमची प्रोफाइल अधिक विश्वासार्ह दिसते.)
+                    </p>
+                  </div>
+
+                  {isUploadingDoc ? (
+                    <div className="flex items-center justify-center gap-2 py-3 text-[#A71930] font-bold text-xs">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#A71930]" />
+                      <span>क्लाऊडवर कागदपत्र सुरक्षित अपलोड होत आहे...</span>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] text-amber-100 font-black text-xs cursor-pointer shadow-md border border-amber-300/40 transition-transform active:scale-95">
+                      <Upload className="w-4 h-4 text-amber-200" />
+                      <span>📂 आधार / दस्तऐवज फाईल निवडा (Choose PDF or Photo)</span>
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={handleDashboardAadhaarUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

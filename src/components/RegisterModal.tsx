@@ -9,6 +9,7 @@ import {
   X,
   UserCheck,
   CheckCircle,
+  CheckCircle2,
   Sparkles,
   Camera,
   Bot,
@@ -21,7 +22,8 @@ import {
   Briefcase,
   ArrowRight,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 
 export const RegisterModal: React.FC<{
@@ -103,6 +105,12 @@ export const RegisterModal: React.FC<{
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
   const [extractedSuccessBadge, setExtractedSuccessBadge] = useState<string | null>(null);
 
+  // Aadhaar / ID Document Optional Upload State
+  const [aadhaarDocUrl, setAadhaarDocUrl] = useState<string>('');
+  const [aadhaarNumber, setAadhaarNumber] = useState<string>('');
+  const [isUploadingAadhaar, setIsUploadingAadhaar] = useState<boolean>(false);
+  const [aadhaarError, setAadhaarError] = useState<string | null>(null);
+
   // Privacy Checkbox States
   const [hideContact, setHideContact] = useState<boolean>(false);
   const [hidePhoto, setHidePhoto] = useState<boolean>(false);
@@ -181,6 +189,26 @@ export const RegisterModal: React.FC<{
     });
   };
 
+  const handleAadhaarUploadSim = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAadhaarError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 600 * 1024) {
+      setAadhaarError(`कागदपत्राचा आकार ${(file.size / 1024).toFixed(0)} KB आहे! कृपया ६०० KB पेक्षा लहान फाईल (PDF/फोटो) निवडा.`);
+      return;
+    }
+
+    setIsUploadingAadhaar(true);
+    const res = await uploadToCloudinary(file, 'vanjarijodi_documents');
+    if (res.success && res.url) {
+      setAadhaarDocUrl(res.url);
+    } else {
+      setAadhaarError(res.error || 'कागदपत्र अपलोड करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+    }
+    setIsUploadingAadhaar(false);
+  };
+
   const handleSubmitRegistration = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName) {
@@ -246,7 +274,11 @@ export const RegisterModal: React.FC<{
       familyType,
       expectations: expectations || 'सुशिक्षित आणि सुसंस्कृत वंजारी जोडीदार.',
       photos: orderedPhotos,
-      aadhaarVerified: true,
+      idProofUrl: aadhaarDocUrl || '',
+      idVerificationNumber: aadhaarNumber || '',
+      aadhaarCardUrl: aadhaarDocUrl || '',
+      aadhaarVerified: !!aadhaarDocUrl,
+      isIdVerified: !!aadhaarDocUrl,
       isVerified: true,
       isFeatured: false,
       isApproved: false,
@@ -1023,6 +1055,103 @@ export const RegisterModal: React.FC<{
                               );
                             })}
                           </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* OPTIONAL Aadhaar & ID Document Upload Section */}
+                    <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50/60 rounded-2xl border-2 border-amber-300 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2 border-b border-amber-200 pb-2">
+                        <label className="block text-[#A71930] font-black text-xs flex items-center gap-1.5">
+                          <FileText className="w-4 h-4 text-[#A71930]" />
+                          <span>४. आधार / ओळखपत्र कागदपत्रे जोडणे (Optional / ऐच्छिक)</span>
+                        </label>
+                        <span className="text-[10px] font-black bg-amber-200 text-[#800C1E] px-2.5 py-0.5 rounded-full border border-amber-300">
+                          नॉट कंपल्सरी
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-slate-700 font-bold leading-relaxed">
+                        💡 **टीप:** नोंदणी करताना आधार जोडणे <strong>अनिवार्य/कंपल्सरी नाही</strong>. जर तुम्ही आता आधार जोडले नाही तर नोंदणी झाल्यावर तुमच्या <strong>'Member Dashboard'</strong> मधून देखील नंतर कधीही आधार किंवा कागदपत्राची PDF/फोटो अपलोड करू शकता.
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-800 text-xs font-bold mb-1">
+                            आधार क्रमांक / आयडी नंबर (ऐच्छिक):
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="उदा. १२ अंकी आधार क्रमांक किंवा शेवटचे ४ अंक"
+                            value={aadhaarNumber}
+                            onChange={(e) => setAadhaarNumber(e.target.value)}
+                            className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#A71930]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-800 text-xs font-bold mb-1">
+                            आधार कार्ड / ओळखपत्र फाईल (PDF/फोटो):
+                          </label>
+                          
+                          {aadhaarDocUrl ? (
+                            <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-300 rounded-xl">
+                              <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                <span>कागदपत्र अपलोड झाले!</span>
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={aadhaarDocUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] text-[#A71930] font-black underline"
+                                >
+                                  पहा
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => setAadhaarDocUrl('')}
+                                  className="text-[11px] text-rose-600 font-bold hover:underline"
+                                >
+                                  हटवा
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                onChange={handleAadhaarUploadSim}
+                                disabled={isUploadingAadhaar}
+                                className="hidden"
+                                id="modal-aadhaar-upload"
+                              />
+                              <label
+                                htmlFor="modal-aadhaar-upload"
+                                className="w-full px-3 py-2.5 rounded-xl bg-white hover:bg-amber-100 text-[#A71930] font-black text-xs border-2 border-dashed border-amber-400 cursor-pointer flex items-center justify-center gap-2 transition-all"
+                              >
+                                {isUploadingAadhaar ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin text-[#A71930]" />
+                                    <span>अपलोड होत आहे...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="w-4 h-4 text-[#A71930]" />
+                                    <span>📂 आधार / ID फाईल निवडा (PDF/Image)</span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {aadhaarError && (
+                        <div className="p-2.5 bg-rose-100 border border-rose-300 rounded-xl text-rose-800 text-xs font-bold">
+                          {aadhaarError}
                         </div>
                       )}
                     </div>

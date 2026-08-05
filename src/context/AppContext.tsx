@@ -2292,18 +2292,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const uploadAadhaarCard = (profileId: string, aadhaarUrl: string) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === profileId
-          ? { ...p, aadhaarCardUrl: aadhaarUrl, aadhaarVerified: true }
-          : p
-      )
-    );
-    if (currentUser?.id === profileId) {
-      setCurrentUser((prev) =>
-        prev ? { ...prev, aadhaarCardUrl: aadhaarUrl, aadhaarVerified: true } : prev
-      );
-    }
+    updateProfileDirect(profileId, {
+      aadhaarCardUrl: aadhaarUrl,
+      idProofUrl: aadhaarUrl,
+      aadhaarVerified: true,
+      isIdVerified: true
+    });
   };
 
   const updateProfileDirect = (profileId: string, updatedFields: Partial<UserProfile>) => {
