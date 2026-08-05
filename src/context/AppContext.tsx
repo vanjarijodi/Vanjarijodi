@@ -433,6 +433,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [currentUser]);
 
+  // Keep currentUser in sync when profiles are updated from Firestore/local changes
+  useEffect(() => {
+    if (currentUser && profiles.length > 0) {
+      const updatedProfile = profiles.find((p) => p.id === currentUser.id);
+      if (updatedProfile && JSON.stringify(updatedProfile) !== JSON.stringify(currentUser)) {
+        setCurrentUser(updatedProfile);
+      }
+    }
+  }, [profiles]);
+
   // 4. Search filters
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(defaultSearchFilters);
 
