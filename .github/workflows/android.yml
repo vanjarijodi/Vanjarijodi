@@ -29,9 +29,10 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.3
 
-      # १. npm ci फेल झाल्यास स्वयंचलितपणे npm install वापरून पुढे जाईल
       - name: Install Dependencies
         run: |
           if npm ci; then
@@ -46,23 +47,6 @@ jobs:
 
       - name: Sync Capacitor Android
         run: npx cap sync android
-
-      # २. gradle-wrapper.jar गहाळ असल्यास बिल्ड सुरू असतानाच ती तयार होईल
-      - name: Ensure Gradle Wrapper Present
-        run: |
-          if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "::warning ::gradle-wrapper.jar is missing. Will try to generate it using system Gradle (or install Gradle if missing)..."
-            # Ensure gradle CLI is available; install via apt if it's not present
-            if ! command -v gradle >/dev/null 2>&1; then
-              echo "Gradle CLI not found. Installing gradle via apt (this may be an older distro package but is sufficient to generate the wrapper)..."
-              sudo apt-get update && sudo apt-get install -y gradle
-            fi
-            cd android || exit 1
-            gradle wrapper --gradle-version 8.3
-            chmod +x ./gradlew
-          else
-            echo "Gradle wrapper is present"
-          fi
 
       - name: Make Gradlew Executable
         run: chmod +x ./android/gradlew
