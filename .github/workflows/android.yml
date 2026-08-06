@@ -1,4 +1,3 @@
-# Automated Android APK Build Workflow for Vanjari Jodi
 name: Build Android APK
 
 on:
@@ -32,7 +31,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # १. npm lockfile ची समस्या आपोआप दुरुस्त होईल
+      # १. npm lockfile दुरुस्त करणारी स्टेप
       - name: Install Dependencies
         run: |
           if npm ci; then
@@ -48,13 +47,13 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      # २. Gradle Wrapper Jar missing असल्यास ऑन-द-स्पॉट जनरेट होईल
+      # २. Missing Gradle wrapper JAR आपोआप तयार करणारी स्टेप
       - name: Ensure Gradle Wrapper Present
         run: |
           if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "::warning ::android/gradle/wrapper/gradle-wrapper.jar is missing. Regenerating Gradle wrapper..."
+            echo "::warning ::gradle-wrapper.jar is missing. Regenerating Gradle wrapper..."
             cd android || exit 1
-            gradle wrapper --gradle-version 8.6
+            gradle wrapper --gradle-version 8.4
             chmod +x ./gradlew
           else
             echo "Gradle wrapper is present"
