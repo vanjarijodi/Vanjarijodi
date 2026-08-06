@@ -1,3 +1,4 @@
+# Automated Android APK Build Workflow for Vanjari Jodi
 name: Build Android APK
 
 on:
@@ -29,18 +30,10 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-version: 8.3
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Install Dependencies
-        run: |
-          if npm ci; then
-            echo "npm ci succeeded"
-          else
-            echo "::warning ::npm ci failed due to lockfile mismatch. Falling back to npm install."
-            npm install --legacy-peer-deps
-          fi
+        run: npm ci || npm install --legacy-peer-deps
 
       - name: Build Web Application
         run: npm run build
