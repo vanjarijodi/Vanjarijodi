@@ -32,8 +32,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      # 1. FIX FOR NPM LOCKFILE MISMATCH
       - name: Install Dependencies
-        run: npm ci || npm install --legacy-peer-deps
+        run: |
+          if npm ci; then
+            echo "npm ci succeeded"
+          else
+            echo "::warning ::npm ci failed due to lockfile mismatch. Falling back to npm install."
+            npm install --legacy-peer-deps
+          fi
 
       - name: Build Web Application
         run: npm run build
@@ -41,19 +48,17 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Ensure Gradle wrapper present
+      # 2. FIX FOR MISSING GRADLE WRAPPER JAR
+      - name: Ensure Gradle Wrapper Present
         run: |
           if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "Missing gradle-wrapper.jar — generating wrapper"
+            echo "::warning ::android/gradle/wrapper/gradle-wrapper.jar is missing. Regenerating Gradle wrapper..."
             cd android || exit 1
             gradle wrapper --gradle-version 8.6
             chmod +x ./gradlew
           else
             echo "Gradle wrapper is present"
           fi
-
-      - name: Debug: list wrapper files
-        run: ls -la android/gradle/wrapper || true
 
       - name: Make Gradlew Executable
         run: chmod +x ./android/gradlew
