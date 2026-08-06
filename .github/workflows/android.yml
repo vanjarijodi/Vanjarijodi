@@ -31,7 +31,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # १. npm lockfile दुरुस्त करणारी स्टेप
+      # १. npm ci फेल झाल्यास स्वयंचलितपणे npm install वापरून पुढे जाईल
       - name: Install Dependencies
         run: |
           if npm ci; then
@@ -47,13 +47,13 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      # २. Missing Gradle wrapper JAR आपोआप तयार करणारी स्टेप
+      # २. gradle-wrapper.jar गहाळ असल्यास बिल्ड सुरू असतानाच ती तयार होईल
       - name: Ensure Gradle Wrapper Present
         run: |
           if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
             echo "::warning ::gradle-wrapper.jar is missing. Regenerating Gradle wrapper..."
             cd android || exit 1
-            gradle wrapper --gradle-version 8.4
+            gradle wrapper --gradle-version 8.3
             chmod +x ./gradlew
           else
             echo "Gradle wrapper is present"
