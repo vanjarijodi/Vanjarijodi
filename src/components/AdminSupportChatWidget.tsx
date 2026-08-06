@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { uploadToCloudinary, validateFileSize } from '../utils/cloudinary';
-import { MessageCircle, X, Send, Paperclip, ShieldCheck, UserCheck, CheckCheck, Loader2, Move } from 'lucide-react';
+import { MessageCircle, X, Send, Paperclip, ShieldCheck, UserCheck, CheckCheck, Loader2, Move, Headphones } from 'lucide-react';
 
 export const AdminSupportChatWidget: React.FC = () => {
   const {
     adminSupportMessages,
     sendAdminSupportMessage,
+    markAdminSupportMessagesRead,
     currentUser,
   } = useApp();
 
@@ -23,12 +24,31 @@ export const AdminSupportChatWidget: React.FC = () => {
   const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const initialPos = useRef<{ x: number; y: number }>({ x: 20, y: 20 });
 
-  const currentUserId = currentUser ? currentUser.id : 'visitor-guest';
+  // Generate or get a unique visitor guest ID so index visitors/guests get separate personal chats
+  const [visitorId] = useState<string>(() => {
+    let vid = localStorage.getItem('vanjari_jodi_visitor_id');
+    if (!vid) {
+      vid = 'visitor-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString().slice(-4);
+      localStorage.setItem('vanjari_jodi_visitor_id', vid);
+    }
+    return vid;
+  });
+
+  const currentUserId = currentUser ? currentUser.id : visitorId;
 
   // Filter messages relevant for this user/guest
   const userMessages = adminSupportMessages.filter(
-    (m) => m.senderId === currentUserId || (currentUserId === 'visitor-guest' && m.senderId === 'visitor-guest')
+    (m) => m.senderId === currentUserId
   );
+
+  // Unread count for user messages sent by admin
+  const unreadCount = userMessages.filter((m) => m.senderRole === 'admin' && !m.isReadByUser).length;
+
+  useEffect(() => {
+    if (isOpen) {
+      markAdminSupportMessagesRead(currentUserId);
+    }
+  }, [isOpen, adminSupportMessages.length, currentUserId]);
 
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
@@ -74,7 +94,21 @@ export const AdminSupportChatWidget: React.FC = () => {
       if (res.success && res.url) {
         setAttachedFile({ url: res.url, name: file.name });
       } else {
-        setFileError(res.error || 'फाईल अपलोड करण्यात समस्या आली.');
+        // Fallback to FileReader base64 data URL if Cloudinary fails (as requested)
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            setAttachedFile({ url: reader.result, name: file.name });
+            setFileError('माध्यम यशस्वीरित्या जोडले गेले (लोकल बॅकअप मोड).');
+            setTimeout(() => setFileError(null), 4000);
+          } else {
+            setFileError('फोटो लोड करता आला नाही.');
+          }
+        };
+        reader.onerror = () => {
+          setFileError('बॅकअप वाचक अपयशी ठरला.');
+        };
+        reader.readAsDataURL(file);
       }
     }
   };
@@ -88,7 +122,8 @@ export const AdminSupportChatWidget: React.FC = () => {
       attachedFile?.url,
       attachedFile?.name,
       visitorMobile,
-      visitorName
+      visitorName,
+      visitorId
     );
 
     setMessageText('');
@@ -103,7 +138,11 @@ export const AdminSupportChatWidget: React.FC = () => {
       {/* Floating Trigger Button */}
       {!isOpen && (
         <div className="relative group">
+          {/* Animated Pulsing Gold/Maroon Outer Shadow Ring */}
+          <span className="absolute inset-0 rounded-full bg-[#A71930] opacity-45 blur-md animate-pulse scale-105 pointer-events-none" />
+          
           <button
+            id="support-chat-trigger-btn"
             type="button"
             onClick={() => setIsOpen(true)}
             onMouseDown={handleTouchStart}
@@ -112,15 +151,32 @@ export const AdminSupportChatWidget: React.FC = () => {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="flex items-center gap-2 px-4 py-3 bg-[#A71930] hover:bg-[#800C1E] text-white font-extrabold rounded-full shadow-2xl border-2 border-amber-300 transition-all active:scale-95 cursor-grab active:cursor-grabbing"
+            className="relative flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-[#A71930] via-[#C82333] to-[#800C1E] hover:from-[#C82333] hover:to-[#A71930] text-amber-100 font-black rounded-full shadow-[0_10px_35px_rgba(167,25,48,0.5)] border-2 border-amber-300 transition-all duration-300 hover:scale-105 active:scale-95 cursor-grab active:cursor-grabbing hover:shadow-[0_15px_45px_rgba(167,25,48,0.7)] hover:border-amber-200"
           >
-            <div className="relative">
-              <MessageCircle className="w-6 h-6 text-amber-300" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-ping" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+            <div className="relative flex items-center justify-center">
+              <div className="p-1 rounded-full bg-white/10 border border-amber-400/35">
+                <Headphones className="w-5.5 h-5.5 text-amber-300 animate-bounce" style={{ animationDuration: '2.5s' }} />
+              </div>
+              
+              {/* Green online signal dot */}
+              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#FFFDF5] flex items-center justify-center shadow-lg">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+              </span>
             </div>
-            <span className="text-xs sm:text-sm tracking-wide">मदत व संपर्क</span>
-            <Move className="w-3.5 h-3.5 text-amber-300/70 ml-1 hidden sm:inline-block" />
+            
+            <div className="flex flex-col items-start text-left leading-tight shrink-0">
+              <span className="text-[11px] sm:text-[12px] text-amber-200 font-extrabold tracking-wide">संपर्क</span>
+              <span className="text-[9px] text-white/90 font-medium">थेट मदत मिळवा</span>
+            </div>
+
+            {/* Live Unread Count Badge */}
+            {unreadCount > 0 && (
+              <span className="absolute -top-2.5 -right-1.5 bg-rose-600 text-amber-100 text-[10px] font-black h-5.5 min-w-[22px] px-1.5 rounded-full border-2 border-amber-300 shadow-xl flex items-center justify-center animate-bounce">
+                {unreadCount}
+              </span>
+            )}
+            
+            <Move className="w-3.5 h-3.5 text-amber-300/60 ml-0.5 hidden sm:inline-block opacity-40 group-hover:opacity-100 transition-opacity" />
           </button>
         </div>
       )}

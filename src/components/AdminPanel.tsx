@@ -63,10 +63,11 @@ import {
   HeartHandshake,
   FileSpreadsheet,
   AlertTriangle,
+  Clock,
+  PlusCircle,
   RefreshCw,
   ToggleLeft,
   ToggleRight,
-  PlusCircle,
 } from 'lucide-react';
 
 const ALL_SUBADMIN_PERMISSIONS: { id: SubAdminPermission; labelMr: string; icon: string; category: string }[] = [
@@ -151,6 +152,8 @@ export const AdminPanel: React.FC<{
     replyAdminSupportMessage,
     markAdminSupportMessagesRead,
     unreadAdminChatCount,
+    deleteAdminSupportMessage,
+    bulkDeleteAdminSupportMessages,
     recycleBin,
     softDeleteProfile,
     restoreRecycleItem,
@@ -208,6 +211,7 @@ export const AdminPanel: React.FC<{
 
   const [selectedEditProfile, setSelectedEditProfile] = useState<UserProfile | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -274,6 +278,11 @@ export const AdminPanel: React.FC<{
   const [promoDiscountType, setPromoDiscountType] = useState<'percentage' | 'flat' | 'vip_free'>('percentage');
   const [promoDiscountValue, setPromoDiscountValue] = useState<number>(20);
   const [promoMaxUses, setPromoMaxUses] = useState<number>(100);
+
+  // Admin Support Chat States
+  const [selectedSupportSenderId, setSelectedSupportSenderId] = useState<string | null>(null);
+  const [supportReplyText, setSupportReplyText] = useState<string>('');
+  const [selectedSupportMsgIds, setSelectedSupportMsgIds] = useState<string[]>([]);
 
   // Story Form State
   const [coupleName, setCoupleName] = useState('');
@@ -866,8 +875,284 @@ export const AdminPanel: React.FC<{
           )}
         </div>
 
-        {/* 1. RESPONSIVE MOBILE-FRIENDLY CATEGORY HUBS & SUB-TABS */}
-        <div className="bg-amber-50/90 border-b border-amber-300 p-2 sm:p-3 shrink-0 space-y-2">
+        {/* MAIN BODY FLEX ROW FOR COLLAPSIBLE SIDEBAR & CONTENT */}
+        <div className="flex flex-1 overflow-hidden min-h-0 relative">
+
+          {/* DESKTOP COLLAPSIBLE LEFT VERTICAL SIDEBAR MENU */}
+          <div className={`hidden lg:flex flex-col border-r border-amber-300 bg-gradient-to-b from-amber-50 via-amber-50/50 to-[#FFFDF5] h-full transition-all duration-300 shrink-0 select-none ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
+            {/* Collapse Toggle Button */}
+            <div className="p-3.5 border-b border-amber-200 flex justify-end">
+              <button 
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-[#A71930] transition-colors cursor-pointer"
+                title={isSidebarCollapsed ? "मोकळा करा" : "बंद करा"}
+              >
+                <Sliders className={`w-4 h-4 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            
+            {/* Sidebar Navigation Options */}
+            <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
+              {/* SECTION 1: MEMBERS HUB */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setActiveCategory('members_hub');
+                    setActiveTab('members');
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    activeCategory === 'members_hub'
+                      ? 'bg-[#A71930] text-amber-100 shadow-md ring-1 ring-amber-300'
+                      : 'hover:bg-amber-100 text-slate-700'
+                  }`}
+                >
+                  <Users className="w-5 h-5 shrink-0 text-amber-500" />
+                  {!isSidebarCollapsed && (
+                    <div className="flex-1 text-left flex items-center justify-between min-w-0">
+                      <span className="truncate">सदस्य व्यवस्थापन</span>
+                      <span className="px-1.5 py-0.5 rounded-md bg-amber-200 text-[#800C1E] text-[10px] font-black">
+                        {profiles.length}
+                      </span>
+                    </div>
+                  )}
+                </button>
+                {!isSidebarCollapsed && activeCategory === 'members_hub' && (
+                  <div className="pl-6 pr-2 py-1 space-y-1 border-l border-amber-200 ml-5 animate-in slide-in-from-left-2 duration-200">
+                    <button
+                      onClick={() => setActiveTab('members')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'members' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>मान्य सदस्य</span>
+                      <span>({approvedMembers.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('pending')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'pending' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>प्रलंबित</span>
+                      <span>({pendingMembers.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('profile_edits')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'profile_edits' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>माहिती बदल</span>
+                      <span>({pendingProfileEdits.filter(e => e.status === 'pending').length})</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('add_profile')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center gap-1.5 ${activeTab === 'add_profile' ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 hover:text-[#A71930]'}`}
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>नवीन जोडा</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 2: NOTIFICATIONS HUB */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setActiveCategory('notifications_hub');
+                    setActiveTab('push_notification');
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    activeCategory === 'notifications_hub'
+                      ? 'bg-[#A71930] text-amber-100 shadow-md ring-1 ring-amber-300'
+                      : 'hover:bg-amber-100 text-slate-700'
+                  }`}
+                >
+                  <Bell className="w-5 h-5 shrink-0 text-amber-500" />
+                  {!isSidebarCollapsed && (
+                    <div className="flex-1 text-left flex items-center justify-between min-w-0">
+                      <span className="truncate">सुरक्षा व सूचना</span>
+                      {(unreadAdminChatCount > 0 || pendingChatRequests.length > 0) && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-black animate-pulse">
+                          {unreadAdminChatCount + pendingChatRequests.length}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </button>
+                {!isSidebarCollapsed && activeCategory === 'notifications_hub' && (
+                  <div className="pl-6 pr-2 py-1 space-y-1 border-l border-amber-200 ml-5 animate-in slide-in-from-left-2 duration-200">
+                    <button
+                      onClick={() => setActiveTab('push_notification')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'push_notification' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>पुश नोटिफिकेशन</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('support_chat')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'support_chat' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>सदस्य चॅट</span>
+                      <span>({unreadAdminChatCount})</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('chat_approvals')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'chat_approvals' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>संपर्क मंजुरी</span>
+                      <span>({pendingChatRequests.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('face_verification')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'face_verification' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>चेहरा पडताळणी</span>
+                      <span>({faceVerificationLogs.filter(l => l.status === 'pending').length})</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 3: PAYMENTS HUB */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setActiveCategory('payments_hub');
+                    setActiveTab('payment_requests');
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    activeCategory === 'payments_hub'
+                      ? 'bg-[#A71930] text-amber-100 shadow-md ring-1 ring-amber-300'
+                      : 'hover:bg-amber-100 text-slate-700'
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5 shrink-0 text-amber-500" />
+                  {!isSidebarCollapsed && (
+                    <div className="flex-1 text-left flex items-center justify-between min-w-0">
+                      <span className="truncate">पेमेंट्स व योजना</span>
+                      {paymentRequests.filter(p => p.status === 'pending').length > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black">
+                          {paymentRequests.filter(p => p.status === 'pending').length}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </button>
+                {!isSidebarCollapsed && activeCategory === 'payments_hub' && (
+                  <div className="pl-6 pr-2 py-1 space-y-1 border-l border-amber-200 ml-5 animate-in slide-in-from-left-2 duration-200">
+                    <button
+                      onClick={() => setActiveTab('payment_requests')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'payment_requests' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>पेमेंट विनंत्या</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('plans_setup')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'plans_setup' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>योजना दर रचना</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('promo_codes')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'promo_codes' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>सवलत कूपन</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 4: CONTROLS HUB */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setActiveCategory('controls_hub');
+                    setActiveTab('apk_manager');
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    activeCategory === 'controls_hub'
+                      ? 'bg-[#A71930] text-amber-100 shadow-md ring-1 ring-amber-300'
+                      : 'hover:bg-amber-100 text-slate-700'
+                  }`}
+                >
+                  <Layout className="w-5 h-5 shrink-0 text-amber-500" />
+                  {!isSidebarCollapsed && (
+                    <div className="flex-1 text-left flex items-center justify-between min-w-0">
+                      <span className="truncate">ॲप आणि ब्रँडिंग</span>
+                    </div>
+                  )}
+                </button>
+                {!isSidebarCollapsed && activeCategory === 'controls_hub' && (
+                  <div className="pl-6 pr-2 py-1 space-y-1 border-l border-amber-200 ml-5 animate-in slide-in-from-left-2 duration-200">
+                    <button
+                      onClick={() => setActiveTab('apk_manager')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'apk_manager' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>APK मॅनेजर</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('branding')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'branding' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>लोगो व स्लाईड्स</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('stories')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'stories' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>यशस्वी गोष्टी</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 5: SYSTEM HUB */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setActiveCategory('system_hub');
+                    setActiveTab('sub_admins');
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    activeCategory === 'system_hub'
+                      ? 'bg-[#A71930] text-amber-100 shadow-md ring-1 ring-amber-300'
+                      : 'hover:bg-amber-100 text-slate-700'
+                  }`}
+                >
+                  <ShieldCheck className="w-5 h-5 shrink-0 text-amber-500" />
+                  {!isSidebarCollapsed && (
+                    <div className="flex-1 text-left flex items-center justify-between min-w-0">
+                      <span className="truncate">सिस्टीम सुरक्षा</span>
+                    </div>
+                  )}
+                </button>
+                {!isSidebarCollapsed && activeCategory === 'system_hub' && (
+                  <div className="pl-6 pr-2 py-1 space-y-1 border-l border-amber-200 ml-5 animate-in slide-in-from-left-2 duration-200">
+                    <button
+                      onClick={() => setActiveTab('sub_admins')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'sub_admins' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>सब-ॲडमिन्स</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('recycle_bin')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'recycle_bin' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>रिसायकल बिन</span>
+                      <span>({recycleBin.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('audit_logs')}
+                      className={`w-full text-left py-1 px-2 rounded-lg text-[11px] font-extrabold flex items-center justify-between ${activeTab === 'audit_logs' ? 'text-[#A71930] bg-amber-100/60' : 'text-slate-600 hover:text-slate-900'}`}
+                    >
+                      <span>ऑडिट लॉग्स</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN WRAPPER CONTAINING MOBILE TOP TABS & CURRENT ACTIVE VIEW CONTENT */}
+          <div className="flex-1 overflow-hidden flex flex-col min-w-0 h-full">
+
+            {/* 1. RESPONSIVE MOBILE-ONLY CATEGORY HUBS & SUB-TABS */}
+            <div className="lg:hidden bg-amber-50/90 border-b border-amber-300 p-2 sm:p-3 shrink-0 space-y-2">
           {/* Top Level Category Hub Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 sm:gap-2 text-xs font-bold">
             <button
@@ -1249,6 +1534,93 @@ export const AdminPanel: React.FC<{
 
         {/* MAIN CONTENT CONTAINER */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
+
+          {/* ROYAL MAHARASHTRIAN ANALYTICS WIDGETS ROW */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-4 duration-300 shrink-0">
+            {/* Widget 1: Approved Members */}
+            <div 
+              onClick={() => {
+                setActiveCategory('members_hub');
+                setActiveTab('members');
+              }}
+              className="group cursor-pointer p-4 bg-gradient-to-br from-[#800C1E] to-[#A71930] rounded-2xl border-2 border-amber-400 text-amber-50 shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 select-none"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold tracking-wider uppercase text-amber-200">मान्य सदस्य (Approved)</span>
+                <div className="p-2 bg-amber-400/20 rounded-xl group-hover:bg-amber-400/30 transition-colors">
+                  <UserCheck className="w-5 h-5 text-amber-300" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black font-mono tracking-tight">{approvedMembers.length}</span>
+                <span className="text-[10px] text-emerald-400 font-bold">● सक्रिय</span>
+              </div>
+            </div>
+
+            {/* Widget 2: Pending Approvals */}
+            <div 
+              onClick={() => {
+                setActiveCategory('members_hub');
+                setActiveTab('pending');
+              }}
+              className="group cursor-pointer p-4 bg-white rounded-2xl border border-amber-200 text-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 select-none"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500">प्रलंबित मंजुरी (Pending)</span>
+                <div className="p-2 bg-amber-100 rounded-xl group-hover:bg-amber-200 transition-colors">
+                  <Clock className="w-5 h-5 text-[#A71930]" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black font-mono tracking-tight text-[#800C1E]">{pendingMembers.length}</span>
+                <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold animate-pulse">मंजुरी आवश्यक</span>
+              </div>
+            </div>
+
+            {/* Widget 3: Total Premium */}
+            <div 
+              onClick={() => {
+                setActiveCategory('payments_hub');
+                setActiveTab('payment_requests');
+              }}
+              className="group cursor-pointer p-4 bg-gradient-to-br from-[#FFFDF0] to-amber-50 rounded-2xl border-2 border-[#F99C00]/40 text-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 select-none"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold tracking-wider uppercase text-[#800C1E]">एकूण प्रीमियम (Premium)</span>
+                <div className="p-2 bg-[#F99C00]/20 rounded-xl group-hover:bg-[#F99C00]/30 transition-colors">
+                  <Crown className="w-5 h-5 text-[#F99C00]" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black font-mono tracking-tight text-[#800C1E]">
+                  {profiles.filter(p => p.isPremium).length}
+                </span>
+                <span className="text-[10px] text-amber-700 font-extrabold bg-amber-100/60 px-1.5 py-0.5 rounded">VIP</span>
+              </div>
+            </div>
+
+            {/* Widget 4: APK Downloads */}
+            <div 
+              onClick={() => {
+                setActiveCategory('controls_hub');
+                setActiveTab('apk_manager');
+              }}
+              className="group cursor-pointer p-4 bg-white rounded-2xl border border-amber-200 text-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 select-none"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500">ॲप डाउनलोड्स (APK Hits)</span>
+                <div className="p-2 bg-emerald-50 rounded-xl group-hover:bg-emerald-100 transition-colors">
+                  <Download className="w-5 h-5 text-emerald-600" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black font-mono tracking-tight text-[#800C1E]">
+                  {siteConfig?.apkSettings?.downloadCount || 4280}
+                </span>
+                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">● लाइव्ह ट्रॅकर</span>
+              </div>
+            </div>
+          </div>
 
           {/* TAB 1: APPROVED MEMBERS TABLE WITH BULK EMAIL & BULK DELETE */}
           {activeTab === 'members' && (
@@ -3014,24 +3386,360 @@ export const AdminPanel: React.FC<{
           )}
 
           {/* TAB: SUPPORT CHAT */}
-          {activeTab === 'support_chat' && (
-            <div className="bg-white p-5 rounded-2xl border border-amber-300 shadow-md space-y-4">
-              <h3 className="text-base font-black text-[#A71930] border-b border-amber-200 pb-2">
-                थेट सदस्य संदेश व चॅट उत्तरे (Support Chat)
-              </h3>
-              <div className="space-y-3">
-                {adminSupportMessages.map((msg) => (
-                  <div key={msg.id} className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs">
-                    <div className="flex justify-between font-bold text-slate-900 mb-1">
-                      <span>{msg.senderName} ({msg.senderMobile || 'Guest'})</span>
-                      <span className="text-slate-400 font-mono">{msg.timestamp}</span>
-                    </div>
-                    <p className="text-slate-800">{msg.message}</p>
+          {activeTab === 'support_chat' && (() => {
+            // Group support messages by senderId
+            const groups: {
+              [senderId: string]: {
+                senderId: string;
+                senderName: string;
+                senderMobile: string;
+                lastMessage: string;
+                lastTimestamp: string;
+                unreadCount: number;
+                totalCount: number;
+              };
+            } = {};
+
+            adminSupportMessages.forEach((msg) => {
+              const sId = msg.senderId;
+              if (!sId) return;
+              
+              const isFromAdmin = msg.senderRole === 'admin';
+              const isUnread = !msg.isReadByAdmin && !isFromAdmin;
+
+              if (!groups[sId]) {
+                groups[sId] = {
+                  senderId: sId,
+                  senderName: msg.senderName || 'Anonymous',
+                  senderMobile: msg.senderMobile || 'Guest/Visitor',
+                  lastMessage: msg.message,
+                  lastTimestamp: msg.timestamp,
+                  unreadCount: isUnread ? 1 : 0,
+                  totalCount: 1,
+                };
+              } else {
+                groups[sId].totalCount += 1;
+                if (isUnread) {
+                  groups[sId].unreadCount += 1;
+                }
+                groups[sId].lastMessage = msg.message;
+                groups[sId].lastTimestamp = msg.timestamp;
+              }
+            });
+
+            const conversations = Object.values(groups).sort((a, b) => b.lastTimestamp.localeCompare(a.lastTimestamp));
+
+            // Selected conversation's messages
+            const activeThreadMessages = adminSupportMessages.filter(
+              (msg) => msg.senderId === selectedSupportSenderId
+            );
+
+            // Mark read if selected
+            if (selectedSupportSenderId) {
+              const hasUnread = activeThreadMessages.some(m => m.senderRole === 'user' && !m.isReadByAdmin);
+              if (hasUnread) {
+                setTimeout(() => markAdminSupportMessagesRead(selectedSupportSenderId), 100);
+              }
+            }
+
+            const handleSendReply = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!selectedSupportSenderId || !supportReplyText.trim()) return;
+              replyAdminSupportMessage(selectedSupportSenderId, supportReplyText.trim());
+              setSupportReplyText('');
+            };
+
+            const toggleMsgSelection = (id: string) => {
+              setSelectedSupportMsgIds(prev =>
+                prev.includes(id) ? prev.filter(mid => mid !== id) : [...prev, id]
+              );
+            };
+
+            const selectAllMessages = () => {
+              const allIds = activeThreadMessages.map(m => m.id);
+              setSelectedSupportMsgIds(allIds);
+            };
+
+            const deselectAllMessages = () => {
+              setSelectedSupportMsgIds([]);
+            };
+
+            const deleteSelected = () => {
+              if (selectedSupportMsgIds.length === 0) return;
+              if (confirm(`तुम्हाला निवडलेले ${selectedSupportMsgIds.length} संदेश कायमचे हटवायचे आहेत का?`)) {
+                bulkDeleteAdminSupportMessages(selectedSupportMsgIds);
+                setSelectedSupportMsgIds([]);
+              }
+            };
+
+            const deleteEntireThread = () => {
+              if (!selectedSupportSenderId) return;
+              const allIds = activeThreadMessages.map(m => m.id);
+              if (confirm(`तुम्हाला या सदस्याचे सर्व ${allIds.length} संदेश आणि संपूर्ण इतिहास कायमचा हटवायचा आहे का? याने जागा पूर्णपणे मोकळी होईल.`)) {
+                bulkDeleteAdminSupportMessages(allIds);
+                setSelectedSupportMsgIds([]);
+                setSelectedSupportSenderId(null);
+              }
+            };
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* LEFT COLUMN: CONVERSATION LIST */}
+                <div className="lg:col-span-4 bg-white p-4 rounded-2xl border border-amber-300 shadow-md flex flex-col h-[600px]">
+                  <div className="border-b border-amber-200 pb-3 mb-3">
+                    <h3 className="text-sm font-black text-[#A71930] flex items-center justify-between">
+                      <span>💬 संदेश संभाषणे (Support Chats)</span>
+                      <span className="bg-[#A71930] text-amber-100 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        {conversations.length} युजर्स
+                      </span>
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-medium mt-1">
+                      सदस्यांनी विचारलेल्या शंकांचे आणि संदेशांचे निवारण करा.
+                    </p>
                   </div>
-                ))}
+
+                  <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                    {conversations.length === 0 ? (
+                      <div className="text-center py-12 text-slate-400 font-bold text-xs">
+                        सध्या कोणतेही थेट संदेश उपलब्ध नाहीत.
+                      </div>
+                    ) : (
+                      conversations.map((conv) => {
+                        const isSelected = selectedSupportSenderId === conv.senderId;
+                        return (
+                          <button
+                            key={conv.senderId}
+                            onClick={() => {
+                              setSelectedSupportSenderId(conv.senderId);
+                              setSelectedSupportMsgIds([]);
+                            }}
+                            className={`w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#A71930] text-white border-[#A71930] shadow-md'
+                                : 'bg-amber-50/40 hover:bg-amber-50 border-amber-200/60 text-slate-800'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1 leading-snug">
+                              <div className="flex justify-between items-center mb-0.5">
+                                <span className={`text-xs font-black truncate ${isSelected ? 'text-amber-200' : 'text-slate-900'}`}>
+                                  {conv.senderName}
+                                </span>
+                                <span className={`text-[9px] font-mono font-bold shrink-0 ${isSelected ? 'text-amber-100/75' : 'text-slate-400'}`}>
+                                  {conv.lastTimestamp.split(' ')[0]}
+                                </span>
+                              </div>
+                              <div className={`text-[10px] truncate ${isSelected ? 'text-white/80' : 'text-slate-600'} font-medium mb-1`}>
+                                {conv.senderMobile}
+                              </div>
+                              <p className={`text-[10.5px] truncate font-medium ${isSelected ? 'text-white/90' : 'text-slate-700'}`}>
+                                {conv.lastMessage}
+                              </p>
+                            </div>
+
+                            {conv.unreadCount > 0 && (
+                              <span className="bg-rose-600 text-white text-[9px] font-black h-5 w-5 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-amber-300 animate-pulse">
+                                {conv.unreadCount}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* RIGHT COLUMN: ACTIVE CONVERSATION THREAD */}
+                <div className="lg:col-span-8 bg-white p-4 rounded-2xl border border-amber-300 shadow-md flex flex-col h-[600px]">
+                  {selectedSupportSenderId ? (() => {
+                    const activeConv = conversations.find(c => c.senderId === selectedSupportSenderId);
+                    return (
+                      <>
+                        {/* Thread Header */}
+                        <div className="border-b border-amber-200 pb-3 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-black text-[#A71930] flex items-center gap-1.5">
+                              <span>👤 {activeConv?.senderName}</span>
+                              <span className="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
+                                {activeConv?.senderMobile}
+                              </span>
+                            </h4>
+                            <p className="text-[9px] text-slate-500 font-medium">
+                              आयडी: <span className="font-mono">{selectedSupportSenderId}</span>
+                            </p>
+                          </div>
+
+                          {/* Action Buttons for Selection / Bulk Delete */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {selectedSupportMsgIds.length > 0 ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={deselectAllMessages}
+                                  className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-300 transition-all cursor-pointer"
+                                >
+                                  निवड रद्द करा
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={deleteSelected}
+                                  className="px-2 py-1 rounded bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black flex items-center gap-1 transition-all shadow-sm cursor-pointer border border-rose-400"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>निवडलेले ({selectedSupportMsgIds.length}) हटवा</span>
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={selectAllMessages}
+                                  className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-[#800C1E] text-[10px] font-bold border border-amber-300 transition-all cursor-pointer"
+                                >
+                                  सर्व सिलेक्ट करा
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={deleteEntireThread}
+                                  className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold border border-rose-300 transition-all cursor-pointer"
+                                  title="संपूर्ण चॅट इतिहास पूर्णपणे काढून टाका जेणेकरून जागा मोकळी होईल"
+                                >
+                                  चॅट पूर्ण क्लियर करा 🗑️
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Thread Messages History */}
+                        <div className="flex-1 overflow-y-auto space-y-3 p-2 bg-slate-50 rounded-xl border border-slate-100 mb-3 flex flex-col">
+                          <div className="space-y-3">
+                            {activeThreadMessages.map((msg) => {
+                              const isAdmin = msg.senderRole === 'admin';
+                              const isSelected = selectedSupportMsgIds.includes(msg.id);
+                              return (
+                                <div
+                                  key={msg.id}
+                                  className={`flex items-start gap-2.5 max-w-[85%] ${
+                                    isAdmin ? 'ml-auto flex-row-reverse' : 'mr-auto'
+                                  }`}
+                                >
+                                  {/* Multi-select checkbox */}
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleMsgSelection(msg.id)}
+                                    className="w-3.5 h-3.5 mt-2 rounded border-slate-300 text-[#A71930] focus:ring-[#A71930] cursor-pointer shrink-0"
+                                    title="निवडा"
+                                  />
+
+                                  <div
+                                    className={`p-3 rounded-2xl text-xs relative group border ${
+                                      isAdmin
+                                        ? 'bg-gradient-to-br from-[#A71930] to-[#800C1E] text-white border-red-700 rounded-tr-none shadow-sm'
+                                        : 'bg-white text-slate-800 border-slate-200 rounded-tl-none shadow-sm'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between gap-4 mb-1 border-b border-black/10 pb-1">
+                                      <span className={`font-black text-[10px] ${isAdmin ? 'text-amber-200' : 'text-[#800C1E]'}`}>
+                                        {isAdmin ? '🛡️ सहाय्यक (Admin)' : `👤 ${msg.senderName}`}
+                                      </span>
+                                      <span className={`text-[8.5px] font-mono font-bold ${isAdmin ? 'text-amber-100/70' : 'text-slate-400'}`}>
+                                        {msg.timestamp}
+                                      </span>
+                                    </div>
+                                    <p className="whitespace-pre-wrap font-medium leading-relaxed break-all">
+                                      {msg.message}
+                                    </p>
+
+                                    {/* Attachment fileUrl rendering with custom single deletion tool */}
+                                    {msg.fileUrl && (
+                                      <div className="mt-2.5 p-1.5 bg-black/5 rounded-xl border border-black/10 flex flex-col gap-1.5 max-w-xs relative overflow-hidden">
+                                        <img
+                                          src={msg.fileUrl}
+                                          alt={msg.fileName || 'Attachment'}
+                                          referrerPolicy="no-referrer"
+                                          className="rounded-lg object-contain max-h-48 w-full bg-black/20"
+                                        />
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className={`truncate max-w-[150px] ${isAdmin ? 'text-amber-100' : 'text-slate-600'}`}>
+                                            📎 {msg.fileName || 'Image'}
+                                          </span>
+                                          
+                                          {/* Delete ONLY Image button */}
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              if (confirm('तुम्हाला या संदेशाचा फोटो फक्त काढायचा आहे का?')) {
+                                                deleteAdminSupportMessage(msg.id, true);
+                                              }
+                                            }}
+                                            className="px-1.5 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-[8px] font-black border border-rose-400 cursor-pointer shadow-sm transition-all"
+                                            title="फक्त फोटो काढून टाका जेणेकरून क्लाउड स्टोरेज वाचेल"
+                                          >
+                                            फोटो काढा 🗑️
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Single Message Actions Hover Control */}
+                                    <div className={`absolute top-1/2 -translate-y-1/2 ${
+                                      isAdmin ? '-left-10' : '-right-10'
+                                    } opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1`}>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (confirm('तुम्हाला हा संदेश पूर्णपणे हटवायचा आहे का?')) {
+                                            deleteAdminSupportMessage(msg.id);
+                                          }
+                                        }}
+                                        className="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-md border border-rose-400 transition-transform active:scale-95 cursor-pointer"
+                                        title="संदेश कायमचा हटवा"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Thread Reply Input Box */}
+                        <form onSubmit={handleSendReply} className="flex gap-2 items-center border-t border-amber-100 pt-3 shrink-0">
+                          <input
+                            type="text"
+                            value={supportReplyText}
+                            onChange={(e) => setSupportReplyText(e.target.value)}
+                            placeholder="सदस्याला तुमचे उत्तर लिहा..."
+                            className="flex-1 border border-amber-300 rounded-xl px-3 py-2 text-xs text-slate-800 bg-white placeholder-slate-400 font-medium focus:ring-1 focus:ring-[#A71930] focus:border-[#A71930]"
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-[#A71930] hover:bg-[#800C1E] text-amber-100 text-xs font-black rounded-xl border border-amber-300 shadow flex items-center gap-1 shrink-0 transition-transform active:scale-95 cursor-pointer"
+                          >
+                            <span>उत्तर पाठवा</span>
+                            <Send className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                          </button>
+                        </form>
+                      </>
+                    );
+                  })() : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                      <div className="p-4 bg-amber-50 rounded-full border border-amber-200 mb-3">
+                        <MessageSquare className="w-8 h-8 text-[#A71930] opacity-60" />
+                      </div>
+                      <h4 className="font-black text-xs text-slate-700">कोणतेही संभाषण निवडलेले नाही</h4>
+                      <p className="text-[10px] text-slate-500 font-medium max-w-xs mt-1">
+                        डाव्या बाजूच्या यादीमधून सदस्याचे संभाषण निवडा किंवा त्याचे संदेश आणि उत्तरे पाहण्यासाठी क्लिक करा.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB: SUB ADMINS & MASTER SECURITY */}
           {activeTab === 'sub_admins' && (
@@ -4279,6 +4987,33 @@ export const AdminPanel: React.FC<{
                             🔄 रीलोड करा
                           </button>
                         </div>
+
+                        {/* 🔎 SEARCH FILTERS ON/OFF TOGGLE CARD */}
+                        <div className="p-3 bg-amber-50 rounded-xl border border-amber-300 flex items-center justify-between col-span-full">
+                          <div>
+                            <span className="block text-slate-900 text-xs font-bold flex items-center gap-1">
+                              <span>🔎 प्रगत शोध फिल्टर (Advanced Search Filters):</span>
+                            </span>
+                            <span className="text-[10px] text-slate-600 font-medium">
+                              बायोडाटा कमी असल्यामुळे हे बंद ठेवण्याची शिफारस आहे. गरज भासल्यास नंतर इथून सुरू करा.
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateSiteConfig({
+                                enableSearchFilters: !siteConfig?.enableSearchFilters,
+                              })
+                            }
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black cursor-pointer transition-all border shrink-0 ${
+                              siteConfig?.enableSearchFilters
+                                ? 'bg-emerald-600 text-white border-emerald-400'
+                                : 'bg-rose-700 text-white border-rose-400'
+                            }`}
+                          >
+                            {siteConfig?.enableSearchFilters ? '✅ फिल्टर चालू (ON)' : '❌ फिल्टर बंद (OFF)'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -4956,6 +5691,20 @@ export const AdminPanel: React.FC<{
                           className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 text-xs"
                         />
                       </div>
+                    </div>
+
+                    {/* Hide Logo Text Toggle */}
+                    <div className="flex items-center gap-2.5 p-3.5 bg-amber-50/50 rounded-xl border border-amber-200/80">
+                      <input
+                        type="checkbox"
+                        id="hideLogoText"
+                        checked={siteConfig?.hideLogoText || false}
+                        onChange={(e) => updateSiteConfig({ hideLogoText: e.target.checked })}
+                        className="w-4 h-4 rounded text-[#A71930] focus:ring-[#A71930] accent-[#A71930] cursor-pointer"
+                      />
+                      <label htmlFor="hideLogoText" className="text-slate-800 text-[11px] font-extrabold cursor-pointer select-none">
+                        👀 फक्त लोगो इमेज दाखवा (बाजूचे ब्रँड नाव व उपशीर्षक लपवा) / Show Only Logo Image (Hide text columns)
+                      </label>
                     </div>
 
                     {/* Logo Display Height */}
@@ -6286,6 +7035,9 @@ export const AdminPanel: React.FC<{
             </div>
           </div>
         )}
+
+          </div>
+        </div>
 
       </div>
     </div>

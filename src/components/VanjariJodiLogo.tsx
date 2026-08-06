@@ -16,10 +16,16 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
   showSubtitle = true,
 }) => {
   const { siteConfig } = useApp();
+  const [imgError, setImgError] = React.useState(false);
 
   const customLogoUrl = siteConfig?.logoUrl;
   const logoTitle = siteConfig?.logoTitle || 'वंजारी जोडी';
   const logoSubtitle = siteConfig?.logoSubtitle || 'वर-वधू शोध';
+  const hideLogoText = siteConfig?.hideLogoText || false;
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [customLogoUrl]);
 
   // SVG Emblem matching the Bride & Groom Heart-Circle Emblem
   const renderSVGEmblem = (extraClass = '') => (
@@ -154,24 +160,41 @@ export const VanjariJodiLogo: React.FC<LogoProps> = ({
     </svg>
   );
 
-  // If custom logo URL is provided by admin
-  const renderCustomLogoImg = (imgHeight = size) => (
-    <img
-      src={customLogoUrl}
-      alt={logoTitle}
-      style={{ maxHeight: `${imgHeight}px` }}
-      className={`object-contain shrink-0 ${className}`}
-      onError={(e) => {
-        // If image URL fails to load, fallback to SVG
-        (e.target as HTMLElement).style.display = 'none';
-      }}
-    />
-  );
+  // If custom logo URL is provided by admin, wrap it inside a beautiful container
+  // that provides perfect contrast on any background (light or dark) and maintains ratio.
+  const renderCustomLogoImg = (imgHeight = size) => {
+    const adjustedHeight = imgHeight;
+    return (
+      <div 
+        className="flex items-center justify-center bg-white/95 backdrop-blur-md rounded-2xl p-1.5 shadow-sm border border-amber-300/80 shrink-0 select-none overflow-hidden transition-all duration-300 hover:shadow-md"
+        style={{ 
+          height: `${adjustedHeight}px`,
+          minWidth: `${adjustedHeight}px`,
+          maxWidth: '220px', // Prevent super wide logo from pushing other header elements
+        }}
+      >
+        <img
+          src={customLogoUrl}
+          alt={logoTitle}
+          style={{ 
+            maxHeight: '100%',
+            maxWidth: '100%',
+          }}
+          className="object-contain shrink-0"
+          referrerPolicy="no-referrer"
+          onError={() => {
+            setImgError(true);
+          }}
+        />
+      </div>
+    );
+  };
 
-  const logoGraphic = customLogoUrl ? renderCustomLogoImg(size) : renderSVGEmblem();
+  const logoGraphic = (customLogoUrl && !imgError) ? renderCustomLogoImg(size) : renderSVGEmblem();
 
-  if (variant === 'emblem') {
-    return <div className="inline-flex items-center shrink-0">{logoGraphic}</div>;
+  // If set to hide text or variant is emblem, only render the image/graphic itself
+  if (variant === 'emblem' || hideLogoText) {
+    return <div className={`inline-flex items-center shrink-0 ${className}`}>{logoGraphic}</div>;
   }
 
   if (variant === 'stacked') {

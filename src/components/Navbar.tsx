@@ -12,7 +12,8 @@ import {
   UserCheck,
   LayoutDashboard,
   Download,
-  Smartphone
+  Smartphone,
+  SlidersHorizontal
 } from 'lucide-react';
 import { VerifiedBadge } from './VerifiedBadge';
 import { NoticeBanner } from './NoticeBanner';
@@ -32,7 +33,9 @@ export const Navbar: React.FC<{
     siteConfig,
     setCurrentView,
     incrementApkDownloadCount,
-    setLoginModalMode
+    setLoginModalMode,
+    setIsLeftDrawerOpen,
+    setIsRightDrawerOpen
   } = useApp();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,6 +53,15 @@ export const Navbar: React.FC<{
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
+          {/* Hamburger Menu on Mobile Left */}
+          <button
+            onClick={() => setIsLeftDrawerOpen(true)}
+            className="flex md:hidden p-2 mr-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all text-[#A71930] active:scale-95 cursor-pointer items-center justify-center"
+            title="मुख्य मेनू"
+          >
+            <Menu className="w-5 h-5 text-[#A71930]" />
+          </button>
+
           {/* 2. LOGO & BRANDING */}
           <div
             className="flex items-center cursor-pointer group py-1 min-w-0 shrink"
@@ -58,7 +70,7 @@ export const Navbar: React.FC<{
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
-            <VanjariJodiLogo variant="full" size={54} />
+            <VanjariJodiLogo variant="full" size={44} className="md:scale-110 md:origin-left transition-transform duration-300" />
           </div>
 
           {/* RIGHT SIDE CONTROLS: Registration, Login, APK Download, Menu */}
@@ -81,7 +93,7 @@ export const Navbar: React.FC<{
             {/* REGISTRATION BUTTON */}
             <button
               onClick={() => setIsRegisterOpen(true)}
-              className="flex px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-[10px] sm:text-xs md:text-sm font-black shadow-md border border-amber-300/40 items-center gap-1 transition-transform active:scale-95 cursor-pointer shrink-0"
+              className="hidden md:flex px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 text-[10px] sm:text-xs md:text-sm font-black shadow-md border border-amber-300/40 items-center gap-1 transition-transform active:scale-95 cursor-pointer shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300 shrink-0" />
               <span>नोंदणी</span>
@@ -108,7 +120,7 @@ export const Navbar: React.FC<{
                     setIsLoginOpen(true);
                   }}
                   title="हयात नोंदणीकृत सदस्यांसाठी लॉगिन"
-                  className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs font-extrabold border border-slate-300 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
+                  className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs font-extrabold border border-slate-300 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
                 >
                   <LogIn className="w-3.5 h-3.5 text-[#A71930]" />
                   <span>लॉगिन</span>
@@ -122,13 +134,24 @@ export const Navbar: React.FC<{
                       setIsLoginOpen(true);
                     }}
                     title="मोबाईल नंबर + OTP पडताळणीसह पाहुणे / गेस्ट प्रवेश"
-                    className="px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 text-[#800C1E] text-[10px] sm:text-xs font-black border border-amber-300/90 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
+                    className="hidden md:flex px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 text-[#800C1E] text-[10px] sm:text-xs font-black border border-amber-300/90 flex items-center gap-1 transition-all shadow-sm cursor-pointer shrink-0"
                   >
                     <UserCheck className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
                     <span className="whitespace-nowrap">👤 गेस्ट प्रवेश</span>
                   </button>
                 )}
               </div>
+            )}
+
+            {/* Quick Filter button on Mobile */}
+            {currentUser && siteConfig?.enableSearchFilters && (
+              <button
+                onClick={() => setIsRightDrawerOpen(true)}
+                className="flex md:hidden p-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all text-[#A71930] active:scale-95 cursor-pointer items-center justify-center mr-1"
+                title="शोध फिल्टर"
+              >
+                <SlidersHorizontal className="w-4.5 h-4.5 text-[#A71930]" />
+              </button>
             )}
 
             {/* MENU TRIGGER & DROPDOWN */}

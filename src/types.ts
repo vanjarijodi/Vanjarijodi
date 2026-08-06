@@ -452,6 +452,7 @@ export interface SiteConfig {
   logoUrl?: string;
   logoHeight?: number;
   logoWidth?: number;
+  hideLogoText?: boolean;
   paymentQrUrl?: string;
   paymentUpiId?: string;
   paymentNote?: string;
@@ -481,6 +482,7 @@ export interface SiteConfig {
   showDistrictFilter?: boolean;
   showProfilesOnIndexPage?: boolean;
   hideEmptyProfilesSection?: boolean;
+  enableSearchFilters?: boolean;
   blurProfilePhotos?: boolean;
   photoBlurPercent?: number;
   blurProfileNames?: boolean;

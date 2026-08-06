@@ -96,6 +96,10 @@ interface AppContextType {
   // Modals & UI States
   currentView: 'home' | 'dashboard' | 'profiles';
   setCurrentView: (view: 'home' | 'dashboard' | 'profiles') => void;
+  isLeftDrawerOpen: boolean;
+  setIsLeftDrawerOpen: (open: boolean) => void;
+  isRightDrawerOpen: boolean;
+  setIsRightDrawerOpen: (open: boolean) => void;
   isFilterOpen: boolean;
   setIsFilterOpen: (open: boolean) => void;
   isLoginOpen: boolean;
@@ -190,7 +194,7 @@ interface AppContextType {
 
   // Admin Direct Support Chat
   adminSupportMessages: AdminSupportMessage[];
-  sendAdminSupportMessage: (message: string, fileUrl?: string, fileName?: string, userMobile?: string, customName?: string) => void;
+  sendAdminSupportMessage: (message: string, fileUrl?: string, fileName?: string, userMobile?: string, customName?: string, customSenderId?: string) => void;
   replyAdminSupportMessage: (targetSenderId: string, message: string, fileUrl?: string, fileName?: string) => void;
   markAdminSupportMessagesRead: (targetSenderId?: string) => void;
   unreadAdminChatCount: number;
@@ -287,8 +291,10 @@ interface AppContextType {
   guestSessions: GuestSessionLog[];
   trackUserAction: (action: string, details: string) => void;
 
-  // Admin Chat Archiving
+  // Admin Chat Archiving & Deletion
   archiveAdminSupportChat: (senderId: string) => void;
+  deleteAdminSupportMessage: (messageId: string, deleteOnlyImage?: boolean) => void;
+  bulkDeleteAdminSupportMessages: (messageIds: string[]) => void;
 
   // Profile Removal & Marriage Fixed Requests
   profileRemovalRequests: ProfileRemovalRequest[];
@@ -967,6 +973,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // 11. Modal & View States
   const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'profiles'>('home');
+  const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
+  const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginModalMode, setLoginModalMode] = useState<'member_otp' | 'member_pass' | 'guest'>('member_otp');
@@ -1293,9 +1301,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fileUrl?: string,
     fileName?: string,
     userMobile?: string,
-    customName?: string
+    customName?: string,
+    customSenderId?: string
   ) => {
-    const senderId = currentUser ? currentUser.id : 'visitor-guest';
+    const senderId = currentUser ? currentUser.id : (customSenderId || 'visitor-guest');
     const senderName = currentUser ? currentUser.fullName : (customName || 'अभ्यागत (Visitor)');
     const mobile = currentUser ? currentUser.mobile : (userMobile || '');
 
@@ -1355,20 +1364,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const markAdminSupportMessagesRead = (targetSenderId?: string) => {
-    setAdminSupportMessages((prev) =>
-      prev.map((m) => {
+    setAdminSupportMessages((prev) => {
+      let changed = false;
+      const updated = prev.map((m) => {
         if (targetSenderId) {
-          if (m.senderId === targetSenderId && m.senderRole === 'user') {
-            return { ...m, isReadByAdmin: true };
+          if (m.senderId === targetSenderId) {
+            if (m.senderRole === 'user' && !m.isReadByAdmin) {
+              changed = true;
+              return { ...m, isReadByAdmin: true };
+            }
+            if (m.senderRole === 'admin' && !m.isReadByUser) {
+              changed = true;
+              return { ...m, isReadByUser: true };
+            }
           }
         } else {
-          if (m.senderRole === 'user') {
+          if (m.senderRole === 'user' && !m.isReadByAdmin) {
+            changed = true;
             return { ...m, isReadByAdmin: true };
           }
         }
         return m;
-      })
-    );
+      });
+      if (changed && targetSenderId) {
+        updated.forEach((m) => {
+          if (m.senderId === targetSenderId && (m.isReadByAdmin || m.isReadByUser)) {
+            syncDocToFirestore('adminSupportMessages', m.id, m);
+          }
+        });
+      }
+      return updated;
+    });
   };
 
   const unreadAdminChatCount = adminSupportMessages.filter(
@@ -1399,6 +1425,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setRecycleBin((prev) => [newItem, ...prev]);
     setProfiles((prev) => prev.filter((p) => p.id !== profileId));
+    deleteDocFromFirestore('profiles', profileId);
     logActivity('Soft Delete', `${target.fullName} यांची प्रोफाईल रिसायकल बिन मध्ये टाकली`, 'Admin');
   };
 
@@ -1414,6 +1441,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           data: target,
         };
         setRecycleBin((prev) => [newItem, ...prev]);
+        deleteDocFromFirestore('profiles', pid);
       }
     });
     setProfiles((prev) => prev.filter((p) => !profileIds.includes(p.id)));
@@ -1507,6 +1535,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (item.originalType === 'biodata') {
       setProfiles((prev) => [item.data, ...prev]);
+      syncDocToFirestore('profiles', item.data.id, item.data);
     } else if (item.originalType === 'story') {
       setSuccessStories((prev) => [item.data, ...prev]);
     }
@@ -1528,6 +1557,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     itemsToRestore.forEach((item) => {
       if (item.originalType === 'biodata') {
         setProfiles((prev) => [item.data, ...prev]);
+        syncDocToFirestore('profiles', item.data.id, item.data);
       } else if (item.originalType === 'story') {
         setSuccessStories((prev) => [item.data, ...prev]);
       }
@@ -2179,6 +2209,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logActivity('Archive Support Chat', `ॲडमिनने सपोर्ट चॅट अर्काइव्ह केली: ${targetSenderId}`, 'Admin');
   };
 
+  const deleteAdminSupportMessage = (messageId: string, deleteOnlyImage: boolean = false) => {
+    setAdminSupportMessages((prev) => {
+      if (deleteOnlyImage) {
+        return prev.map((m) => {
+          if (m.id === messageId) {
+            const updated = { ...m, fileUrl: undefined, fileName: undefined };
+            syncDocToFirestore('adminSupportMessages', m.id, updated);
+            return updated;
+          }
+          return m;
+        });
+      } else {
+        deleteDocFromFirestore('adminSupportMessages', messageId);
+        return prev.filter((m) => m.id !== messageId);
+      }
+    });
+    logActivity('Delete Support Message', `ॲडमिनने संदेश ${deleteOnlyImage ? 'फोटो' : 'पूर्ण'} हटवला (ID: ${messageId})`, 'Admin');
+  };
+
+  const bulkDeleteAdminSupportMessages = (messageIds: string[]) => {
+    messageIds.forEach((id) => {
+      deleteDocFromFirestore('adminSupportMessages', id);
+    });
+    setAdminSupportMessages((prev) => prev.filter((m) => !messageIds.includes(m.id)));
+    logActivity('Bulk Delete Support Messages', `ॲडमिनने ${messageIds.length} सपोर्ट मेसेज हटवले`, 'Admin');
+  };
+
   const toggleProfileVisibility = (profileId: string) => {
     setProfiles((prev) =>
       prev.map((p) =>
@@ -2506,6 +2563,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveVideoUser,
         currentView,
         setCurrentView,
+        isLeftDrawerOpen,
+        setIsLeftDrawerOpen,
+        isRightDrawerOpen,
+        setIsRightDrawerOpen,
         isFilterOpen,
         setIsFilterOpen,
         isLoginOpen,
@@ -2648,6 +2709,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         guestSessions,
         trackUserAction,
         archiveAdminSupportChat,
+        deleteAdminSupportMessage,
+        bulkDeleteAdminSupportMessages,
         profileRemovalRequests,
         submitProfileRemovalRequest,
         approveProfileRemovalRequest,

@@ -178,91 +178,92 @@ export const ProfilesGrid: React.FC<{
               return (
                 <div
                   key={profile.id}
-                  className="bg-white border-2 border-amber-200/90 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-amber-400 transition-all hover:-translate-y-1 group flex flex-col justify-between"
+                  className="bg-white border-2 border-[#FFF1C2] hover:border-amber-400 rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 group flex flex-col justify-between relative"
                 >
                   {/* Card Header Area */}
-                  <div className="relative p-5 bg-gradient-to-b from-amber-50/80 via-amber-50/30 to-white flex flex-col items-center justify-center text-center border-b border-amber-100">
+                  <div className="relative w-full h-80 sm:h-96 bg-gradient-to-b from-amber-50 to-amber-100 overflow-hidden flex items-center justify-center border-b border-[#FFF1C2]">
                     
+                    {/* Gemini AI Extracted Sparkle Badge */}
+                    <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 text-[9px] font-black px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 border border-amber-200 tracking-wide uppercase">
+                      <Sparkles className="w-3.5 h-3.5 fill-slate-950 text-slate-950 animate-pulse" />
+                      <span>Gemini AI Extracted</span>
+                    </div>
+
                     {/* Top Right Shortlist Button */}
                     <button
                       type="button"
                       onClick={() => toggleShortlist(profile.id)}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md border border-amber-200 hover:scale-110 active:scale-95 transition-transform z-10 cursor-pointer"
+                      className="absolute top-3 right-3 z-10 p-2.5 rounded-full bg-white/90 backdrop-blur-md shadow-lg border border-amber-200 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
                       title={isShortlisted ? 'पसंती यादीतून काढा' : 'पसंती यादीत जोडा'}
                     >
                       <Heart
                         className={`w-4 h-4 transition-colors ${
-                          isShortlisted ? 'fill-rose-600 text-rose-600' : 'text-slate-400'
+                          isShortlisted ? 'fill-rose-600 text-rose-600' : 'text-slate-500'
                         }`}
                       />
                     </button>
 
                     {/* Clear High-Res Photo Avatar Container */}
                     {profile.photos && profile.photos.length > 0 && profile.photos[0] ? (
-                      <div 
+                      <div
                         onClick={() => setSelectedProfileForModal(profile)}
-                        className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shadow-lg border-2 border-amber-400 ring-4 ring-amber-100/90 mb-3 relative group-hover:scale-105 transition-transform bg-amber-50 cursor-pointer shrink-0"
+                        className="w-full h-full relative cursor-pointer"
                       >
                         <img
                           src={profile.photos[0]}
                           alt={profile.fullName}
-                          className={`w-full h-full object-cover object-top ${(!currentUser && siteConfig?.blurProfilePhotos) ? 'blur-md scale-110' : ''}`}
+                          className={`w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 ${(!currentUser && siteConfig?.blurProfilePhotos) ? 'blur-md scale-110' : ''}`}
                         />
                         {(!currentUser && siteConfig?.blurProfilePhotos) && (
-                          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] flex items-center justify-center">
+                          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center">
                             <Lock className="w-5 h-5 text-amber-200" />
                           </div>
                         )}
                         <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/60 text-[9px] text-amber-200 font-medium backdrop-blur-xs">
                           {profile.photos.length} 📷
                         </div>
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#1A0307]/95 via-[#1A0307]/40 to-transparent pointer-events-none" />
                       </div>
                     ) : (
-                      <div 
+                      <div
                         onClick={() => setSelectedProfileForModal(profile)}
-                        className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-tr from-[#800C1E] via-[#A71930] to-[#C82333] text-amber-100 flex items-center justify-center text-4xl shadow-lg border-2 border-amber-400 ring-4 ring-amber-100/90 mb-3 cursor-pointer"
+                        className="w-full h-full bg-gradient-to-tr from-[#800C1E] via-[#A71930] to-[#C82333] flex flex-col items-center justify-center text-white cursor-pointer relative"
                       >
-                        {profile.gender === 'bride' ? '👰' : '🤵'}
+                        <span className="text-6xl mb-2">{profile.gender === 'bride' ? '👰' : '🤵'}</span>
+                        <span className="text-xs font-bold text-amber-200 uppercase tracking-widest">फोटो उपलब्ध नाही</span>
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                       </div>
                     )}
 
-                    <div className="w-full text-center space-y-2">
-                      <span className="inline-block text-[10px] uppercase font-mono font-extrabold tracking-wider text-[#800C1E] bg-amber-100 px-3 py-0.5 rounded-full border border-amber-300 shadow-xs">
-                        आयडी: {profile.id}
-                      </span>
+                    {/* Overlaid Float Information Panel (Bumble style) */}
+                    <div className="absolute bottom-4 inset-x-4 text-white z-10 pointer-events-none">
+                      <div className="backdrop-blur-md bg-[#1A0307]/65 border border-white/20 p-3 rounded-2xl shadow-xl space-y-1">
+                        <span className="inline-block text-[8px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/25 px-2 py-0.5 rounded-md">
+                          आयडी: {profile.id}
+                        </span>
+                        
+                        <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5 flex-wrap">
+                          {(!currentUser && (siteConfig?.blurProfileNames ?? true)) ? (
+                            <span className="inline-flex items-center gap-1 text-xs text-amber-200 font-extrabold">
+                              🔒 नाव गुप्त (लॉगिन करा)
+                            </span>
+                          ) : (
+                            <>
+                              <span className="drop-shadow-md">{profile.fullName}</span>
+                              <VerifiedBadge isVerified={profile.isVerified} isFaceVerified={profile.isFaceVerified} size="sm" />
+                            </>
+                          )}
+                        </h3>
 
-                      {/* Name Display - 100% Privacy for Non-Logged-In/Guest Users */}
-                      <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug px-1 text-center flex items-center justify-center gap-1.5 flex-wrap">
-                        {(!currentUser && (siteConfig?.blurProfileNames ?? true)) ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-100/90 text-[#800C1E] text-xs font-black border border-amber-300 shadow-2xs select-none">
-                            <Lock className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
-                            <span>🔒 नाव गुप्त (लॉगिन करा)</span>
+                        <div className="flex items-center gap-2 text-xs text-amber-100 font-bold">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span>{profile.district || 'महाराष्ट्र'}</span>
                           </span>
-                        ) : (
-                          <>
-                            <span>{profile.fullName}</span>
-                            <VerifiedBadge isVerified={profile.isVerified} isFaceVerified={profile.isFaceVerified} size="sm" />
-                          </>
-                        )}
-                      </h3>
-
-                      {/* PROMINENT TOP QUALIFICATION & DISTRICT HIGHLIGHT BOX */}
-                      <div className="w-full bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/90 p-2.5 rounded-2xl border-2 border-amber-300 shadow-sm text-center space-y-1.5">
-                        <div className="flex items-center justify-center gap-2 text-xs font-black">
-                          <span className="inline-flex items-center gap-1 bg-white px-2.5 py-0.5 rounded-lg border border-amber-300 text-slate-900 shadow-2xs">
-                            <MapPin className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
-                            <span>जिल्हा: <strong className="text-[#A71930] font-black">{profile.district || 'महाराष्ट्र'}</strong></span>
-                          </span>
-                          <span className="bg-white px-2 py-0.5 rounded-lg border border-amber-300 text-slate-800 font-extrabold">
-                            {profile.age} वर्षे
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#800C1E] bg-white p-2 rounded-xl border border-amber-300 shadow-2xs">
-                          <GraduationCap className="w-4 h-4 text-[#A71930] shrink-0" />
-                          <span className="truncate max-w-[230px] font-black text-slate-900" title={profile.education}>
-                            {profile.education || 'उच्चशिक्षित'}
-                          </span>
+                          <span>•</span>
+                          <span>{profile.age} वर्षे</span>
+                          <span>•</span>
+                          <span className="text-amber-300">{profile.subCaste}</span>
                         </div>
                       </div>
                     </div>
@@ -312,15 +313,15 @@ export const ProfilesGrid: React.FC<{
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="p-4 bg-amber-50/30 border-t border-amber-100 space-y-2">
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 rounded-b-3xl space-y-2">
                     
                     {/* View Complete Biodata Button */}
                     <button
                       onClick={() => setSelectedProfileForModal(profile)}
-                      className="w-full py-2.5 rounded-xl bg-white hover:bg-amber-100 text-[#A71930] font-bold text-xs border border-amber-300 shadow-sm flex items-center justify-center gap-1.5 transition-all"
+                      className="w-full py-2.5 rounded-xl bg-white hover:bg-amber-50 text-[#A71930] font-black text-xs border border-amber-200 shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     >
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>{t('view_full_biodata')}</span>
+                      <FileText className="w-4 h-4 text-[#A71930]" />
+                      <span>{t('view_full_biodata')} (संपूर्ण माहिती)</span>
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -328,49 +329,62 @@ export const ProfilesGrid: React.FC<{
                       <button
                         onClick={() => sendInterest(profile.id)}
                         disabled={!!interestObj}
-                        className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${
+                        className={`py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer ${
                           interestObj
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-default'
-                            : 'bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] text-amber-100 shadow'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-default active:scale-100'
+                            : 'bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] text-amber-100 shadow-md'
                         }`}
                       >
                         {interestObj ? (
                           <>
                             <CheckCircle className="w-3.5 h-3.5" />
-                            <span>{language === 'mr' ? 'प्रतिसाद पाठवला' : 'Sent'}</span>
+                            <span>पाठवला</span>
                           </>
                         ) : (
                           <>
-                            <Heart className="w-3.5 h-3.5 fill-amber-200" />
-                            <span>{language === 'mr' ? 'प्रतिसाद' : 'Interest'}</span>
+                            <Heart className="w-3.5 h-3.5 fill-amber-200 text-amber-200" />
+                            <span>रस दाखवा</span>
                           </>
                         )}
                       </button>
 
-                      {/* Contact Number Request / View Button */}
+                      {/* WhatsApp Connect Button (Bumble style) */}
+                      <a
+                        href={`https://wa.me/91${profile.mobile || '9123456789'}?text=नमस्कार, मी वंजारी जोडी (VanjariJodi) वरून आपली प्रोफाईल (ID: ${profile.id}) पाहिली. मला आपल्याबद्दल अधिक जाणून घेण्यात रस आहे.`}
+                        target="_blank"
+                        referrerPolicy="no-referrer"
+                        className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center justify-center gap-1 shadow-md active:scale-95 text-center flex justify-center items-center"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-white shrink-0 fill-white/10" />
+                        <span>व्हॉट्सॲप</span>
+                      </a>
+                    </div>
+
+                    {/* Contact Number Request (Secondary triggers for rich logic flow) */}
+                    <div className="pt-1">
                       {isAuthorized ? (
                         <button
                           onClick={() => setActiveChatUser(profile)}
-                          className="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1 shadow"
+                          className="w-full py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center justify-center gap-1 border border-emerald-200"
                         >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>{t('chat_now')}</span>
+                          <MessageCircle className="w-3 h-3" />
+                          <span>ॲप चॅट सुरू करा</span>
                         </button>
                       ) : pendingReq ? (
                         <button
                           disabled
-                          className="py-2 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center justify-center gap-1 cursor-default"
+                          className="w-full py-1.5 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-extrabold flex items-center justify-center gap-1 border border-amber-200 cursor-default"
                         >
-                          <Clock className="w-3.5 h-3.5 text-amber-700 animate-spin" />
-                          <span>प्रलंबित</span>
+                          <Clock className="w-3 h-3 text-amber-500 animate-spin" />
+                          <span>मोबाईल नंबर विनंती प्रलंबित</span>
                         </button>
                       ) : (
                         <button
                           onClick={() => requestContactAuthorization(profile.id)}
-                          className="py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#A71930] border border-amber-300 text-xs font-bold flex items-center justify-center gap-1"
+                          className="w-full py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-[#A71930] border border-amber-200 text-[10px] font-extrabold flex items-center justify-center gap-1 transition-all"
                         >
-                          <PhoneCall className="w-3.5 h-3.5 text-[#A71930]" />
-                          <span>नंबर मागा</span>
+                          <PhoneCall className="w-3 h-3 text-[#A71930]" />
+                          <span>मोबाईल नंबरसाठी थेट विनंती पाठवा</span>
                         </button>
                       )}
                     </div>

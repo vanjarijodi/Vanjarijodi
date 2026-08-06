@@ -28,6 +28,8 @@ import { SplashScreen } from './components/SplashScreen';
 import { BlessingsSection } from './components/BlessingsSection';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { LeftDrawer } from './components/LeftDrawer';
+import { RightFilterDrawer } from './components/RightFilterDrawer';
 
 const MainAppContent: React.FC = () => {
   const {
@@ -50,10 +52,17 @@ const MainAppContent: React.FC = () => {
     isPaymentOpen,
     setIsPaymentOpen,
     selectedPlanForPayment,
-    siteConfig
+    siteConfig,
+    currentUser
   } = useApp();
 
   const [showSplash, setShowSplash] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!currentUser && (currentView === 'profiles' || currentView === 'dashboard')) {
+      setCurrentView('home');
+    }
+  }, [currentUser, currentView, setCurrentView]);
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
@@ -84,7 +93,7 @@ const MainAppContent: React.FC = () => {
           <CommunityAds />
 
           {/* Main Profiles Section (Only shown if explicitly enabled by admin in siteConfig) */}
-          {siteConfig?.showProfilesOnIndexPage && <ProfilesGrid />}
+          {currentUser && siteConfig?.showProfilesOnIndexPage && <ProfilesGrid />}
 
           {/* Success Stories Image Slider */}
           <SuccessStories />
@@ -106,7 +115,7 @@ const MainAppContent: React.FC = () => {
         </main>
       )}
 
-      {currentView === 'profiles' && (
+      {currentUser && currentView === 'profiles' && (
         <main className="flex-1 pb-16 md:pb-0 pt-4">
           <ProfilesGrid />
         </main>
@@ -114,6 +123,10 @@ const MainAppContent: React.FC = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* Drawers for Mobile Navigation & Filters */}
+      <LeftDrawer />
+      <RightFilterDrawer />
 
       {/* Mobile Sticky Bottom Navigation Bar */}
       <MobileBottomNav />

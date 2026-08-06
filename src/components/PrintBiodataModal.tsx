@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { UserProfile } from '../types';
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 import { Printer, X, Download, FileImage, FileText, ChevronDown, Check, ShieldCheck } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -150,17 +151,7 @@ export const PrintBiodataModal: React.FC<{
           </p>
           
           <div className="flex items-center justify-center gap-3 py-1">
-            {siteConfig?.logoUrl ? (
-              <img
-                src={siteConfig.logoUrl}
-                alt="Logo"
-                className="w-12 h-12 object-contain"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-[#A71930] text-amber-300 font-black flex items-center justify-center text-xl border-2 border-amber-400 shadow">
-                व
-              </div>
-            )}
+            <VanjariJodiLogo variant="emblem" size={48} />
             <div className="text-left">
               <h1 className="text-2xl sm:text-3xl font-black text-[#A71930] tracking-tight">
                 {siteConfig?.logoTitle || 'वंजारी जोडी'}

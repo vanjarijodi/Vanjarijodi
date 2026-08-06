@@ -1,0 +1,327 @@
+import React from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useApp } from '../context/AppContext';
+import {
+  X,
+  Home,
+  User,
+  Heart,
+  Bookmark,
+  Sparkles,
+  Crown,
+  Bot,
+  Settings,
+  MessageSquare,
+  LogOut,
+  ChevronRight,
+  ShieldCheck,
+  UserCheck,
+  Headphones
+} from 'lucide-react';
+import { VerifiedBadge } from './VerifiedBadge';
+
+export const LeftDrawer: React.FC = () => {
+  const {
+    isLeftDrawerOpen,
+    setIsLeftDrawerOpen,
+    currentUser,
+    setCurrentUser,
+    currentView,
+    setCurrentView,
+    setIsPaymentOpen,
+    setIsLoginOpen,
+    setLoginModalMode
+  } = useApp();
+
+  if (!isLeftDrawerOpen) return null;
+
+  const handleLogout = () => {
+    if (confirm('तुम्हाला खरोखर लॉगआउट करायचे आहे का?')) {
+      setCurrentUser(null);
+      setIsLeftDrawerOpen(false);
+      setCurrentView('home');
+    }
+  };
+
+  const handleNavigate = (view: 'home' | 'dashboard' | 'profiles') => {
+    setCurrentView(view);
+    setIsLeftDrawerOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 overflow-hidden md:hidden">
+        {/* Backdrop overlay */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          onClick={() => setIsLeftDrawerOpen(false)}
+          className="absolute inset-0 bg-[#0E0103] backdrop-blur-sm"
+          id="left-drawer-backdrop"
+        />
+
+        {/* Drawer container sliding from left */}
+        <motion.div
+          initial={{ x: '-100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '-100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+          className="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-[#FFFDF8] shadow-2xl flex flex-col h-full border-r border-[#FFF1C2]"
+        >
+          {/* Header Area with Brand/User Info */}
+          <div className="relative bg-gradient-to-br from-[#800C1E] to-[#A71930] p-6 text-white overflow-hidden rounded-br-[2rem]">
+            {/* Absolute Decorative Golden Ornaments */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-red-400/10 rounded-full blur-xl" />
+
+            {/* Close Trigger */}
+            <button
+              onClick={() => setIsLeftDrawerOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-black/20 hover:bg-black/30 transition-colors text-amber-200"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {currentUser ? (
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-3">
+                  {/* Avatar wrapper */}
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full border-2 border-amber-400 overflow-hidden bg-amber-50 shadow-md">
+                      {currentUser.photos && currentUser.photos.length > 0 ? (
+                        <img
+                          src={currentUser.photos[0]}
+                          alt={currentUser.fullName}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-amber-200 to-amber-100 text-[#800C1E] font-black text-xl">
+                          {currentUser.fullName.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    {/* Golden Verification Badge */}
+                    <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-amber-400 to-yellow-300 text-[#1A0307] p-1 rounded-full shadow-lg border border-amber-200">
+                      <VerifiedBadge isVerified={currentUser.isVerified} isFaceVerified={currentUser.isFaceVerified} size="sm" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="font-extrabold text-base text-amber-100 leading-snug tracking-wide line-clamp-1">
+                      {currentUser.fullName}
+                    </h2>
+                    <p className="text-xs text-amber-300/90 font-medium mt-0.5 font-mono">
+                      ID: {currentUser.id}
+                    </p>
+                    <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] bg-amber-400 text-slate-950 font-black rounded-full shadow-sm uppercase tracking-wider">
+                      {currentUser.membership === 'free' ? 'नॉर्मल' : `VIP - ${currentUser.membership}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 pt-4">
+                <h2 className="font-black text-lg text-amber-200">वंजारी जोडी (VanjariJodi)</h2>
+                <p className="text-xs text-amber-100/80 leading-relaxed font-bold">
+                  महाराष्ट्रातील वंजारी समाजाचे विश्वासाचे आणि हक्काचे वधू-वर सूचक व्यासपीठ!
+                </p>
+                <button
+                  onClick={() => {
+                    setLoginModalMode('member_otp');
+                    setIsLoginOpen(true);
+                    setIsLeftDrawerOpen(false);
+                  }}
+                  className="px-5 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-[#1A0307] text-xs font-black rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                >
+                  <UserCheck className="w-4 h-4 text-[#1A0307]" />
+                  <span>प्रवेश / लॉगिन करा</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Items Scrollable */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+            {/* 1. Home / Explore */}
+            <button
+              onClick={() => handleNavigate('home')}
+              className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all cursor-pointer ${
+                currentView === 'home'
+                  ? 'bg-gradient-to-r from-amber-500/10 to-amber-500/5 text-[#800C1E] border border-amber-400/30 font-black'
+                  : 'text-slate-700 hover:bg-slate-100 font-bold'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Home className={`w-5 h-5 ${currentView === 'home' ? 'text-[#A71930]' : 'text-slate-500'}`} />
+                <span>मुख्यपृष्ठ (Home)</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 2. My Profile & BioData (Requires login, leads to dashboard) */}
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  handleNavigate('dashboard');
+                } else {
+                  setLoginModalMode('member_otp');
+                  setIsLoginOpen(true);
+                  setIsLeftDrawerOpen(false);
+                }
+              }}
+              className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all cursor-pointer ${
+                currentView === 'dashboard'
+                  ? 'bg-gradient-to-r from-amber-500/10 to-amber-500/5 text-[#800C1E] border border-amber-400/30 font-black'
+                  : 'text-slate-700 hover:bg-slate-100 font-bold'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <User className={`w-5 h-5 ${currentView === 'dashboard' ? 'text-[#A71930]' : 'text-slate-500'}`} />
+                <span>माझी प्रोफाईल व बायोडाटा</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 3. Search Profiles Grid */}
+            {currentUser && (
+              <button
+                onClick={() => handleNavigate('profiles')}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all cursor-pointer ${
+                  currentView === 'profiles'
+                    ? 'bg-gradient-to-r from-amber-500/10 to-amber-500/5 text-[#800C1E] border border-amber-400/30 font-black'
+                    : 'text-slate-700 hover:bg-slate-100 font-bold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Heart className={`w-5 h-5 ${currentView === 'profiles' ? 'text-[#A71930]' : 'text-slate-500'}`} />
+                  <span>सर्व वधू-वर बायोडाटा</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
+
+            {/* 4. Expressed Interests (Requires Login) */}
+            {currentUser && (
+              <button
+                onClick={() => {
+                  handleNavigate('dashboard');
+                  setIsLeftDrawerOpen(false);
+                }}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl text-slate-700 hover:bg-slate-100 font-bold transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <Bookmark className="w-5 h-5 text-slate-500" />
+                  <span>पसंती विनंत्या (Interests)</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
+
+            {/* 5. Kundali Match */}
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  handleNavigate('dashboard');
+                  setIsLeftDrawerOpen(false);
+                } else {
+                  setLoginModalMode('member_otp');
+                  setIsLoginOpen(true);
+                  setIsLeftDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl text-slate-700 hover:bg-slate-100 font-bold transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+                <span>कुंडली जुळवणी (Kundali Matching)</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* 6. VIP Premium Upgrade */}
+            <button
+              onClick={() => {
+                setIsPaymentOpen(true);
+                setIsLeftDrawerOpen(false);
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-300 text-[#800C1E] font-black transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-amber-500 animate-pulse" />
+                <span>प्रीमियम VIP योजना (Upgrade)</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-500" />
+            </button>
+
+            {/* 7. OCR / AI BioData Reader */}
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  handleNavigate('dashboard');
+                  setIsLeftDrawerOpen(false);
+                } else {
+                  setLoginModalMode('member_otp');
+                  setIsLoginOpen(true);
+                  setIsLeftDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl text-slate-700 hover:bg-slate-100 font-bold transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <Bot className="w-5 h-5 text-purple-600" />
+                <span>AI बायोडाटा रीडर</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+
+            {/* Divider */}
+            <hr className="border-slate-100 my-4" />
+
+            {/* 8. Help & Customer Support */}
+            <button
+              onClick={() => {
+                // Open support widget
+                const supportWidget = document.getElementById('support-chat-trigger-btn');
+                if (supportWidget) {
+                  supportWidget.click();
+                } else {
+                  alert('मदत आणि सहाय्यासाठी कृपया स्क्रीनवरील ॲडमिन चॅट बटणावर क्लिक करा.');
+                }
+                setIsLeftDrawerOpen(false);
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl text-[#800C1E] bg-amber-500/5 hover:bg-amber-500/10 border border-amber-300/30 font-extrabold transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-xl bg-gradient-to-br from-[#A71930] to-[#800C1E] text-white">
+                  <Headphones className="w-4 h-4 text-amber-300 animate-pulse" />
+                </div>
+                <span>मदत व सहाय्य (Support)</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+
+          {/* Footer of Left Drawer */}
+          <div className="p-4 bg-slate-50 border-t border-slate-100">
+            {currentUser ? (
+              <button
+                onClick={handleLogout}
+                className="w-full py-3.5 px-4 rounded-2xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-black text-xs flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+              >
+                <LogOut className="w-4.5 h-4.5 text-rose-700" />
+                <span>बाहेर पडा (Log Out)</span>
+              </button>
+            ) : (
+              <p className="text-center text-[10px] text-slate-400 font-medium">VanjariJodi Android PWA App v2.4.0</p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};

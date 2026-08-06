@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Sparkles, UserCheck, UserPlus, LogIn } from 'lucide-react';
+import { VanjariJodiLogo } from './VanjariJodiLogo';
 
 export const Hero: React.FC = () => {
   const {
@@ -73,23 +74,7 @@ export const Hero: React.FC = () => {
 
             {/* Logo + Vanjari Jodi Title */}
             <div className="flex items-center justify-center gap-2.5 sm:gap-4">
-              {siteConfig?.logoUrl ? (
-                <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 shadow-lg shrink-0 ring-2 ring-amber-400/30">
-                  <img
-                    src={siteConfig.logoUrl}
-                    alt={siteConfig?.logoTitle || 'वंजारी जोडी'}
-                    className="w-10 h-10 sm:w-16 sm:h-16 object-contain rounded-md sm:rounded-lg bg-white p-0.5"
-                  />
-                </div>
-              ) : (
-                <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 shadow-lg shrink-0 ring-2 ring-amber-400/30">
-                  <img
-                    src="/logo.png"
-                    alt="वंजारी जोडी"
-                    className="w-10 h-10 sm:w-16 sm:h-16 object-contain rounded-md sm:rounded-lg bg-white p-0.5"
-                  />
-                </div>
-              )}
+              <VanjariJodiLogo variant="emblem" size={60} />
 
               <div className="flex flex-col items-start text-left justify-center space-y-0.5">
                 <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-amber-200 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-tight">
@@ -172,7 +157,7 @@ export const Hero: React.FC = () => {
               <span className="tracking-wide">३. पाहुणे / गेस्ट प्रवेश (Guest)</span>
             </div>
             <span className="text-[10px] bg-indigo-500/20 border border-indigo-300/30 text-indigo-200 px-2 py-0.5 rounded-full font-extrabold">
-              डेमो
+              प्रवेश
             </span>
           </button>
         </div>
