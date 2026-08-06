@@ -3,6 +3,8 @@
   "appName": "VanjariJodi",
   "webDir": "dist",
   "server": {
+    "url": "https://ais-dev-gd3elul22zl4zk3i4alrw5-542294010175.asia-east1.run.app",
+    "cleartext": true,
     "androidScheme": "https"
   }
 }
