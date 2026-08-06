@@ -46,7 +46,6 @@ jobs:
           if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
             echo "Missing gradle-wrapper.jar — generating wrapper"
             cd android || exit 1
-            # Use system gradle (installed by setup-gradle) to create the wrapper
             gradle wrapper --gradle-version 8.6
             chmod +x ./gradlew
           else
