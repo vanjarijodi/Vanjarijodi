@@ -132,13 +132,35 @@ export const AIBioDataExtractor: React.FC<AIBioDataExtractorProps> = ({
         throw new Error('कृपया बायोडाटाचा फोटो किंवा टेक्स्ट कंटेंट निवडा.');
       }
 
-      const response = await fetch('/api/extract-biodata', {
+      let apiUrl = '/api/extract-biodata';
+      if (typeof window !== 'undefined') {
+        const isCapacitorOrLocal =
+          (window as any).Capacitor ||
+          window.location.protocol === 'file:' ||
+          (window.location.hostname === 'localhost' && (window.location.port === '' || window.location.port === '80'));
+        if (isCapacitorOrLocal) {
+          const cloudRunHost = 'https://ais-dev-gd3elul22zl4zk3i4alrw5-542294010175.asia-east1.run.app';
+          apiUrl = `${cloudRunHost}/api/extract-biodata`;
+        }
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const rawText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        if (rawText.trim().startsWith('<')) {
+          throw new Error('ॲप सर्व्हरशी संपर्क साधू शकला नाही (HTML रेस्पॉन्स मिळाला). कृपया इंटरनेट सुरू असल्याची खात्री करा किंवा माहिती मॅन्युअली भरा.');
+        } else {
+          throw new Error('सर्व्हर डेटा प्राप्त करताना अडचण आली. कृपया मॅन्युअली माहिती भरून नोंदणी पूर्ण करा.');
+        }
+      }
 
       if (data.success && data.extractedData) {
         const detectedPhotoUrl =

@@ -33,7 +33,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci || npm install --legacy-peer-deps
 
       - name: Build Web Application
         run: npm run build
@@ -41,22 +41,9 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Setup Gradle Wrapper
-  run: |
-    # Regenerate wrapper if gradlew missing OR wrapper jar missing/empty
-    if [ ! -f ./android/gradlew ] || [ ! -s ./android/gradle/wrapper/gradle-wrapper.jar ]; then
-      cd android
-      # Try to generate wrapper using system gradle (setup-gradle step provides it)
-      if command -v gradle >/dev/null 2>&1; then
-        gradle wrapper --gradle-version 8.10 || true
-      else
-        echo "System gradle not found; continuing and hoping wrapper is present."
-      fi
-      cd ..
-    fi
-    chmod +x ./android/gradlew || true
-    echo "android/gradle/wrapper contents:"
-    ls -la android/gradle/wrapper || true
+      - name: Make Gradlew Executable
+        run: chmod +x ./android/gradlew
+
       - name: Build Android Debug APK
         run: |
           cd android
