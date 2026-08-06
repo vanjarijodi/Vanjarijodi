@@ -51,7 +51,12 @@ jobs:
       - name: Ensure Gradle Wrapper Present
         run: |
           if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "::warning ::gradle-wrapper.jar is missing. Regenerating Gradle wrapper..."
+            echo "::warning ::gradle-wrapper.jar is missing. Will try to generate it using system Gradle (or install Gradle if missing)..."
+            # Ensure gradle CLI is available; install via apt if it's not present
+            if ! command -v gradle >/dev/null 2>&1; then
+              echo "Gradle CLI not found. Installing gradle via apt (this may be an older distro package but is sufficient to generate the wrapper)..."
+              sudo apt-get update && sudo apt-get install -y gradle
+            fi
             cd android || exit 1
             gradle wrapper --gradle-version 8.3
             chmod +x ./gradlew
