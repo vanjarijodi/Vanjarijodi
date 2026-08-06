@@ -4531,6 +4531,142 @@ export const AdminPanel: React.FC<{
                 </div>
               </div>
 
+              {/* ⛩️ SHREE KSHETRA BHAGWANGAD EDITABLE SETTINGS CARD */}
+              <div className="bg-white p-5 rounded-2xl border border-amber-300 shadow-md space-y-4">
+                <div className="border-b border-amber-200 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-extrabold text-[#A71930] text-sm flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#A71930]" />
+                      <span>श्री क्षेत्र भगवानगड माहिती संपादन (Bhagwangad Content Management)</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      मुख्यपृष्ठावरील 'राष्ट्रसंत श्री संत भगवान बाबा व भगवानगड' विभागाची माहिती इथून संपादित करा.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('तुम्ही भगवानगड विभाग माहिती मूळ स्वरूपात (Reset to Default) आणू इच्छिता का?')) {
+                        updateSiteConfig({
+                          bhagwangadImg: 'https://upload.wikimedia.org/wikipedia/mr/f/f3/%E0%A4%AD%E0%A4%97%E0%A4%B5%E0%A4%BE%E0%A4%A8%E0%A4%97%E0%A4%A1.JPG',
+                          bhagwangadBadgeText: '॥ पावन तीर्थक्षेत्र ॥',
+                          bhagwangadHeading: 'श्री क्षेत्र भगवानगड (खरवंडी)',
+                          bhagwangadSubtitle: 'वंजारी समाजाची सर्वात मोठी सांस्कृतिक व आध्यात्मिक राजधानी',
+                          bhagwangadDescription: 'भगवानगड हे महाराष्ट्रातील अहमदनगर जिल्ह्यातील पाथर्डी तालुक्यात डोंगरावर वसलेले वंजारी समाजाचे सर्वोच्च श्रद्धास्थान व शक्तीपीठ आहे. राष्ट्रसंत भगवान बाबांनी या गडाची स्थापना करून समाजाला प्रबोधनाचा व समाजसुधारणेचा मार्ग दाखवला. गडावरील दसरा मेळाव्याचा ऐतिहासिक सोहळा आणि संत सेवा वंजारी समाजाच्या प्रत्येक बांधवाच्या मनात आदराचे स्थान ठेवून आहे. आम्ही या पवित्र संस्कृतीचा वारसा जपत, संपूर्ण महाराष्ट्रातील वंजारी उपवधू-वरांना एका सुसंस्कृत धाग्यात बांधण्याचे प्रामाणिक काम करत आहोत.',
+                          bhagwangadHighlight1: 'वारसा आणि तत्त्वे',
+                          bhagwangadHighlight2: 'लाखो समाधानी कुटुंबे',
+                          bhagwangadHighlight3: 'पवित्र विवाह बंधने',
+                        });
+                        alert('माहिती डीफॉल्टवर रीसेट झाली!');
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-[#A71930] rounded-xl text-xs font-black border border-amber-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>माहिती रीसेट करा</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs font-bold">
+                  {/* Row 1: Banner Badge & Title */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-700 mb-1">🏷️ बॅनर वरील लहान लेबल (Badge Text):</label>
+                      <input
+                        type="text"
+                        value={siteConfig?.bhagwangadBadgeText || ''}
+                        onChange={(e) => updateSiteConfig({ bhagwangadBadgeText: e.target.value })}
+                        placeholder="उदा. ॥ पावन तीर्थक्षेत्र ॥"
+                        className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 mb-1">🏛️ मुख्य शीर्षक (Heading Title):</label>
+                      <input
+                        type="text"
+                        value={siteConfig?.bhagwangadHeading || ''}
+                        onChange={(e) => updateSiteConfig({ bhagwangadHeading: e.target.value })}
+                        placeholder="उदा. श्री क्षेत्र भगवानगड (खरवंडी)"
+                        className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 2: Subtitle / Caption */}
+                  <div>
+                    <label className="block text-slate-700 mb-1">✍️ उप-शीर्षक / कॅप्शन (Sub-caption):</label>
+                    <input
+                      type="text"
+                      value={siteConfig?.bhagwangadSubtitle || ''}
+                      onChange={(e) => updateSiteConfig({ bhagwangadSubtitle: e.target.value })}
+                      placeholder="उदा. वंजारी समाजाची सर्वात मोठी सांस्कृतिक व आध्यात्मिक राजधानी"
+                      className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-bold"
+                    />
+                  </div>
+
+                  {/* Row 3: Banner Image URL */}
+                  <div>
+                    <label className="block text-slate-700 mb-1">🖼️ भगवानगड मंदिराचा फोटो लिंक (Banner Image URL):</label>
+                    <input
+                      type="text"
+                      value={siteConfig?.bhagwangadImg || ''}
+                      onChange={(e) => updateSiteConfig({ bhagwangadImg: e.target.value })}
+                      placeholder="उदा. https://upload.wikimedia.org/...JPG"
+                      className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-mono text-[11px]"
+                    />
+                    <p className="text-[10px] text-slate-500 font-normal mt-1">तुमच्या स्वतःच्या मंदिराचा किंवा गडाचा दुसरा फोटो दाखवण्यासाठी इथे नवीन इमेज URL पेस्ट करू शकता.</p>
+                  </div>
+
+                  {/* Row 4: Main Paragraph Text */}
+                  <div>
+                    <label className="block text-slate-700 mb-1">📖 भगवानगड सविस्तर माहिती / वर्णन (Description Paragraph):</label>
+                    <textarea
+                      rows={5}
+                      value={siteConfig?.bhagwangadDescription || ''}
+                      onChange={(e) => updateSiteConfig({ bhagwangadDescription: e.target.value })}
+                      placeholder="भगवानगड बद्दल सविस्तर माहिती प्रविष्ट करा..."
+                      className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-slate-900 font-bold leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Row 5: Three highlights */}
+                  <div>
+                    <label className="block text-slate-700 mb-1.5">🌟 खालील तीन हायलाईट बटणे (Three Value Boxes):</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <label className="block text-amber-900 text-[10px] mb-1">१. पहिले बटण मजकूर (Button 1):</label>
+                        <input
+                          type="text"
+                          value={siteConfig?.bhagwangadHighlight1 || ''}
+                          onChange={(e) => updateSiteConfig({ bhagwangadHighlight1: e.target.value })}
+                          placeholder="उदा. वारसा आणि तत्त्वे"
+                          className="w-full bg-white border border-amber-300 rounded-lg p-2 text-slate-900 font-bold"
+                        />
+                      </div>
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <label className="block text-amber-900 text-[10px] mb-1">२. दुसरे बटण मजकूर (Button 2):</label>
+                        <input
+                          type="text"
+                          value={siteConfig?.bhagwangadHighlight2 || ''}
+                          onChange={(e) => updateSiteConfig({ bhagwangadHighlight2: e.target.value })}
+                          placeholder="उदा. लाखो समाधानी कुटुंबे"
+                          className="w-full bg-white border border-amber-300 rounded-lg p-2 text-slate-900 font-bold"
+                        />
+                      </div>
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <label className="block text-amber-900 text-[10px] mb-1">३. तिसरे बटण मजकूर (Button 3):</label>
+                        <input
+                          type="text"
+                          value={siteConfig?.bhagwangadHighlight3 || ''}
+                          onChange={(e) => updateSiteConfig({ bhagwangadHighlight3: e.target.value })}
+                          placeholder="उदा. पवित्र विवाह बंधने"
+                          className="w-full bg-white border border-amber-300 rounded-lg p-2 text-slate-900 font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* SPONSORED ADS & MELAVA CONTROLS CARD */}
               <div id="sponsored-ads-admin" className="bg-white p-5 rounded-2xl border border-amber-300 shadow-md space-y-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-200 pb-3">

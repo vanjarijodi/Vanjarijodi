@@ -526,6 +526,14 @@ export interface SiteConfig {
   regOption1Icon?: string;
   regOption2Title?: string;
   regOption2Icon?: string;
+  bhagwangadImg?: string;
+  bhagwangadBadgeText?: string;
+  bhagwangadHeading?: string;
+  bhagwangadSubtitle?: string;
+  bhagwangadDescription?: string;
+  bhagwangadHighlight1?: string;
+  bhagwangadHighlight2?: string;
+  bhagwangadHighlight3?: string;
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;

@@ -226,19 +226,45 @@ export const ProfilesGrid: React.FC<{
                       </div>
                     )}
 
-                    <div className="w-full text-center space-y-1">
+                    <div className="w-full text-center space-y-2">
                       <span className="inline-block text-[10px] uppercase font-mono font-extrabold tracking-wider text-[#800C1E] bg-amber-100 px-3 py-0.5 rounded-full border border-amber-300 shadow-xs">
-                        {profile.id}
+                        आयडी: {profile.id}
                       </span>
-                      {/* Full Name Display - Uncut / No Truncation */}
-                      <h3 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-[#A71930] transition-colors leading-snug px-1 text-center break-words flex items-center justify-center gap-1.5 flex-wrap">
-                        <span>
-                          {(!currentUser && siteConfig?.blurProfileNames)
-                            ? `${profile.fullName.split(' ')[0]} ***`
-                            : profile.fullName}
-                        </span>
-                        <VerifiedBadge isVerified={profile.isVerified} isFaceVerified={profile.isFaceVerified} size="sm" />
+
+                      {/* Name Display - 100% Privacy for Non-Logged-In/Guest Users */}
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug px-1 text-center flex items-center justify-center gap-1.5 flex-wrap">
+                        {(!currentUser && (siteConfig?.blurProfileNames ?? true)) ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-100/90 text-[#800C1E] text-xs font-black border border-amber-300 shadow-2xs select-none">
+                            <Lock className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
+                            <span>🔒 नाव गुप्त (लॉगिन करा)</span>
+                          </span>
+                        ) : (
+                          <>
+                            <span>{profile.fullName}</span>
+                            <VerifiedBadge isVerified={profile.isVerified} isFaceVerified={profile.isFaceVerified} size="sm" />
+                          </>
+                        )}
                       </h3>
+
+                      {/* PROMINENT TOP QUALIFICATION & DISTRICT HIGHLIGHT BOX */}
+                      <div className="w-full bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/90 p-2.5 rounded-2xl border-2 border-amber-300 shadow-sm text-center space-y-1.5">
+                        <div className="flex items-center justify-center gap-2 text-xs font-black">
+                          <span className="inline-flex items-center gap-1 bg-white px-2.5 py-0.5 rounded-lg border border-amber-300 text-slate-900 shadow-2xs">
+                            <MapPin className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
+                            <span>जिल्हा: <strong className="text-[#A71930] font-black">{profile.district || 'महाराष्ट्र'}</strong></span>
+                          </span>
+                          <span className="bg-white px-2 py-0.5 rounded-lg border border-amber-300 text-slate-800 font-extrabold">
+                            {profile.age} वर्षे
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#800C1E] bg-white p-2 rounded-xl border border-amber-300 shadow-2xs">
+                          <GraduationCap className="w-4 h-4 text-[#A71930] shrink-0" />
+                          <span className="truncate max-w-[230px] font-black text-slate-900" title={profile.education}>
+                            {profile.education || 'उच्चशिक्षित'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -247,8 +273,8 @@ export const ProfilesGrid: React.FC<{
                     
                     <div className="grid grid-cols-2 gap-2 pb-2.5 border-b border-amber-100">
                       <div>
-                        <span className="text-slate-500 text-[11px] block font-semibold">{t('age')} / {t('height')}</span>
-                        <span className="font-bold text-slate-800">{profile.age} वर्षे ({profile.height})</span>
+                        <span className="text-slate-500 text-[11px] block font-semibold">{t('height')}</span>
+                        <span className="font-bold text-slate-800">{profile.height}</span>
                       </div>
                       <div>
                         <span className="text-slate-500 text-[11px] block font-semibold">{t('sub_caste')}</span>
@@ -257,16 +283,6 @@ export const ProfilesGrid: React.FC<{
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-slate-700 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
-                        <span className="truncate">{cleanLocation(profile.district, profile.city)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-slate-700 font-medium">
-                        <GraduationCap className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
-                        <span className="truncate">{profile.education}</span>
-                      </div>
-
                       <div className="flex items-center gap-2 text-slate-700 font-medium">
                         <Briefcase className="w-3.5 h-3.5 text-[#A71930] shrink-0" />
                         <span className="truncate">{profile.occupation}</span>

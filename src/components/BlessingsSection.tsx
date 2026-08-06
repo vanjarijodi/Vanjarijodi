@@ -1,10 +1,20 @@
 import React from 'react';
 import { Sparkles, Compass, ShieldCheck, Heart, Users } from 'lucide-react';
 import { SantBhagwanBabaPortrait } from './SantBhagwanBabaPortrait';
+import { useApp } from '../context/AppContext';
 
 export const BlessingsSection: React.FC = () => {
-  // The authentic historical photograph of Shree Kshetra Bhagwangad Temple from Marathi Wikipedia
-  const bhagwangadImg = "https://upload.wikimedia.org/wikipedia/mr/f/f3/%E0%A4%AD%E0%A4%97%E0%A4%B5%E0%A4%BE%E0%A4%A8%E0%A4%97%E0%A4%A1.JPG";
+  const { siteConfig } = useApp();
+
+  // The authentic historical photograph of Shree Kshetra Bhagwangad Temple
+  const bhagwangadImg = siteConfig.bhagwangadImg || "https://upload.wikimedia.org/wikipedia/mr/f/f3/%E0%A4%AD%E0%A4%97%E0%A4%B5%E0%A4%BE%E0%A4%A8%E0%A4%97%E0%A4%A1.JPG";
+  const bhagwangadBadgeText = siteConfig.bhagwangadBadgeText || "॥ पावन तीर्थक्षेत्र ॥";
+  const bhagwangadHeading = siteConfig.bhagwangadHeading || "श्री क्षेत्र भगवानगड (खरवंडी)";
+  const bhagwangadSubtitle = siteConfig.bhagwangadSubtitle || "वंजारी समाजाची सर्वात मोठी सांस्कृतिक व आध्यात्मिक राजधानी";
+  const bhagwangadDescription = siteConfig.bhagwangadDescription || "भगवानगड हे महाराष्ट्रातील अहमदनगर जिल्ह्यातील पाथर्डी तालुक्यात डोंगरावर वसलेले वंजारी समाजाचे सर्वोच्च श्रद्धास्थान व शक्तीपीठ आहे. राष्ट्रसंत भगवान बाबांनी या गडाची स्थापना करून समाजाला प्रबोधनाचा व समाजसुधारणेचा मार्ग दाखवला. गडावरील दसरा मेळाव्याचा ऐतिहासिक सोहळा आणि संत सेवा वंजारी समाजाच्या प्रत्येक बांधवाच्या मनात आदराचे स्थान ठेवून आहे. आम्ही या पवित्र संस्कृतीचा वारसा जपत, संपूर्ण महाराष्ट्रातील वंजारी उपवधू-वरांना एका सुसंस्कृत धाग्यात बांधण्याचे प्रामाणिक काम करत आहोत.";
+  const bhagwangadHighlight1 = siteConfig.bhagwangadHighlight1 || "वारसा आणि तत्त्वे";
+  const bhagwangadHighlight2 = siteConfig.bhagwangadHighlight2 || "लाखो समाधानी कुटुंबे";
+  const bhagwangadHighlight3 = siteConfig.bhagwangadHighlight3 || "पवित्र विवाह बंधने";
 
   return (
     <section id="blessings-heritage" className="py-12 sm:py-16 bg-[#FFFDF8] border-b border-amber-200 relative overflow-hidden">
@@ -78,13 +88,13 @@ export const BlessingsSection: React.FC = () => {
               {/* Floating Title & Calligraphy over Banner */}
               <div className="absolute bottom-4 left-4 sm:left-6 text-amber-100 space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#800C1E] text-amber-100 text-[10px] sm:text-xs font-black shadow border border-amber-300/40 uppercase">
-                  ॥ पावन तीर्थक्षेत्र ॥
+                  {bhagwangadBadgeText}
                 </div>
                 <h3 className="text-xl sm:text-2xl font-black text-amber-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                  श्री क्षेत्र भगवानगड (खरवंडी)
+                  {bhagwangadHeading}
                 </h3>
                 <p className="text-[10px] sm:text-xs text-amber-100/90 font-extrabold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                  वंजारी समाजाची सर्वात मोठी सांस्कृतिक व आध्यात्मिक राजधानी
+                  {bhagwangadSubtitle}
                 </p>
               </div>
             </div>
@@ -92,22 +102,22 @@ export const BlessingsSection: React.FC = () => {
             {/* Description Body */}
             <div className="p-5 sm:p-7 flex-1 flex flex-col justify-between space-y-4">
               <p className="text-xs sm:text-sm text-slate-700 font-bold leading-relaxed">
-                भगवानगड हे महाराष्ट्रातील अहमदनगर जिल्ह्यातील पाथर्डी तालुक्यात डोंगरावर वसलेले वंजारी समाजाचे सर्वोच्च श्रद्धास्थान व शक्तीपीठ आहे. राष्ट्रसंत भगवान बाबांनी या गडाची स्थापना करून समाजाला प्रबोधनाचा व समाजसुधारणेचा मार्ग दाखवला. गडावरील दसरा मेळाव्याचा ऐतिहासिक सोहळा आणि संत सेवा वंजारी समाजाच्या प्रत्येक बांधवाच्या मनात आदराचे स्थान ठेवून आहे. आम्ही या पवित्र संस्कृतीचा वारसा जपत, संपूर्ण महाराष्ट्रातील वंजारी उपवधू-वरांना एका सुसंस्कृत धाग्यात बांधण्याचे प्रामाणिक काम करत आहोत.
+                {bhagwangadDescription}
               </p>
 
               {/* Highlights Row */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-amber-100">
                 <div className="flex items-center gap-2 p-2.5 bg-amber-50/30 rounded-xl border border-amber-100 text-center flex-col sm:justify-center">
                   <Compass className="w-5 h-5 text-amber-600" />
-                  <span className="text-xs font-black text-slate-800">वारसा आणि तत्त्वे</span>
+                  <span className="text-xs font-black text-slate-800">{bhagwangadHighlight1}</span>
                 </div>
                 <div className="flex items-center gap-2 p-2.5 bg-amber-50/30 rounded-xl border border-amber-100 text-center flex-col sm:justify-center">
                   <Users className="w-5 h-5 text-indigo-600" />
-                  <span className="text-xs font-black text-slate-800">लाखो समाधानी कुटुंबे</span>
+                  <span className="text-xs font-black text-slate-800">{bhagwangadHighlight2}</span>
                 </div>
                 <div className="flex items-center gap-2 p-2.5 bg-amber-50/30 rounded-xl border border-amber-100 text-center flex-col sm:justify-center">
                   <Sparkles className="w-5 h-5 text-[#800C1E]" />
-                  <span className="text-xs font-black text-slate-800">पवित्र विवाह बंधने</span>
+                  <span className="text-xs font-black text-slate-800">{bhagwangadHighlight3}</span>
                 </div>
               </div>
             </div>

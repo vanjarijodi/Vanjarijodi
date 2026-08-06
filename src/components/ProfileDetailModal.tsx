@@ -23,7 +23,13 @@ import {
   CheckCircle2,
   MapPin,
   Calendar,
-  Printer
+  Printer,
+  Trash2,
+  CheckCircle,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Crown
 } from 'lucide-react';
 
 export const ProfileDetailModal: React.FC<{
@@ -48,7 +54,13 @@ export const ProfileDetailModal: React.FC<{
     setSelectedProfileForUnlock,
     setIsContactUnlockModalOpen,
     checkGuestPermission,
-    incrementProfileViews
+    incrementProfileViews,
+    softDeleteProfile,
+    updateProfileDirect,
+    deleteMemberPhoto,
+    toggleBlockProfile,
+    toggleBlockMemberAccess,
+    toggleProfileVisibility,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'personal' | 'professional' | 'family' | 'expectations' | 'horoscope'>('personal');
@@ -102,7 +114,7 @@ export const ProfileDetailModal: React.FC<{
                 आयडी: {profile.id}
               </span>
               <h2 className="text-base sm:text-lg font-black text-amber-100 break-words">
-                {profile.fullName}
+                {(!currentUser && (siteConfig?.blurProfileNames ?? true)) ? '🔒 [नाव गुप्त लपवले आहे]' : profile.fullName}
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -134,7 +146,324 @@ export const ProfileDetailModal: React.FC<{
 
           {/* Modal Body Scrollable */}
           <div className="p-6 overflow-y-auto space-y-6 flex-1 pr-4">
-            
+
+            {/* ⚙️ ADMIN ACTION PANEL */}
+            {isAdminLoggedIn && (
+              <div className="bg-red-50/90 border-2 border-red-300 p-5 rounded-3xl shadow-lg space-y-4 animate-fadeIn text-xs sm:text-sm font-bold">
+                <div className="border-b border-red-200 pb-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-base font-black text-[#A71930] flex items-center gap-1.5">
+                      <Crown className="w-5 h-5 text-[#A71930]" />
+                      <span>प्रशासकीय नियंत्रण कक्ष (Admin Control Panel)</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
+                      सदस्य: {profile.fullName} (ID: {profile.id}) • संपर्क: {profile.mobile}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`तुम्हाला खरोखर "${profile.fullName}" यांचा संपूर्ण बायोडाटा कायमचा डिलीट करायचा आहे का?`)) {
+                        softDeleteProfile(profile.id);
+                        alert('बायोडाटा यशस्वीरित्या डिलीट करून रिसायकल बिन मध्ये पाठवला गेला आहे!');
+                        onClose();
+                      }
+                    }}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow border border-rose-700 flex items-center gap-1.5 cursor-pointer transition-all self-start sm:self-auto"
+                  >
+                    <Trash2 className="w-4 h-4 text-white" />
+                    <span>🚨 पूर्ण बायोडाटा डिलीट करा</span>
+                  </button>
+                </div>
+
+                {/* Grid of quick switches */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {/* Approval Status Toggle */}
+                  <div className="p-3 bg-white rounded-2xl border border-red-200 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase block">नोंदणी मान्यता (Profile Approval)</span>
+                      <span className={`text-xs font-black inline-block mt-1 ${profile.isApproved ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {profile.isApproved ? '✅ मंजूर (Approved)' : '⏳ प्रलंबित (Pending Approval)'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateProfileDirect(profile.id, { isApproved: !profile.isApproved });
+                        alert(`प्रोफाईल स्टेटस बदलले: ${!profile.isApproved ? 'मंजूर केले' : 'प्रलंबित केले'}`);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-xl border text-center text-xs font-black shadow transition-all cursor-pointer ${
+                        profile.isApproved
+                          ? 'bg-amber-100 text-[#800C1E] border-amber-300 hover:bg-amber-200'
+                          : 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700'
+                      }`}
+                    >
+                      {profile.isApproved ? '🚫 अमान्य/प्रलंबित करा' : '✅ मंजूर करा (Approve)'}
+                    </button>
+                  </div>
+
+                  {/* Block Login Access Toggle */}
+                  <div className="p-3 bg-white rounded-2xl border border-red-200 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase block">लॉगिन चालू/बंद (Login Account Status)</span>
+                      <span className={`text-xs font-black inline-block mt-1 ${profile.isBlocked ? 'text-rose-600' : 'text-emerald-700'}`}>
+                        {profile.isBlocked ? '🚫 ब्लॉकड (Blocked Account)' : '✅ सक्रिय (Active Login)'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleBlockMemberAccess(profile.id);
+                        alert(`सदस्याचे खाते ${!profile.isBlocked ? 'ब्लॉक' : 'अनब्लॉक'} केले गेले आहे!`);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-xl border text-center text-xs font-black shadow transition-all cursor-pointer ${
+                        profile.isBlocked
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                          : 'bg-rose-600 text-white border-rose-700 hover:bg-rose-700'
+                      }`}
+                    >
+                      {profile.isBlocked ? '🔑 अन-ब्लॉक लॉगिन' : '🔒 लॉगिन ब्लॉक करा'}
+                    </button>
+                  </div>
+
+                  {/* ID / Aadhaar Verified status */}
+                  <div className="p-3 bg-white rounded-2xl border border-red-200 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase block">आधार पडताळणी (Aadhaar Verified Badge)</span>
+                      <span className={`text-xs font-black inline-block mt-1 ${profile.aadhaarVerified ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        {profile.aadhaarVerified ? '🌟 आधार पडताळणी पूर्ण' : '❌ पडताळणी प्रलंबित'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateProfileDirect(profile.id, {
+                          aadhaarVerified: !profile.aadhaarVerified,
+                          isIdVerified: !profile.aadhaarVerified
+                        });
+                        alert(`आधार पडताळणी स्टेटस बदलले!`);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-xl border text-center text-xs font-black shadow transition-all cursor-pointer ${
+                        profile.aadhaarVerified
+                          ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                          : 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700'
+                      }`}
+                    >
+                      {profile.aadhaarVerified ? '❌ पडताळणी रद्द करा' : '🌟 आधार मंजूर करा'}
+                    </button>
+                  </div>
+
+                  {/* Face Verification Toggle */}
+                  <div className="p-3 bg-white rounded-2xl border border-red-200 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase block">चेहरा पडताळणी (Face Verified Badge)</span>
+                      <span className={`text-xs font-black inline-block mt-1 ${profile.isFaceVerified ? 'text-purple-700' : 'text-slate-500'}`}>
+                        {profile.isFaceVerified ? '📷 चेहरा पडताळणी पूर्ण' : '❌ पडताळणी प्रलंबित'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateProfileDirect(profile.id, {
+                          isFaceVerified: !profile.isFaceVerified,
+                          isPhotoVerified: !profile.isFaceVerified
+                        });
+                        alert(`चेहरा पडताळणी स्टेटस बदलले!`);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-xl border text-center text-xs font-black shadow transition-all cursor-pointer ${
+                        profile.isFaceVerified
+                          ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                          : 'bg-purple-600 text-white border-purple-500 hover:bg-purple-700'
+                      }`}
+                    >
+                      {profile.isFaceVerified ? '❌ चेहरा पडताळणी रद्द' : '📷 चेहरा मंजूर करा'}
+                    </button>
+                  </div>
+
+                  {/* Golden Verified Badge */}
+                  <div className="p-3 bg-white rounded-2xl border border-red-200 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase block">खात्रीशीर प्रोफाईल (Verified Profile Badge)</span>
+                      <span className={`text-xs font-black inline-block mt-1 ${profile.isVerified ? 'text-amber-700' : 'text-slate-500'}`}>
+                        {profile.isVerified ? '🏆 प्रमाणित (Verified)' : '❌ सामान्य प्रोफाईल'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateProfileDirect(profile.id, { isVerified: !profile.isVerified });
+                        alert(`प्रमाणित बॅज स्टेटस बदलले!`);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-xl border text-center text-xs font-black shadow transition-all cursor-pointer ${
+                        profile.isVerified
+                          ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                          : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'
+                      }`}
+                    >
+                      {profile.isVerified ? '❌ प्रमाणित बॅज काढा' : '🏆 प्रमाणित बॅज द्या'}
+                    </button>
+                  </div>
+
+                  {/* Hide Profile from Search */}
+                  <div className="p-3 bg-white rounded-2xl border border-red-200 flex flex-col justify-between gap-2">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase block">वेबसाईटवर दृश्यमानता (Search Visibility)</span>
+                      <span className={`text-xs font-black inline-block mt-1 ${profile.isHiddenByAdmin ? 'text-amber-800' : 'text-emerald-700'}`}>
+                        {profile.isHiddenByAdmin ? '🙈 इंडेक्सवरून लपवले आहे' : '👁️ सर्वांना दृश्यमान'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleProfileVisibility(profile.id);
+                        alert(`दृश्यमानता बदलली गेली आहे!`);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-xl border text-center text-xs font-black shadow transition-all cursor-pointer ${
+                        profile.isHiddenByAdmin
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                          : 'bg-amber-800 text-amber-100 border-amber-900 hover:bg-amber-900'
+                      }`}
+                    >
+                      {profile.isHiddenByAdmin ? '👁️ सर्वांना दाखवा' : '🙈 सध्या लपवून ठेवा'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Aadhaar Document Verification Details & Image View */}
+                <div className="bg-white p-4 rounded-2xl border border-red-200 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-[#A71930]" />
+                      <span>🪪 आधार कार्ड दस्तऐवज पडताळणी (Aadhaar Document Status):</span>
+                    </p>
+                    {profile.idVerificationNumber && (
+                      <span className="px-2.5 py-1 bg-amber-100 text-[#800C1E] font-mono rounded-lg border border-amber-300">
+                        नंबर: {profile.idVerificationNumber}
+                      </span>
+                    )}
+                  </div>
+
+                  {profile.aadhaarCardUrl ? (
+                    <div className="space-y-3">
+                      <div className="relative group overflow-hidden rounded-xl border-2 border-slate-200 max-w-md bg-slate-100 shadow">
+                        <img
+                          src={profile.aadhaarCardUrl}
+                          alt="Aadhaar Card Photo"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-auto max-h-64 object-contain mx-auto"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all gap-3">
+                          <a
+                            href={profile.aadhaarCardUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-white text-slate-950 font-black rounded-xl text-xs flex items-center gap-1 shadow-md hover:scale-105 transition-all"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>पूर्ण साईज पहा</span>
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm('तुम्हाला खरोखर हे आधार कार्ड इमेज डिलीट करायचे आहे का?')) {
+                                updateProfileDirect(profile.id, {
+                                  aadhaarCardUrl: '',
+                                  idProofUrl: '',
+                                  aadhaarVerified: false,
+                                  isIdVerified: false
+                                });
+                                alert('आधार कार्ड यशस्वीरित्या काढून टाकले!');
+                              }
+                            }}
+                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs flex items-center gap-1 shadow-md hover:scale-105 transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>काढून टाका</span>
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-medium">💡 आधार कार्ड झूम करून किंवा पूर्ण साईज मध्ये पाहण्यासाठी फोटोवर माउस न्या अथवा टॅप करा.</p>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-amber-50 rounded-xl border border-dashed border-amber-300 text-center space-y-2">
+                      <p className="text-slate-600 text-xs font-bold">⚠️ या वधू/वराने अद्याप पडताळणीसाठी आधार कार्ड दस्तऐवज अपलोड केलेले नाही.</p>
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-lg mx-auto">
+                        <input
+                          type="text"
+                          placeholder="आधार फोटो लिंक (इमेज URL) इथे पेस्ट करा..."
+                          id="direct-aadhaar-link-url"
+                          className="px-3 py-2 border border-slate-300 rounded-xl text-xs w-full text-slate-800 font-bold bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const inputEl = document.getElementById('direct-aadhaar-link-url') as HTMLInputElement;
+                            const url = inputEl?.value?.trim();
+                            if (url) {
+                              updateProfileDirect(profile.id, {
+                                aadhaarCardUrl: url,
+                                idProofUrl: url,
+                                aadhaarVerified: true,
+                                isIdVerified: true
+                              });
+                              alert('आधार दस्तऐवज अपलोड यशस्वी व आधार पडताळणी पूर्ण झाली!');
+                            } else {
+                              alert('कृपया वैध प्रतिमा लिंक (Image URL) प्रविष्ट करा!');
+                            }
+                          }}
+                          className="px-4 py-2 bg-[#A71930] hover:bg-[#800C1E] text-white font-black rounded-xl text-xs cursor-pointer shadow-md shrink-0 w-full sm:w-auto text-center"
+                        >
+                          आधार फोटो जोडा
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Candidate Uploaded Photos Management & Quick Deletion */}
+                <div className="bg-white p-4 rounded-2xl border border-red-200 space-y-3">
+                  <p className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                    <span>📷 वधू/वरांचे सर्व फोटो व्यवस्थापन (Delete or Manage Profile Photos):</span>
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    {profile.photos.map((img, idx) => (
+                      <div key={idx} className="relative group border-2 border-slate-200 rounded-xl overflow-hidden aspect-square bg-slate-50 shadow-xs">
+                        <img
+                          src={img}
+                          alt={`profile thumb ${idx}`}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (profile.photos.length <= 1) {
+                                alert('किमान एक मुख्य फोटो राहणे बंधनकारक आहे! आपण सर्व फोटो डिलीट करू शकत नाही.');
+                                return;
+                              }
+                              if (confirm(`तुम्हाला खरोखर फोटो नंबर ${idx + 1} डिलीट करायचा आहे का?`)) {
+                                deleteMemberPhoto(profile.id, idx);
+                                setSelectedPhotoIndex(0);
+                                alert('फोटो यशस्वीरित्या डिलीट केला!');
+                              }
+                            }}
+                            className="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-md cursor-pointer hover:scale-110 transition-transform"
+                            title="हा फोटो डिलीट करा"
+                          >
+                            <Trash2 className="w-4.5 h-4.5" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-1 left-1 bg-slate-900/70 text-amber-300 text-[9px] px-1 py-0.2 rounded font-mono font-bold">
+                          {idx === 0 ? 'मुख्य फोटो' : `फोटो ${idx + 1}`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Top Banner with Main Image & Quick Badges */}
             <div className="grid md:grid-cols-12 gap-6 bg-white p-5 rounded-3xl border border-amber-200 shadow-sm">
               
@@ -212,15 +541,42 @@ export const ProfileDetailModal: React.FC<{
                     </button>
                   </div>
 
-                  <h1 className="text-2xl font-black text-[#A71930] mt-2 flex items-center gap-2">
-                    <span>{profile.fullName}</span>
-                    <VerifiedBadge isVerified={profile.isVerified} isFaceVerified={profile.isFaceVerified} size="md" showLabel={true} />
+                  <h1 className="text-xl sm:text-2xl font-black text-[#A71930] mt-2 flex flex-col items-start gap-1">
+                    {(!currentUser && (siteConfig?.blurProfileNames ?? true)) ? (
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-50 text-[#A71930] text-xs font-black border border-red-200 select-none animate-pulse">
+                          <Lock className="w-4 h-4 text-[#A71930] shrink-0" />
+                          <span>नाव पाहाण्यासाठी लॉग इन करा</span>
+                        </span>
+                        <span className="blur-[6px] select-none pointer-events-none font-black text-slate-800 tracking-wider">
+                          {profile.fullName}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>{profile.fullName}</span>
+                        <VerifiedBadge isVerified={profile.isVerified} isFaceVerified={profile.isFaceVerified} size="md" showLabel={true} />
+                      </div>
+                    )}
                   </h1>
-                  
-                  <p className="text-xs font-bold text-slate-600 mt-1 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#A71930]" />
-                    <span>{cleanLocationDetail(profile.district, profile.taluka, profile.city)}</span>
-                  </p>
+
+                  {/* High Contrast District & Qualification Highlight Box */}
+                  <div className="bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 p-3 rounded-2xl border-2 border-amber-300 shadow-sm mt-3 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-black text-[#800C1E]">
+                      <span className="flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-slate-900 shadow-2xs">
+                        <MapPin className="w-3.5 h-3.5 text-[#A71930]" />
+                        <span>जिल्हा: <strong className="text-[#A71930] font-black">{profile.district || 'महाराष्ट्र'}</strong> ({profile.city || profile.taluka || ''})</span>
+                      </span>
+                      <span className="bg-white px-2 py-1 rounded-lg border border-amber-300 text-slate-800 font-extrabold">
+                        {profile.age} वर्षे
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs font-black text-[#800C1E] bg-white p-2 rounded-xl border border-amber-300 shadow-2xs">
+                      <GraduationCap className="w-4 h-4 text-[#A71930] shrink-0" />
+                      <span>शिक्षण/पात्रता: <strong className="text-[#800C1E] font-black">{profile.education || 'उच्चशिक्षित'}</strong></span>
+                    </div>
+                  </div>
 
                   {profile.bio && (
                     <p className="text-xs text-slate-700 bg-amber-50/60 p-3 rounded-xl border border-amber-200 mt-3 italic">
