@@ -1,4 +1,4 @@
-: name: Deploy to Firebase Hosting & Rules
+name: Deploy to Firebase Hosting & Rules
 
 on:
   push:
@@ -43,10 +43,8 @@ jobs:
             echo "Deploying to Firebase Hosting with Service Account credentials..."
             echo "$SA_CONTENT" > /tmp/firebase-sa.json
             export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
-            # Deploy hosting first
             npx --yes firebase-tools deploy --only hosting --project vanjarijodi --non-interactive
-            # Try deploying firestore rules if permissions allow
-            npx --yes firebase-tools deploy --only firestore:rules --project vanjarijodi --non-interactive || echo "Note: Firestore rules deploy skipped (insufficient IAM role for rules, hosting deployed successfully)"
+            npx --yes firebase-tools deploy --only firestore:rules --project vanjarijodi --non-interactive || echo "Note: Firestore rules deploy skipped"
             rm -f /tmp/firebase-sa.json
           elif [ -n "$FIREBASE_TOKEN" ]; then
             echo "Deploying to Firebase Hosting with Firebase Token..."
