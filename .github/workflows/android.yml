@@ -31,11 +31,10 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Android SDK Licenses
-        run: yes | sdkmanager --licenses || true
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Accept Android SDK Licenses & Install API
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
@@ -46,13 +45,12 @@ jobs:
       - name: Sync Capacitor Android Project
         run: npx cap sync android
 
-      - name: Verify and Setup Gradle Wrapper
+      - name: Fix Android Variables & Gradle Wrapper
         run: |
           chmod +x ./android/gradlew
-          if [ ! -s ./android/gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "Gradle wrapper jar is missing or empty, fetching..."
-            curl -sLo ./android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.9/gradle/wrapper/gradle-wrapper.jar
-          fi
+          # Ensure compileSdkVersion and targetSdkVersion match Capacitor 6/7 requirements
+          sed -i 's/compileSdkVersion = .*/compileSdkVersion = 34/' ./android/variables.gradle || true
+          sed -i 's/targetSdkVersion = .*/targetSdkVersion = 34/' ./android/variables.gradle || true
 
       - name: Build Android APK (Official Signed Release & Universal)
         run: |
@@ -65,18 +63,13 @@ jobs:
           
           mkdir -p ../dist-apk
           
-          # Sign Release APK with v1, v2, and v3 signatures
-          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
-          
-          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-            $BUILD_TOOLS_DIR/zipalign -v -f -p 4 app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi-Official-Release.apk || cp app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi-Official-Release.apk
-          elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-            $BUILD_TOOLS_DIR/zipalign -v -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/aligned.apk
-            $BUILD_TOOLS_DIR/apksigner sign --ks app/release.keystore --ks-pass pass:vanjari123 --key-pass pass:vanjari123 --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --out ../dist-apk/VanjariJodi-Official-Release.apk app/build/outputs/apk/release/aligned.apk
-          fi
-          
-          # Universal debug APK (Zero configuration fallback)
+          # Universal debug APK
           cp app/build/outputs/apk/debug/app-debug.apk ../dist-apk/VanjariJodi-Universal-Install.apk
+          
+          # Release APK
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi-Official-Release.apk
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
