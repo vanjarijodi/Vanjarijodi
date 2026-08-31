@@ -1,0 +1,89 @@
+# Automated Android APK Build Workflow for Vanjari Jodi
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK Licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Web Application (Vite + Server)
+        run: npm run build
+
+      - name: Sync Capacitor Android Project
+        run: npx cap sync android
+
+      - name: Verify and Setup Gradle Wrapper
+        run: |
+          chmod +x ./android/gradlew
+          if [ ! -s ./android/gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "Gradle wrapper jar is missing or empty, fetching..."
+            curl -sLo ./android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.9/gradle/wrapper/gradle-wrapper.jar
+          fi
+
+      - name: Build Android APK (Official Signed Release & Universal)
+        run: |
+          cd android
+          # Create official Keystore for Release Signing
+          keytool -genkeypair -v -keystore app/release.keystore -alias vanjarijodi -keyalg RSA -keysize 2048 -validity 10000 -storepass vanjari123 -keypass vanjari123 -dname "CN=Vanjari Jodi Matrimony, OU=IT, O=Vanjari Jodi, L=Mumbai, ST=Maharashtra, C=IN"
+          
+          # Build Release and Debug APKs
+          ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
+          
+          mkdir -p ../dist-apk
+          
+          # Sign Release APK with v1, v2, and v3 signatures
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
+          
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            $BUILD_TOOLS_DIR/zipalign -v -f -p 4 app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi-Official-Release.apk || cp app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi-Official-Release.apk
+          elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            $BUILD_TOOLS_DIR/zipalign -v -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/aligned.apk
+            $BUILD_TOOLS_DIR/apksigner sign --ks app/release.keystore --ks-pass pass:vanjari123 --key-pass pass:vanjari123 --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --out ../dist-apk/VanjariJodi-Official-Release.apk app/build/outputs/apk/release/aligned.apk
+          fi
+          
+          # Universal debug APK (Zero configuration fallback)
+          cp app/build/outputs/apk/debug/app-debug.apk ../dist-apk/VanjariJodi-Universal-Install.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VanjariJodi-Android-APK
+          path: dist-apk/*.apk
+          retention-days: 30
+          if-no-files-found: error
+

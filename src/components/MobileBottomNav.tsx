@@ -1,0 +1,159 @@
+import React from 'react';
+import { useApp } from '../context/AppContext';
+import {
+  Home,
+  Sparkles,
+  User,
+  Crown,
+  Users
+} from 'lucide-react';
+
+export const MobileBottomNav: React.FC = () => {
+  const {
+    currentView,
+    setCurrentView,
+    language,
+    setIsLeftDrawerOpen,
+    currentUser,
+    setIsLoginOpen,
+    setLoginModalMode,
+    siteConfig,
+    setIsPaymentOpen,
+    setIsKundaliModalOpen,
+  } = useApp();
+
+  const isEn = language === 'en';
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleTabClick = (tabId: string) => {
+    if (tabId === 'home') {
+      setCurrentView('home');
+      scrollToTop();
+    } else if (tabId === 'profiles') {
+      if (currentUser) {
+        setCurrentView('profiles');
+        scrollToTop();
+      } else {
+        setLoginModalMode(siteConfig?.enableGuestLogin !== false ? 'guest' : 'member_otp');
+        setIsLoginOpen(true);
+      }
+    } else if (tabId === 'kundali') {
+      setIsKundaliModalOpen(true);
+    } else if (tabId === 'vip') {
+      if (currentUser) {
+        setIsPaymentOpen(true);
+      } else {
+        setIsLoginOpen(true);
+      }
+    } else if (tabId === 'profile') {
+      if (currentUser) {
+        setCurrentView('dashboard');
+      } else {
+        setIsLeftDrawerOpen(true);
+      }
+    }
+  };
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 block md:hidden w-full pointer-events-auto bg-white/95 backdrop-blur-md border-t border-amber-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div className="max-w-md mx-auto grid grid-cols-5 items-center px-1 pt-1">
+        
+        {/* 1. Home */}
+        <button
+          type="button"
+          onClick={() => handleTabClick('home')}
+          aria-label={isEn ? 'Home' : 'होम'}
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 rounded-xl transition-all cursor-pointer ${
+            currentView === 'home'
+              ? 'text-[#A71930] font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold'
+          }`}
+        >
+          <div className={`p-1 rounded-full transition-transform ${currentView === 'home' ? 'bg-amber-100/80 scale-110' : ''}`}>
+            <Home className={`w-5 h-5 ${currentView === 'home' ? 'text-[#A71930]' : 'text-slate-600'}`} />
+          </div>
+          <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">{isEn ? 'Home' : 'होम'}</span>
+        </button>
+
+        {/* 2. Profiles / वर-वधू */}
+        <button
+          type="button"
+          onClick={() => handleTabClick('profiles')}
+          aria-label={isEn ? 'Profiles' : 'वर-वधू'}
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 rounded-xl transition-all cursor-pointer ${
+            currentView === 'profiles'
+              ? 'text-[#A71930] font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold'
+          }`}
+        >
+          <div className={`p-1 rounded-full transition-transform ${currentView === 'profiles' ? 'bg-amber-100/80 scale-110' : ''}`}>
+            <Users className={`w-5 h-5 ${currentView === 'profiles' ? 'text-[#A71930]' : 'text-slate-600'}`} />
+          </div>
+          <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">{isEn ? 'Profiles' : 'वर-वधू'}</span>
+        </button>
+
+        {/* 3. Kundali / गुणमिलन */}
+        <button
+          type="button"
+          onClick={() => handleTabClick('kundali')}
+          aria-label={isEn ? 'Kundali' : 'गुणमिलन'}
+          className="flex flex-col items-center justify-center min-h-[48px] py-1 rounded-xl text-amber-700 hover:text-amber-800 font-bold transition-all cursor-pointer"
+        >
+          <div className="p-1 rounded-full bg-amber-50">
+            <Sparkles className="w-5 h-5 text-amber-600 fill-amber-300" />
+          </div>
+          <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">{isEn ? 'Kundali' : 'गुणमिलन'}</span>
+        </button>
+
+        {/* 4. VIP / Premium */}
+        <button
+          type="button"
+          onClick={() => handleTabClick('vip')}
+          aria-label={isEn ? 'VIP' : 'प्रीमियम'}
+          className="relative flex flex-col items-center justify-center min-h-[48px] py-1 rounded-xl text-amber-800 hover:text-amber-900 font-bold transition-all cursor-pointer"
+        >
+          <div className="relative p-1">
+            <Crown className="w-5 h-5 text-amber-600 fill-amber-400" />
+            <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-gradient-to-r from-[#A71930] to-amber-600 text-[8px] font-black text-white rounded-full shadow-xs tracking-tighter">
+              PRO
+            </span>
+          </div>
+          <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">{isEn ? 'VIP' : 'प्रीमियम'}</span>
+        </button>
+
+        {/* 5. Account / माझे खाते */}
+        <button
+          type="button"
+          onClick={() => handleTabClick('profile')}
+          aria-label={isEn ? 'Account' : 'माझे खाते'}
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 rounded-xl transition-all cursor-pointer ${
+            currentView === 'dashboard'
+              ? 'text-[#A71930] font-black'
+              : 'text-slate-600 hover:text-slate-900 font-bold'
+          }`}
+        >
+          <div className={`w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border-2 transition-all ${
+            currentView === 'dashboard' ? 'border-[#A71930] ring-2 ring-amber-200' : 'border-slate-300 bg-slate-100'
+          }`}>
+            {currentUser?.photos && currentUser.photos.length > 0 ? (
+              <img
+                src={currentUser.photos[0]}
+                alt={currentUser.fullName}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-3.5 h-3.5 text-slate-600" />
+            )}
+          </div>
+          <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">{isEn ? 'Profile' : 'खाते'}</span>
+        </button>
+
+      </div>
+    </nav>
+  );
+};
+
