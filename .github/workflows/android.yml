@@ -31,10 +31,10 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Android SDK Licenses & Install API
+      - name: Accept Android SDK Licenses & Install API 35
         run: |
           yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
@@ -45,12 +45,12 @@ jobs:
       - name: Sync Capacitor Android Project
         run: npx cap sync android
 
-      - name: Fix Android Variables & Gradle Wrapper
+      - name: Setup Permissions & Wrapper
         run: |
           chmod +x ./android/gradlew
-          # Ensure compileSdkVersion and targetSdkVersion match Capacitor 6/7 requirements
-          sed -i 's/compileSdkVersion = .*/compileSdkVersion = 34/' ./android/variables.gradle || true
-          sed -i 's/targetSdkVersion = .*/targetSdkVersion = 34/' ./android/variables.gradle || true
+          if [ ! -s ./android/gradle/wrapper/gradle-wrapper.jar ]; then
+            curl -sLo ./android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.9/gradle/wrapper/gradle-wrapper.jar
+          fi
 
       - name: Build Android APK (Official Signed Release & Universal)
         run: |
