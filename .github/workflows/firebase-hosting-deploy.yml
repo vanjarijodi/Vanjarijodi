@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting & Rules
+: name: Deploy to Firebase Hosting & Rules
 
 on:
   push:
@@ -19,10 +19,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build project (Vite + Server Bundle)
         run: npm run build
@@ -57,5 +56,3 @@ jobs:
             echo "::error::No Firebase credentials found! Please set FIREBASE_SERVICE_ACCOUNT_VANJARIJODI or FIREBASE_TOKEN in GitHub repository Secrets."
             exit 1
           fi
-
-
