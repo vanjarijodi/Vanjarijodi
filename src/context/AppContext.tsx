@@ -348,6 +348,7 @@ interface AppContextType {
   userActivityLogs: UserActivityLog[];
   guestSessions: GuestSessionLog[];
   trackUserAction: (action: string, details: string) => void;
+  clearUserActivityLogs?: () => void;
 
   // Admin Chat Archiving & Deletion
   archiveAdminSupportChat: (senderId: string) => void;
@@ -373,7 +374,7 @@ interface AppContextType {
   deleteMemberPhoto: (profileId: string, photoIndex: number) => void;
   addMemberPhoto: (profileId: string, newPhotoUrl: string) => { success: boolean; message: string };
   approvePhotoChanges: (profileId: string) => void;
-  uploadAadhaarCard: (profileId: string, aadhaarUrl: string) => void;
+  uploadAadhaarCard: (profileId: string, aadhaarUrl: string, backUrl?: string, isMasked?: boolean, idNumber?: string) => void;
   updateProfileDirect: (profileId: string, updatedFields: Partial<UserProfile>) => void;
   incrementProfileViews: (profileId: string) => void;
 
@@ -3136,7 +3137,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'edit-' + Date.now(),
       profileId,
       profileName: prof.fullName,
-      mobile: prof.mobileNumber,
+      mobile: prof.mobile || prof.mobileNumber || '',
       originalData: prof,
       updatedData: updatedFields,
       submittedAt: new Date().toISOString(),

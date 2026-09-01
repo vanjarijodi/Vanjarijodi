@@ -2,6 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { UserProfile } from '../types';
 import { VerifiedBadge } from './VerifiedBadge';
+import { SafeAvatar } from './SafeAvatar';
+import { KundaliMilanModal } from './KundaliMilanModal';
+import { ReferralShareModal } from './ReferralShareModal';
 import { FaceVerificationModal } from './FaceVerificationModal';
 import { AdminEditProfileModal } from './AdminEditProfileModal';
 import { uploadToCloudinary } from '../utils/cloudinary';
@@ -32,7 +35,13 @@ import {
   Camera,
   Smartphone,
   Zap,
-  Phone
+  Phone,
+  PhoneCall,
+  MessageCircle,
+  Share2,
+  Scroll,
+  CheckCircle,
+  ArrowRight
 } from 'lucide-react';
 import { requestPushPermission, getPushPermissionState, triggerBrowserPushNotification } from '../utils/pushNotificationHelper';
 
@@ -61,10 +70,19 @@ export const MemberDashboard: React.FC = () => {
     uploadAadhaarCard,
     updateProfileDirect,
     isCurrentUserPlanExpired,
-    memberIdRequests
+    memberIdRequests,
+    likedProfileIds,
+    toggleLikeProfile,
+    isContactAuthorizedForUser,
+    unlockContact,
+    checkGuestPermission,
+    setSelectedPlanForPayment
   } = useApp();
 
   const [tab, setTab] = useState<'overview' | 'interests' | 'shortlist' | 'notifications' | 'membership' | 'privacy'>('overview');
+  const [likesSubTab, setLikesSubTab] = useState<'mutual' | 'received' | 'sent'>('mutual');
+  const [kundaliCandidate, setKundaliCandidate] = useState<UserProfile | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
   const [isUploadingFront, setIsUploadingFront] = useState(false);
@@ -308,6 +326,47 @@ export const MemberDashboard: React.FC = () => {
   const sentRequests = interests.filter((i) => i.fromUserId === currentUser.id);
   const shortlistedProfiles = profiles.filter((p) => shortlistedIds.includes(p.id));
 
+  // 3. Robust Like & Mutual Match Calculations
+  const myLikedIds = useMemo(() => {
+    const ids = new Set<string>();
+    (likedProfileIds || []).forEach((id) => ids.add(id));
+    (currentUser.shortlistedProfiles || []).forEach((id) => ids.add(id));
+    interests.filter((i) => i.fromUserId === currentUser.id && i.status !== 'rejected').forEach((i) => ids.add(i.toUserId));
+    return ids;
+  }, [likedProfileIds, currentUser, interests]);
+
+  const likedMeIds = useMemo(() => {
+    const ids = new Set<string>();
+    (currentUser.likedByUsers || []).forEach((id) => ids.add(id));
+    profiles.forEach((p) => {
+      if (
+        (p.likedProfileIds || []).includes(currentUser.id) ||
+        (p.shortlistedByUsers || []).includes(currentUser.id)
+      ) {
+        ids.add(p.id);
+      }
+    });
+    interests.filter((i) => i.toUserId === currentUser.id && i.status !== 'rejected').forEach((i) => ids.add(i.fromUserId));
+    return ids;
+  }, [currentUser, profiles, interests]);
+
+  // 1. Mutual Matches: both users liked each other
+  const mutualMatches = useMemo(() => {
+    return profiles.filter((p) => p.id !== currentUser.id && myLikedIds.has(p.id) && likedMeIds.has(p.id));
+  }, [profiles, currentUser, myLikedIds, likedMeIds]);
+
+  // 2. Received Likes: user liked me, but I haven't liked them back yet
+  const receivedLikes = useMemo(() => {
+    return profiles.filter((p) => p.id !== currentUser.id && likedMeIds.has(p.id) && !myLikedIds.has(p.id));
+  }, [profiles, currentUser, myLikedIds, likedMeIds]);
+
+  // 3. Sent Likes: I liked user, but they haven't liked back yet
+  const sentLikes = useMemo(() => {
+    return profiles.filter((p) => p.id !== currentUser.id && myLikedIds.has(p.id) && !likedMeIds.has(p.id));
+  }, [profiles, currentUser, myLikedIds, likedMeIds]);
+
+  const totalLikesAndMatches = mutualMatches.length + receivedLikes.length + sentLikes.length;
+
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-slate-800 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -316,10 +375,12 @@ export const MemberDashboard: React.FC = () => {
         <div className="bg-white border-2 border-amber-300 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#A71930] shadow-md bg-amber-50 group shrink-0">
-              <img
-                src={currentUser.photoUrl || currentUser.photos[0] || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'}
-                alt="avatar"
-                className="w-full h-full object-cover"
+              <SafeAvatar
+                src={currentUser.photoUrl || currentUser.photos?.[0]}
+                alt={currentUser.fullName}
+                name={currentUser.fullName}
+                gender={currentUser.gender}
+                sizeClassName="w-20 h-20"
               />
               <button
                 type="button"
@@ -350,6 +411,26 @@ export const MemberDashboard: React.FC = () => {
                 <span className="text-slate-500 font-medium">शेवटचे सक्रीय: {currentUser.lastActive}</span>
               </div>
             </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black shadow-md flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer active:scale-95"
+            >
+              <Share2 className="w-4 h-4 text-emerald-200" />
+              <span>🎁 शेअर करा आणि कमवा (Share & Earn)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsEditProfileModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 text-xs font-black shadow-md flex items-center gap-1.5 border border-amber-300 transition-all cursor-pointer"
+            >
+              <Edit className="w-4 h-4 text-slate-950" />
+              <span>✍️ माहिती बदला</span>
+            </button>
           </div>
 
           {/* Photo Request / Low Photo Count Banner */}
@@ -593,8 +674,13 @@ export const MemberDashboard: React.FC = () => {
                 : 'bg-white text-slate-700 hover:bg-amber-100 border border-amber-200'
             }`}
           >
-            <Heart className="w-4 h-4" />
-            <span>{t('my_interests')} ({receivedRequests.length + sentRequests.length})</span>
+            <Heart className="w-4 h-4 fill-current text-rose-500" />
+            <span>❤️ लाईक्स व मॅचेस ({totalLikesAndMatches})</span>
+            {mutualMatches.length > 0 && (
+              <span className="px-1.5 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-black animate-pulse">
+                {mutualMatches.length} मॅच
+              </span>
+            )}
           </button>
 
           <button
@@ -989,85 +1075,343 @@ export const MemberDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: INTERESTS */}
+        {/* TAB 2: LIKES & MATCHES (Unified Hub) */}
         {tab === 'interests' && (
-          <div className="bg-white border-2 border-amber-200 rounded-3xl p-6 space-y-6 shadow-sm">
-            <div>
-              <h3 className="text-lg font-black text-[#A71930] mb-3">मला आलेले प्रतिसाद (Received Requests)</h3>
-              {receivedRequests.length === 0 ? (
-                <p className="text-xs text-slate-500 bg-[#FFFDF5] p-4 rounded-xl border border-amber-200">
-                  अद्याप नवीन प्रतिसाद आला नाही.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {receivedRequests.map((req) => {
-                    const sender = profiles.find((p) => p.id === req.fromUserId);
-                    if (!sender) return null;
+          <div className="bg-white border-2 border-amber-200 rounded-3xl p-4 sm:p-6 space-y-6 shadow-sm">
+            
+            {/* Subtab Switcher */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-4">
+              <button
+                type="button"
+                onClick={() => setLikesSubTab('mutual')}
+                className={`px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                  likesSubTab === 'mutual'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md'
+                    : 'bg-[#FFFDF5] text-slate-700 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                <HeartHandshake className="w-4 h-4 text-amber-300" />
+                <span>💞 परस्पर पसंती (Mutual Matches)</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${likesSubTab === 'mutual' ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                  {mutualMatches.length}
+                </span>
+              </button>
 
-                    return (
-                      <div key={req.id} className="bg-[#FFFDF5] p-4 rounded-2xl border border-amber-200 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <img src={sender.photos[0]} alt="sender" className="w-12 h-12 rounded-xl object-cover border border-amber-300" />
-                          <div>
-                            <h4 className="font-bold text-slate-900 text-sm">{sender.fullName}</h4>
-                            <p className="text-xs text-slate-600">{sender.education} | {sender.district}</p>
+              <button
+                type="button"
+                onClick={() => setLikesSubTab('received')}
+                className={`px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                  likesSubTab === 'received'
+                    ? 'bg-gradient-to-r from-[#A71930] to-[#C82333] text-white shadow-md'
+                    : 'bg-[#FFFDF5] text-slate-700 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                <Heart className="w-4 h-4 fill-current text-rose-300" />
+                <span>❤️ मला आलेले लाईक्स (Received)</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${likesSubTab === 'received' ? 'bg-white text-[#A71930]' : 'bg-rose-100 text-rose-800'}`}>
+                  {receivedLikes.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLikesSubTab('sent')}
+                className={`px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                  likesSubTab === 'sent'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md'
+                    : 'bg-[#FFFDF5] text-slate-700 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-amber-700" />
+                <span>📤 मी केलेले लाईक्स (Sent)</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${likesSubTab === 'sent' ? 'bg-slate-900 text-amber-200' : 'bg-amber-100 text-amber-900'}`}>
+                  {sentLikes.length}
+                </span>
+              </button>
+            </div>
+
+            {/* SUB-VIEW 1: MUTUAL MATCHES */}
+            {likesSubTab === 'mutual' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl flex items-center gap-3">
+                  <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow shrink-0">
+                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-emerald-950 text-sm">
+                      🎉 परस्पर पसंती (Mutual Match) - दोघांचे लाईक्स जुळले आहेत!
+                    </h4>
+                    <p className="text-xs text-emerald-900/90 font-medium">
+                      या सदस्यांनी तुम्हाला व तुम्ही त्यांना दोघांनी एकमेकांना पसंत केले आहे. तुम्ही थेट कॉल, व्हॉट्सॲप आणि ३६ गुण कुंडली तपासू शकता.
+                    </p>
+                  </div>
+                </div>
+
+                {mutualMatches.length === 0 ? (
+                  <div className="text-center py-10 bg-[#FFFDF5] rounded-2xl border border-amber-200 p-6 space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-black shadow-inner">
+                      💞
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm">अद्याप कोणतीही परस्पर पसंती (Mutual Match) झालेली नाही</h4>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      वधू-वर यादीतील उमेदवारांना '❤️ लाईक' करा. त्यांनीही तुमच्या प्रोफाईलला परत लाईक करताच ते येथे दिसतील!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {mutualMatches.map((p) => (
+                      <div
+                        key={p.id}
+                        className="bg-[#FFFDF5] p-4 rounded-2xl border-2 border-emerald-300 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-3"
+                      >
+                        <div className="flex items-start gap-3">
+                          <SafeAvatar
+                            src={p.photoUrl || p.photos?.[0]}
+                            alt={p.fullName}
+                            name={p.fullName}
+                            gender={p.gender}
+                            sizeClassName="w-16 h-16"
+                            className="border border-emerald-400"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-black text-slate-900 text-sm truncate">{p.fullName}</h4>
+                              <VerifiedBadge profile={p} size="sm" showLabel={false} />
+                            </div>
+                            <p className="text-xs text-slate-600 mt-0.5">
+                              {p.age} वर्षे • {p.height || '५ फूट'} • {p.district}
+                            </p>
+                            <p className="text-xs text-[#A71930] font-bold truncate mt-0.5">
+                              {p.education || 'शिक्षण माहिती'}
+                            </p>
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black border border-emerald-300">
+                              🎉 परस्पर पसंती जुळली
+                            </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          {req.status === 'pending' ? (
-                            <>
-                              <button
-                                onClick={() => respondInterest(req.id, 'accepted')}
-                                className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow"
-                              >
-                                स्वीकार करा (Accept)
-                              </button>
-                              <button
-                                onClick={() => respondInterest(req.id, 'rejected')}
-                                className="px-3.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold border border-rose-300"
-                              >
-                                नाकारा
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-xs font-bold px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              {req.status === 'accepted' ? 'स्वीकृत केले' : 'नाकारले'}
-                            </span>
+                        {/* Action Buttons for Mutual Match */}
+                        <div className="pt-2 border-t border-emerald-200 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedProfileForModal(p)}
+                            className="px-3 py-2 bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 rounded-xl text-xs font-black shadow flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>बायोडाटा</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setKundaliCandidate(p)}
+                            className="px-3 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 rounded-xl text-xs font-black shadow border border-amber-300 flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <Scroll className="w-3.5 h-3.5" />
+                            <span>३६ गुण कुंडली</span>
+                          </button>
+
+                          {p.mobile && (
+                            <a
+                              href={`https://wa.me/91${p.mobile.replace(/\D/g, '')}?text=${encodeURIComponent(`नमस्ते ${p.fullName}, मी वंजारीजोडी ॲपवरून संपर्क करत आहे. आपली परस्पर पसंती (Mutual Match) झाली आहे.`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="col-span-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 transition-transform active:scale-95"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5 text-emerald-200" />
+                              <span>💬 व्हॉट्सॲपवर संपर्क करा ({p.mobile})</span>
+                            </a>
                           )}
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SUB-VIEW 2: RECEIVED LIKES */}
+            {likesSubTab === 'received' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-rose-50 via-amber-50 to-rose-50 border-2 border-rose-200 rounded-2xl flex items-center gap-3">
+                  <div className="p-2.5 bg-[#A71930] text-white rounded-xl shadow shrink-0">
+                    <Heart className="w-5 h-5 fill-current text-rose-200" />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-[#A71930] text-sm">
+                      ❤️ ज्यांनी तुमच्या प्रोफाईलला लाईक केले आहे
+                    </h4>
+                    <p className="text-xs text-slate-700 font-medium">
+                      या सदस्यांना तुमचा बायोडाटा आवडला आहे. तुम्ही 'परत लाईक' केल्यास त्वरित परस्पर मॅच तयार होईल व संपर्क नंबर अनलॉक होईल.
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div className="pt-4 border-t border-amber-200">
-              <h3 className="text-lg font-black text-[#A71930] mb-3">मी पाठवलेले प्रतिसाद (Sent Interests)</h3>
-              <div className="space-y-3">
-                {sentRequests.map((req) => {
-                  const receiver = profiles.find((p) => p.id === req.toUserId);
-                  if (!receiver) return null;
+                {receivedLikes.length === 0 ? (
+                  <div className="text-center py-10 bg-[#FFFDF5] rounded-2xl border border-amber-200 p-6 space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-rose-100 text-[#A71930] flex items-center justify-center text-2xl font-black shadow-inner">
+                      ❤️
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm">अद्याप नवीन लाईक्स आलेले नाहीत</h4>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      तुमचे प्रोफाईल परिपूर्ण ठेवा व सुंदर फोटो अपलोड करा, जेणेकरून जास्तीत जास्त स्थळांकडून पसंती (Likes) मिळतील!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {receivedLikes.map((p) => (
+                      <div
+                        key={p.id}
+                        className="bg-[#FFFDF5] p-4 rounded-2xl border-2 border-rose-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-3"
+                      >
+                        <div className="flex items-start gap-3">
+                          <SafeAvatar
+                            src={p.photoUrl || p.photos?.[0]}
+                            alt={p.fullName}
+                            name={p.fullName}
+                            gender={p.gender}
+                            sizeClassName="w-16 h-16"
+                            className="border border-rose-300"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-black text-slate-900 text-sm truncate">{p.fullName}</h4>
+                              <VerifiedBadge profile={p} size="sm" showLabel={false} />
+                            </div>
+                            <p className="text-xs text-slate-600 mt-0.5">
+                              {p.age} वर्षे • {p.height || '५ फूट'} • {p.district}
+                            </p>
+                            <p className="text-xs text-[#A71930] font-bold truncate mt-0.5">
+                              {p.education || 'शिक्षण माहिती'}
+                            </p>
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-800 rounded-full text-[10px] font-black border border-rose-300">
+                              ❤️ यांनी तुम्हाला लाईक केले
+                            </span>
+                          </div>
+                        </div>
 
-                  return (
-                    <div key={req.id} className="bg-[#FFFDF5] p-4 rounded-2xl border border-amber-200 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <img src={receiver.photos[0]} alt="receiver" className="w-12 h-12 rounded-xl object-cover border border-amber-300" />
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-sm">{receiver.fullName}</h4>
-                          <p className="text-xs text-slate-600">{receiver.education} | {receiver.district}</p>
+                        {/* Action Buttons */}
+                        <div className="pt-2 border-t border-rose-100 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleLikeProfile(p.id)}
+                            className="col-span-2 px-3 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <Heart className="w-4 h-4 fill-current text-rose-300" />
+                            <span>❤️ परत लाईक करा (Like Back & Match!)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedProfileForModal(p)}
+                            className="px-3 py-2 bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 rounded-xl text-xs font-black shadow flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>बायोडाटा</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setKundaliCandidate(p)}
+                            className="px-3 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 rounded-xl text-xs font-black shadow border border-amber-300 flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <Scroll className="w-3.5 h-3.5" />
+                            <span>कुंडली जुळवा</span>
+                          </button>
                         </div>
                       </div>
-
-                      <span className="text-xs px-3 py-1 rounded-xl bg-amber-100 text-[#A71930] font-bold border border-amber-300">
-                        स्थिती: {req.status === 'pending' ? 'प्रलंबित (Pending)' : 'स्वीकृत (Accepted)'}
-                      </span>
-                    </div>
-                  );
-                })}
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* SUB-VIEW 3: SENT LIKES */}
+            {likesSubTab === 'sent' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-2xl flex items-center gap-3">
+                  <div className="p-2.5 bg-amber-500 text-slate-950 rounded-xl shadow shrink-0">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-amber-950 text-sm">
+                      📤 मी पसंती (Like) पाठवलेले सदस्य
+                    </h4>
+                    <p className="text-xs text-slate-700 font-medium">
+                      तुम्ही या सदस्यांना पसंती दर्शवली आहे. त्यांनीही परत पसंती दिल्यास परस्पर मॅच तयार होईल.
+                    </p>
+                  </div>
+                </div>
+
+                {sentLikes.length === 0 ? (
+                  <div className="text-center py-10 bg-[#FFFDF5] rounded-2xl border border-amber-200 p-6 space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-2xl font-black shadow-inner">
+                      📤
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm">तुम्ही अद्याप कोणत्याही प्रोफाईलला लाईक केलेले नाही</h4>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      वधू-वर यादीतील प्रोफाईल्सवर '❤️ लाईक' बटण दाबून पसंती दर्शवा!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {sentLikes.map((p) => (
+                      <div
+                        key={p.id}
+                        className="bg-[#FFFDF5] p-4 rounded-2xl border-2 border-amber-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-3"
+                      >
+                        <div className="flex items-start gap-3">
+                          <SafeAvatar
+                            src={p.photoUrl || p.photos?.[0]}
+                            alt={p.fullName}
+                            name={p.fullName}
+                            gender={p.gender}
+                            sizeClassName="w-16 h-16"
+                            className="border border-amber-300"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-black text-slate-900 text-sm truncate">{p.fullName}</h4>
+                              <VerifiedBadge profile={p} size="sm" showLabel={false} />
+                            </div>
+                            <p className="text-xs text-slate-600 mt-0.5">
+                              {p.age} वर्षे • {p.height || '५ फूट'} • {p.district}
+                            </p>
+                            <p className="text-xs text-[#A71930] font-bold truncate mt-0.5">
+                              {p.education || 'शिक्षण माहिती'}
+                            </p>
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 text-amber-900 rounded-full text-[10px] font-black border border-amber-300">
+                              ⏳ पसंती पाठवली (प्रलंबित)
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="pt-2 border-t border-amber-200 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedProfileForModal(p)}
+                            className="px-3 py-2 bg-gradient-to-r from-[#A71930] to-[#C82333] hover:from-[#800C1E] hover:to-[#A71930] text-amber-100 rounded-xl text-xs font-black shadow flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>बायोडाटा पहा</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setKundaliCandidate(p)}
+                            className="px-3 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 rounded-xl text-xs font-black shadow border border-amber-300 flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-transform"
+                          >
+                            <Scroll className="w-3.5 h-3.5" />
+                            <span>कुंडली जुळवा</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         )}
 
@@ -1191,6 +1535,24 @@ export const MemberDashboard: React.FC = () => {
         isOpen={isFaceAuthModalOpen}
         onClose={() => setIsFaceAuthModalOpen(false)}
       />
+
+      {/* 36 Guna Kundali Milan Modal */}
+      {kundaliCandidate && (
+        <KundaliMilanModal
+          isOpen={!!kundaliCandidate}
+          onClose={() => setKundaliCandidate(null)}
+          candidateProfile={kundaliCandidate}
+        />
+      )}
+
+      {/* Referral & Share Modal */}
+      {isShareModalOpen && currentUser && (
+        <ReferralShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          user={currentUser}
+        />
+      )}
 
       {/* FULL PROFILE & PHOTO EDIT MODAL FOR LOGGED-IN MEMBER */}
       {currentUser && (

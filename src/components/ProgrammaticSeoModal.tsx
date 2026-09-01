@@ -23,6 +23,7 @@ import {
   Award,
 } from 'lucide-react';
 import { SmartBadgeRow } from './SmartBadgeRow';
+import { SafeAvatar } from './SafeAvatar';
 
 interface ProgrammaticSeoModalProps {
   isOpen: boolean;
@@ -416,11 +417,13 @@ export const ProgrammaticSeoModal: React.FC<ProgrammaticSeoModalProps> = ({
                       }}
                       className="p-3 bg-white rounded-2xl border border-slate-200 hover:border-[#800C1E] hover:shadow-md transition cursor-pointer flex gap-3 items-center group"
                     >
-                      <img
-                        src={p.photoUrl || (p.gender === 'Female' ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150')}
+                      <SafeAvatar
+                        src={p.photoUrl || p.photos?.[0]}
                         alt={p.fullName}
-                        className="w-14 h-14 rounded-xl object-cover border border-amber-300 shrink-0"
-                        referrerPolicy="no-referrer"
+                        name={p.fullName}
+                        gender={p.gender}
+                        sizeClassName="w-14 h-14"
+                        className="rounded-xl border border-amber-300 shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1">

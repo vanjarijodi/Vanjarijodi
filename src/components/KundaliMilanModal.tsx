@@ -94,6 +94,7 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
   const {
     currentUser,
     profiles,
+    interests,
     isAdminLoggedIn,
     setIsPaymentOpen,
     setSelectedPlanForPayment,
@@ -103,12 +104,24 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
   } = useApp();
 
   const isMutualMatch = Boolean(
-    currentUser && candidateProfile && (likedProfileIds || []).includes(candidateProfile.id)
+    currentUser &&
+    candidateProfile &&
+    (
+      (likedProfileIds || []).includes(candidateProfile.id) ||
+      (currentUser.shortlistedProfiles || []).includes(candidateProfile.id) ||
+      interests.some((i) => i.fromUserId === candidateProfile.id && i.toUserId === currentUser.id && i.status !== 'rejected')
+    ) &&
+    (
+      (candidateProfile.likedProfileIds || []).includes(currentUser.id) ||
+      (candidateProfile.shortlistedByUsers || []).includes(currentUser.id) ||
+      (currentUser.likedByUsers || []).includes(candidateProfile.id) ||
+      interests.some((i) => i.fromUserId === currentUser.id && i.toUserId === candidateProfile.id && i.status !== 'rejected')
+    )
   );
 
-  const isKundliFreeTrial = siteConfig?.kundliSettings?.isFreeTrialMode !== false;
+  const isKundliFreeTrial = Boolean(siteConfig?.kundliSettings?.isFreeTrialMode === true);
 
-  // Subscription check: Free Trial Mode, Paid member, active plan, admin, mutual match, or single credit
+  // Subscription check: Free Trial Mode (if enabled), Paid member, admin, mutual match, or single kundli credit
   const isPaidMember = Boolean(
     isKundliFreeTrial ||
     isMutualMatch ||
@@ -1273,7 +1286,7 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
           </div>
 
           <div className="flex items-center space-x-2 ml-auto">
-            {result && isPaidMember && (
+            {result && (
               <>
                 <button
                   type="button"
@@ -1314,7 +1327,7 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
               </>
             )}
 
-            {!isPaidMember && (
+            {!isPaidMember && !result && (
               <button
                 type="button"
                 onClick={handleUpgradeClick}

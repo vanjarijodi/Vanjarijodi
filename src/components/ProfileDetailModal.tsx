@@ -1641,8 +1641,8 @@ export const ProfileDetailModal: React.FC<{
                   {/* 3. HOROSCOPE TAB */}
                   {activeTab === 'horoscope' && (() => {
                     const isCandidateBride = profile.gender === 'bride';
-                    const groomData = isCandidateBride ? (currentUser || {}) : profile;
-                    const brideData = isCandidateBride ? profile : (currentUser || {});
+                    const groomData: Partial<UserProfile> = isCandidateBride ? (currentUser || {}) : profile;
+                    const brideData: Partial<UserProfile> = isCandidateBride ? profile : (currentUser || {});
 
                     const ashtakootMatch = calculateAshtakootMilan(
                       {

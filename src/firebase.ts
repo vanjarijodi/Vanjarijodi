@@ -19,9 +19,9 @@ const firebaseConfig = {
   measurementId: "G-RJ345W44XS"
 };
 
-// Suppress non-fatal connection warning notices
+// Suppress non-fatal connection warning notices & offline logs
 try {
-  setLogLevel('error');
+  setLogLevel('silent');
 } catch {
   // ignore
 }
@@ -34,7 +34,7 @@ export const auth = getAuth(app);
 let firestoreDb;
 try {
   firestoreDb = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
+    experimentalForceLongPolling: true,
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
     })

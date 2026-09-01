@@ -128,6 +128,17 @@ export interface UserProfile {
   idProofType?: 'aadhaar' | 'pan' | 'voter_id' | 'driving_license' | 'other';
   idVerificationNumber?: string; // Optional Govt ID / Aadhaar Number
   isVerified: boolean;
+  isAdmin?: boolean;
+  isGuest?: boolean;
+  shortlistedByUsers?: string[];
+  shortlistedProfiles?: string[];
+  likedByUsers?: string[];
+  likedProfileIds?: string[];
+  mobileNumber?: string;
+  showVerifiedBadge?: boolean;
+  manuallyVerified?: boolean;
+  charan?: string;
+  kuldaivat?: string;
   isFeatured: boolean;
   isApproved: boolean;
   membership: MembershipTier;
@@ -204,7 +215,8 @@ export interface ProfileReport {
   description: string;
   proofImageUrl?: string;
   createdAt: string;
-  status: 'pending' | 'warning_sent' | 'hidden' | 'suspended' | 'dismissed';
+  status: 'pending' | 'warning_sent' | 'hidden' | 'suspended' | 'dismissed' | 'resolved';
+  resolvedAction?: 'suspend' | 'warning' | 'hide' | 'dismiss' | string;
 }
 
 export interface ProfileRemovalRequest {
@@ -241,6 +253,8 @@ export interface Plan {
   price: number;
   durationMonths: number;
   durationLabelMr?: string;
+  durationText?: string;
+  validityText?: string;
   planType?: 'monthly' | 'yearly' | 'lifetime' | 'pay_per_contact' | 'welcome_offer' | string;
   unlockCount?: number;
   isLimitedSlotsPlan?: boolean;
@@ -690,6 +704,8 @@ export interface SiteConfig {
   topBarText: string;
   logoTitle: string;
   logoSubtitle: string;
+  logoTitleEn?: string;
+  logoSubtitleEn?: string;
   logoUrl?: string;
   logoHeight?: number;
   logoWidth?: number;

@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas-pro';
+import QRCode from 'qrcode';
+import { safeHtml2Canvas } from './safeHtml2Canvas';
 
 export interface EngineReportData {
   name: string;
@@ -81,9 +82,20 @@ export async function downloadKundliPdfReport(data: PDFKundliData): Promise<bool
     element.style.fontFamily = "'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif";
     element.style.color = '#1e293b';
 
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-      `https://vanjarijodi.org/verify-kundli?id=${data.reportId}`
-    )}`;
+    // Generate 100% offline Data URL QR code (prevents canvas tainting & CORS errors)
+    let qrDataUrl = '';
+    try {
+      qrDataUrl = await QRCode.toDataURL(`https://vanjarijodi.org/verify-kundli?id=${data.reportId}`, {
+        width: 150,
+        margin: 1,
+        color: {
+          dark: '#800C1E',
+          light: '#FFFDF9',
+        },
+      });
+    } catch {
+      qrDataUrl = '';
+    }
 
     const eng1 = data.multiEngineResults?.engine1 || {
       name: 'Navamsha.in वैदिक ॲस्ट्रॉलॉजी (Live 10,000 Credits)',
@@ -156,7 +168,7 @@ export async function downloadKundliPdfReport(data: PDFKundliData): Promise<bool
                 क्यूआर कोड स्कॅन करून पडताळा
               </div>
             </div>
-            <img src="${qrUrl}" style="width: 52px; height: 52px; border-radius: 6px; border: 1px solid #cbd5e1;" alt="QR Code" />
+            ${qrDataUrl ? `<img src="${qrDataUrl}" style="width: 52px; height: 52px; border-radius: 6px; border: 1px solid #cbd5e1;" alt="QR Code" />` : ''}
           </div>
         </div>
 
@@ -371,21 +383,42 @@ export async function downloadKundliPdfReport(data: PDFKundliData): Promise<bool
 
     document.body.appendChild(element);
 
-    // Render with html2canvas-pro
-    const canvas = await html2canvas(element, {
+    // Render with safeHtml2Canvas
+    const canvas = await safeHtml2Canvas(element, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#FFFDF9',
+      logging: false,
     });
 
     document.body.removeChild(element);
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
+    const pdfPageHeight = pdf.internal.pageSize.getHeight(); // 297mm
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    // If total rendered height is less than or close to 1 page, render cleanly in 1 page
+    if (imgHeight <= pdfPageHeight + 10) {
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, Math.min(imgHeight, pdfPageHeight));
+    } else {
+      // Multi-page slicing
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfPageHeight;
+
+      while (heightLeft > 5) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfPageHeight;
+      }
+    }
+
     pdf.save(`VanjariJodi-3Engine-Kundli-Report-${data.reportId}.pdf`);
     return true;
   } catch (err) {
