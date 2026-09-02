@@ -15,6 +15,7 @@ import {
   Clock,
   Smartphone,
   AlertTriangle,
+  AlertCircle,
   ArrowRight,
   RefreshCw,
   CheckCircle2,
@@ -441,9 +442,8 @@ export const DynamicUpiPaymentModal: React.FC<DynamicUpiPaymentModalProps> = ({
     // Direct app-specific schemes & universal Android intent with auto amount & payee
     if (appName === 'PhonePe') {
       const encodedPhonePeUpi = encodeURIComponent(phonepeUpi);
-      targetUri = isAndroid
-        ? `intent://pay?pa=${encodedPhonePeUpi}&pn=${encodedBusiness}&am=${formattedPrice}&cu=INR&tn=${encodedNote}#Intent;scheme=upi;package=com.phonepe.app;end`
-        : `phonepe://pay?pa=${encodedPhonePeUpi}&pn=${encodedBusiness}&am=${formattedPrice}&cu=INR&tn=${encodedNote}`;
+      // Using phonepe:// custom protocol directly to bypass Android Intent package-sandbox security blocks
+      targetUri = `phonepe://pay?pa=${encodedPhonePeUpi}&pn=${encodedBusiness}&am=${formattedPrice}&cu=INR&tn=${encodedNote}`;
     } else if (appName === 'Google Pay') {
       const encodedGPayUpi = encodeURIComponent(gpayUpi);
       targetUri = isAndroid
@@ -526,16 +526,29 @@ export const DynamicUpiPaymentModal: React.FC<DynamicUpiPaymentModalProps> = ({
   };
 
   // Download / Save QR Code Image
-  const handleDownloadQr = () => {
+  const handleDownloadQr = async () => {
     const qrUrl = paymentConfig?.merchantQrImageUrl || siteConfig?.paymentQrCodeUrl || siteConfig?.paymentQrUrl || dynamicQrUrl;
     if (!qrUrl) return;
-    const link = document.createElement('a');
-    link.href = qrUrl;
-    link.download = `VanjariJodi_UPI_QR_${activePlan?.price || '398'}.png`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `VanjariJodi_UPI_QR_${activePlan?.price || '398'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    } catch (e) {
+      const link = document.createElement('a');
+      link.href = qrUrl;
+      link.download = `VanjariJodi_UPI_QR_${activePlan?.price || '398'}.png`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
     setQrDownloaded(true);
     setTimeout(() => setQrDownloaded(false), 3000);
   };
@@ -1289,6 +1302,63 @@ export const DynamicUpiPaymentModal: React.FC<DynamicUpiPaymentModalProps> = ({
                     रक्कम: ₹{finalPayablePrice} →
                   </span>
                 </button>
+
+                {/* PhonePe Security Error Guide / Direct Solution Card */}
+                <div className="p-3.5 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl space-y-2.5 shadow-xs">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="text-xs font-black text-amber-950">
+                        💡 PhonePe मध्ये "Declined for Security Reasons" असा एरर येत असल्यास:
+                      </h4>
+                      <p className="text-[11px] text-amber-900 font-medium mt-0.5 leading-relaxed">
+                        काही मोबाईलवर PhonePe च्या नियमांमुळे डायरेक्ट लिंक थांबल्यास काळजी करू नका, खालीलपैकी १-क्लिक पर्याय वापरा:
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                    {/* Option 1: Direct Mobile Number Pay */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigator.clipboard?.writeText) {
+                          navigator.clipboard.writeText('9623790916');
+                          setCopiedToast(true);
+                          setTimeout(() => setCopiedToast(false), 2500);
+                        }
+                        setUpiLaunchNotice('📱 9623790916 मोबाईल नंबर कॉपी झाला आहे! PhonePe मधील "To Mobile Number" मध्ये हा नंबर टाकून ₹' + finalPayablePrice + ' पाठवा.');
+                        window.location.href = 'phonepe://';
+                      }}
+                      className="p-2.5 bg-white hover:bg-purple-50 border-2 border-purple-300 rounded-xl text-left flex items-center justify-between cursor-pointer shadow-xs transition active:scale-95"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📱</span>
+                        <div>
+                          <div className="text-[11px] font-black text-purple-950">9623790916 वर PhonePe करा</div>
+                          <div className="text-[10px] text-purple-700 font-bold">नंबर कॉपी करून PhonePe उघडा</div>
+                        </div>
+                      </div>
+                      <Copy className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    </button>
+
+                    {/* Option 2: Scan QR from gallery */}
+                    <button
+                      type="button"
+                      onClick={handleDownloadQr}
+                      className="p-2.5 bg-white hover:bg-sky-50 border-2 border-sky-300 rounded-xl text-left flex items-center justify-between cursor-pointer shadow-xs transition active:scale-95"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🖼️</span>
+                        <div>
+                          <div className="text-[11px] font-black text-sky-950">अधिकृत QR कोड सेव्ह करा</div>
+                          <div className="text-[10px] text-sky-700 font-bold">PhonePe स्कॅनरमधून स्कॅन करा</div>
+                        </div>
+                      </div>
+                      <Download className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                    </button>
+                  </div>
+                </div>
 
                 {/* 3 Step Simple Instructions */}
                 <div className="bg-amber-50/90 rounded-2xl p-3.5 border border-amber-300/80 text-xs text-amber-950 space-y-1.5 shadow-xs">

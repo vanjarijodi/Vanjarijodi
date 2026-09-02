@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Camera, Lock, Heart, Sparkles } from 'lucide-react';
 import { SecurityWatermarkOverlay } from './SecurityWatermarkOverlay';
+import { getHdImageUrl } from '../utils/cloudinary';
 
 interface InstagramPhotoCarouselProps {
   photos: string[];
@@ -214,7 +215,7 @@ export const InstagramPhotoCarousel: React.FC<InstagramPhotoCarouselProps> = ({
           {photoList.map((photoUrl, index) => (
             <div key={index} className="w-full h-full shrink-0 relative bg-slate-950 overflow-hidden flex items-center justify-center">
               <img
-                src={photoUrl}
+                src={getHdImageUrl(photoUrl, 1800)}
                 alt={`${fullName} - Photo ${index + 1}`}
                 referrerPolicy="no-referrer"
                 loading={index === 0 ? 'eager' : 'lazy'}
@@ -233,6 +234,14 @@ export const InstagramPhotoCarousel: React.FC<InstagramPhotoCarouselProps> = ({
             </div>
           ))}
         </div>
+
+        {/* Crystal Clear HD Indicator Badge */}
+        {!isBlurred && (
+          <div className="absolute top-4 left-3 z-30 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[9px] font-black text-amber-300 border border-amber-300/30 flex items-center gap-1 shadow-sm pointer-events-none">
+            <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+            <span>HD फोटो</span>
+          </div>
+        )}
 
         {/* Dark Vignette Bottom Gradient for readability */}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#140205]/95 via-[#140205]/35 to-transparent pointer-events-none" />

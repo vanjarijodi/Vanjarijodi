@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Language,
   ThemeMode,
@@ -95,6 +95,7 @@ interface AppContextType {
   resetViewedProfiles: () => void;
   
   // Interactions
+  logout: () => void;
   shortlistedIds: string[];
   toggleShortlist: (profileId: string) => void;
   likedProfileIds: string[];
@@ -2287,6 +2288,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const logout = useCallback(() => {
+    setCurrentUser(null);
+    setIsAdminLoggedInState(false);
+    try {
+      localStorage.removeItem('vanjari_jodi_current_user');
+      localStorage.removeItem('vanjari_jodi_is_admin_logged_in');
+      sessionStorage.removeItem('vanjari_jodi_current_user');
+    } catch (e) {}
+    setCurrentView('home');
+    setIsLeftDrawerOpen(false);
+    setIsRightDrawerOpen(false);
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {}
+  }, []);
+
   const approveProfile = (profileId: string) => {
     setProfiles((prev) =>
       prev.map((p) => {
@@ -4463,6 +4480,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (nextBlockedState && currentUser?.id === profileId) {
       setCurrentUser(null);
+      setCurrentView('home');
       localStorage.removeItem('vanjari_jodi_current_user');
     }
 
@@ -4956,6 +4974,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         viewedProfileIds,
         markProfileAsViewed,
         resetViewedProfiles,
+        logout,
         shortlistedIds,
         toggleShortlist,
         likedProfileIds,

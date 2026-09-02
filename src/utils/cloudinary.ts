@@ -163,17 +163,32 @@ export const uploadToCloudinary = async (
 };
 
 /**
+ * High-Definition Image URL Optimizer
+ * Transforms Cloudinary URLs to serve optimal crystal-clear HD resolution (q_auto:best, f_auto)
+ */
+export const getHdImageUrl = (url: string, width = 1800): string => {
+  if (!url || typeof url !== 'string') return '';
+  if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+    if (!url.includes('/q_auto') && !url.includes('/f_auto')) {
+      return url.replace('/upload/', `/upload/q_auto:best,f_auto,w_${width},c_limit/`);
+    }
+  }
+  return url;
+};
+
+/**
  * Compresses and resizes an image file using HTML5 canvas.
+ * Preserves high-definition (HD) clarity up to 2560px with high smoothing quality.
  * Returns compressed File and dataUrl string.
  */
 export const compressAndResizeImage = async (
   file: File,
-  maxWidth = 1800,
-  quality = 0.92
+  maxWidth = 2560,
+  quality = 0.95
 ): Promise<{ file: File; dataUrl: string }> => {
   return new Promise((resolve) => {
-    // If file is already reasonably sized (< 1.5 MB), pass directly for maximum HD sharpness
-    if (file.size <= 1500 * 1024) {
+    // If file is already reasonably sized (< 3 MB), preserve original file for 100% native HD sharpness
+    if (file.size <= 3000 * 1024) {
       const reader = new FileReader();
       reader.onload = (e) => {
         resolve({ file, dataUrl: e.target?.result as string });
@@ -205,6 +220,10 @@ export const compressAndResizeImage = async (
           resolve({ file, dataUrl: e.target?.result as string });
           return;
         }
+
+        // Enable highest quality smoothing for crisp facial details and text legibility
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         ctx.drawImage(img, 0, 0, width, height);
         const dataUrl = canvas.toDataURL('image/jpeg', quality);

@@ -255,7 +255,7 @@ export const RegisterModal: React.FC<{
     setIsUploadingPhoto(true);
     for (const file of filesToUpload) {
       try {
-        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        const comp = await compressAndResizeImage(file, 2400, 0.95);
         const res = await uploadToCloudinary(comp.file, 'vanjarijodi_candidates');
         if (res.success && res.url) {
           setPhotoUrls((prev) => [...prev, res.url]);
@@ -289,7 +289,7 @@ export const RegisterModal: React.FC<{
     try {
       let fileToUpload: File = file;
       if (file.type.startsWith('image/')) {
-        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        const comp = await compressAndResizeImage(file, 2000, 0.94);
         fileToUpload = comp.file;
       }
       const res = await uploadToCloudinary(fileToUpload, 'vanjarijodi_documents');
@@ -314,7 +314,7 @@ export const RegisterModal: React.FC<{
     try {
       let fileToUpload: File = file;
       if (file.type.startsWith('image/')) {
-        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        const comp = await compressAndResizeImage(file, 2000, 0.94);
         fileToUpload = comp.file;
       }
       const res = await uploadToCloudinary(fileToUpload, 'vanjarijodi_documents');
@@ -339,7 +339,7 @@ export const RegisterModal: React.FC<{
     try {
       let fileToUpload: File = file;
       if (file.type.startsWith('image/')) {
-        const comp = await compressAndResizeImage(file, 1200, 0.82);
+        const comp = await compressAndResizeImage(file, 2000, 0.94);
         fileToUpload = comp.file;
       }
       const res = await uploadToCloudinary(fileToUpload, 'vanjarijodi_documents');

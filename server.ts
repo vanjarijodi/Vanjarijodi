@@ -209,13 +209,13 @@ async function startServer() {
       const cleanPlanName = sanitizeString(plan_name) || 'VanjariJodi Plan';
 
       const orderId = `VJ-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
-      const targetUpiId = (customUpiId ? sanitizeString(customUpiId) : '') || globalSettings.upi_id || 'hangemahesh@ybl';
-      const phonepeTargetUpi = (phonepe_upi_id ? sanitizeString(phonepe_upi_id) : '') || targetUpiId || 'hangemahesh@ybl';
+      const targetUpiId = (customUpiId ? sanitizeString(customUpiId) : '') || globalSettings.upi_id || 'paytm.s3ms5x7@pty';
+      const phonepeTargetUpi = (phonepe_upi_id ? sanitizeString(phonepe_upi_id) : '') || targetUpiId || 'paytm.s3ms5x7@pty';
       const gpayTargetUpi = (gpay_upi_id ? sanitizeString(gpay_upi_id) : '') || targetUpiId;
       const paytmTargetUpi = (paytm_upi_id ? sanitizeString(paytm_upi_id) : '') || targetUpiId;
 
-      const businessName = (customBusinessName ? sanitizeString(customBusinessName) : '') || globalSettings.business_name || 'Mahesh Hange';
-      const cleanBusinessName = businessName.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Mahesh Hange';
+      const businessName = (customBusinessName ? sanitizeString(customBusinessName) : '') || globalSettings.business_name || 'Usha Shivdas Hange';
+      const cleanBusinessName = businessName.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Usha Shivdas Hange';
       
       const rawNote = note ? sanitizeString(note) : `VanjariJodi${cleanPlanId}`;
       const cleanNote = rawNote.replace(/[^a-zA-Z0-9]/g, '') || 'VanjariJodi';

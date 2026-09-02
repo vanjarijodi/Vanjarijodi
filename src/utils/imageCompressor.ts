@@ -68,13 +68,13 @@ export const renderPdfToImageDataUrl = async (file: File | Blob): Promise<string
 };
 
 /**
- * Compress, resize and clamp image to max 1600px, quality 0.75, and <1MB file size
+ * Compress, resize and clamp image with HD clarity (max 2400px, quality 0.94, up to 3MB)
  */
 export const compressAndResizeImage = async (
   file: File | Blob,
-  maxDimension = 1600,
-  quality = 0.75,
-  maxFileSizeBytes = 1024 * 1024 // 1MB
+  maxDimension = 2400,
+  quality = 0.94,
+  maxFileSizeBytes = 3 * 1024 * 1024 // 3MB for crystal clear HD
 ): Promise<CompressedImageResult> => {
   const originalSizeKB = Math.round(file.size / 1024);
   const isPdf = file.type === 'application/pdf' || (file instanceof File && file.name.toLowerCase().endsWith('.pdf'));

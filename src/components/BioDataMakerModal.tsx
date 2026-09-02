@@ -170,7 +170,7 @@ export const BioDataMakerModal: React.FC<{
 
     setIsUploadingPhoto(true);
     try {
-      const comp = await compressAndResizeImage(file, 800, 0.85);
+      const comp = await compressAndResizeImage(file, 2000, 0.95);
       const res = await uploadToCloudinary(comp.file, 'vanjarijodi_biodata_photos');
       if (res.success && res.url) {
         setFormData((prev) => ({ ...prev, candidatePhotoUrl: res.url }));

@@ -51,6 +51,7 @@ export const MemberDashboard: React.FC = () => {
     language,
     currentUser,
     setCurrentUser,
+    logout,
     profiles,
     interests,
     respondInterest,
@@ -97,6 +98,50 @@ export const MemberDashboard: React.FC = () => {
       (n) => n.userId !== 'admin' && (n.userId === 'all' || n.userId === currentUser.id)
     );
   }, [notifications, currentUser]);
+
+  // Robust Like & Mutual Match Calculations (Always evaluated at top level before conditional returns)
+  const myLikedIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!currentUser) return ids;
+    (likedProfileIds || []).forEach((id) => ids.add(id));
+    (currentUser.shortlistedProfiles || []).forEach((id) => ids.add(id));
+    interests.filter((i) => i.fromUserId === currentUser.id && i.status !== 'rejected').forEach((i) => ids.add(i.toUserId));
+    return ids;
+  }, [likedProfileIds, currentUser, interests]);
+
+  const likedMeIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!currentUser) return ids;
+    (currentUser.likedByUsers || []).forEach((id) => ids.add(id));
+    profiles.forEach((p) => {
+      if (
+        (p.likedProfileIds || []).includes(currentUser.id) ||
+        (p.shortlistedByUsers || []).includes(currentUser.id)
+      ) {
+        ids.add(p.id);
+      }
+    });
+    interests.filter((i) => i.toUserId === currentUser.id && i.status !== 'rejected').forEach((i) => ids.add(i.fromUserId));
+    return ids;
+  }, [currentUser, profiles, interests]);
+
+  // 1. Mutual Matches: both users liked each other
+  const mutualMatches = useMemo(() => {
+    if (!currentUser) return [];
+    return profiles.filter((p) => p.id !== currentUser.id && myLikedIds.has(p.id) && likedMeIds.has(p.id));
+  }, [profiles, currentUser, myLikedIds, likedMeIds]);
+
+  // 2. Received Likes: user liked me, but I haven't liked them back yet
+  const receivedLikes = useMemo(() => {
+    if (!currentUser) return [];
+    return profiles.filter((p) => p.id !== currentUser.id && likedMeIds.has(p.id) && !myLikedIds.has(p.id));
+  }, [profiles, currentUser, myLikedIds, likedMeIds]);
+
+  // 3. Sent Likes: I liked user, but they haven't liked back yet
+  const sentLikes = useMemo(() => {
+    if (!currentUser) return [];
+    return profiles.filter((p) => p.id !== currentUser.id && myLikedIds.has(p.id) && !likedMeIds.has(p.id));
+  }, [profiles, currentUser, myLikedIds, likedMeIds]);
 
   const handleDashboardAadhaarFrontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setDocUploadError(null);
@@ -322,48 +367,9 @@ export const MemberDashboard: React.FC = () => {
   }
 
   // 2. LOGGED-IN MEMBER DASHBOARD - Bright Theme (#FFFDF5 / Crimson Red / Gold)
-  const receivedRequests = interests.filter((i) => i.toUserId === currentUser.id);
-  const sentRequests = interests.filter((i) => i.fromUserId === currentUser.id);
+  const receivedRequests = currentUser ? interests.filter((i) => i.toUserId === currentUser.id) : [];
+  const sentRequests = currentUser ? interests.filter((i) => i.fromUserId === currentUser.id) : [];
   const shortlistedProfiles = profiles.filter((p) => shortlistedIds.includes(p.id));
-
-  // 3. Robust Like & Mutual Match Calculations
-  const myLikedIds = useMemo(() => {
-    const ids = new Set<string>();
-    (likedProfileIds || []).forEach((id) => ids.add(id));
-    (currentUser.shortlistedProfiles || []).forEach((id) => ids.add(id));
-    interests.filter((i) => i.fromUserId === currentUser.id && i.status !== 'rejected').forEach((i) => ids.add(i.toUserId));
-    return ids;
-  }, [likedProfileIds, currentUser, interests]);
-
-  const likedMeIds = useMemo(() => {
-    const ids = new Set<string>();
-    (currentUser.likedByUsers || []).forEach((id) => ids.add(id));
-    profiles.forEach((p) => {
-      if (
-        (p.likedProfileIds || []).includes(currentUser.id) ||
-        (p.shortlistedByUsers || []).includes(currentUser.id)
-      ) {
-        ids.add(p.id);
-      }
-    });
-    interests.filter((i) => i.toUserId === currentUser.id && i.status !== 'rejected').forEach((i) => ids.add(i.fromUserId));
-    return ids;
-  }, [currentUser, profiles, interests]);
-
-  // 1. Mutual Matches: both users liked each other
-  const mutualMatches = useMemo(() => {
-    return profiles.filter((p) => p.id !== currentUser.id && myLikedIds.has(p.id) && likedMeIds.has(p.id));
-  }, [profiles, currentUser, myLikedIds, likedMeIds]);
-
-  // 2. Received Likes: user liked me, but I haven't liked them back yet
-  const receivedLikes = useMemo(() => {
-    return profiles.filter((p) => p.id !== currentUser.id && likedMeIds.has(p.id) && !myLikedIds.has(p.id));
-  }, [profiles, currentUser, myLikedIds, likedMeIds]);
-
-  // 3. Sent Likes: I liked user, but they haven't liked back yet
-  const sentLikes = useMemo(() => {
-    return profiles.filter((p) => p.id !== currentUser.id && myLikedIds.has(p.id) && !likedMeIds.has(p.id));
-  }, [profiles, currentUser, myLikedIds, likedMeIds]);
 
   const totalLikesAndMatches = mutualMatches.length + receivedLikes.length + sentLikes.length;
 
@@ -578,8 +584,8 @@ export const MemberDashboard: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setCurrentUser(null)}
-              className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-slate-700 text-xs font-bold border border-amber-300 flex items-center gap-1 transition-all"
+              onClick={logout}
+              className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-slate-700 text-xs font-bold border border-amber-300 flex items-center gap-1 transition-all cursor-pointer"
             >
               <LogOut className="w-4 h-4 text-[#A71930]" />
               <span>बाहेर पडा ({t('logout')})</span>

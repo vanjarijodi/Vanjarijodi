@@ -256,7 +256,7 @@ export const AdminEditProfileModal: React.FC<AdminEditProfileModalProps> = ({
     setIsUploadingPhoto(true);
     for (const file of filesToUpload) {
       try {
-        const comp = await compressAndResizeImage(file, 1200, 0.85);
+        const comp = await compressAndResizeImage(file, 2400, 0.95);
         const fileToUpload = comp.file || file;
         const res = await uploadToCloudinary(fileToUpload, 'vanjarijodi_candidates');
         if (res.success && res.url) {

@@ -125,7 +125,7 @@ export const ProfileDetailModal: React.FC<{
     else setIsUploadingBackAadhaar(true);
 
     try {
-      const comp = await compressAndResizeImage(file, 1200, 0.9);
+      const comp = await compressAndResizeImage(file, 2000, 0.94);
       const res = await uploadToCloudinary(comp.file, 'vanjarijodi_aadhaar_docs');
       const uploadedUrl = res.success && res.url ? res.url : comp.dataUrl;
 
@@ -169,7 +169,7 @@ export const ProfileDetailModal: React.FC<{
     if (!file || !profile) return;
     setIsUploadingNewPhoto(true);
     try {
-      const comp = await compressAndResizeImage(file, 800, 0.85);
+      const comp = await compressAndResizeImage(file, 2400, 0.95);
       const res = await uploadToCloudinary(comp.file, 'vanjarijodi_profile_photos');
       const photoUrl = res.success && res.url ? res.url : comp.dataUrl;
       

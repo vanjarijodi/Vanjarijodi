@@ -31,6 +31,7 @@ export const LeftDrawer: React.FC = () => {
     language,
     currentUser,
     setCurrentUser,
+    logout,
     currentView,
     setCurrentView,
     setIsPaymentOpen,
@@ -87,9 +88,7 @@ export const LeftDrawer: React.FC = () => {
 
   const handleLogout = () => {
     if (confirm(isEn ? 'Are you sure you want to log out?' : 'तुम्हाला खरोखर लॉगआउट करायचे आहे का?')) {
-      setCurrentUser(null);
-      setIsLeftDrawerOpen(false);
-      setCurrentView('home');
+      logout();
     }
   };
 
