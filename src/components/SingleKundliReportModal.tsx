@@ -3,6 +3,7 @@ import { SingleKundliInput, NormalizedSingleKundliReport } from '../types';
 import { SingleKundliForm } from './SingleKundliForm';
 import { KundliChartGrid } from './KundliChartGrid';
 import { downloadSingleKundliPdfReport } from '../utils/singleKundliPdfGenerator';
+import { generateClientSingleKundli } from '../utils/singleKundliCalculator';
 import {
   X,
   Sparkles,
@@ -132,34 +133,52 @@ export const SingleKundliReportModal: React.FC<SingleKundliReportModalProps> = (
     }
   };
 
-  // Submit Birth Form to API
+  // Submit Birth Form to API or Client-Side Engine
   const handleFormSubmit = async (input: SingleKundliInput) => {
     setIsLoading(true);
     setErrorMsg(null);
 
     try {
-      const response = await fetch('/api/astrology/single-kundli', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
-      });
+      let generatedReport: NormalizedSingleKundliReport | null = null;
 
-      if (!response.ok) {
-        throw new Error('कुंडली अहवाल प्राप्त करताना त्रुटी आली.');
+      try {
+        const response = await fetch('/api/astrology/single-kundli', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (response.ok && contentType.includes('application/json')) {
+          const resData = await response.json();
+          if (resData.success && resData.report) {
+            generatedReport = resData.report;
+          }
+        }
+      } catch (networkOrJsonErr) {
+        console.warn('Backend API request for Single Kundli not available, switching to Vedic Engine:', networkOrJsonErr);
       }
 
-      const resData = await response.json();
-      if (resData.success && resData.report) {
-        const generatedReport: NormalizedSingleKundliReport = resData.report;
+      // If backend was not reached or returned non-JSON/offline/error, run client engine
+      if (!generatedReport) {
+        generatedReport = generateClientSingleKundli(input);
+      }
+
+      if (generatedReport) {
         setReport(generatedReport);
         saveReportToStorage(generatedReport);
         setActiveTab('report');
       } else {
-        throw new Error(resData.error || 'अहवाल तयार होऊ शकला नाही.');
+        throw new Error('अहवाल तयार होऊ शकला नाही. कृपया माहिती पुन्हा तपासा.');
       }
     } catch (err: any) {
       console.error('Single Kundli Submit Error:', err);
-      setErrorMsg(err.message || 'नेटवर्क त्रुटी आली. कृपया इंटरनेट तपासून पुन्हा प्रयत्न करा.');
+      // Fallback guarantees calculation
+      const fallbackReport = generateClientSingleKundli(input);
+      setReport(fallbackReport);
+      saveReportToStorage(fallbackReport);
+      setActiveTab('report');
+      setErrorMsg(null);
     } finally {
       setIsLoading(false);
     }
