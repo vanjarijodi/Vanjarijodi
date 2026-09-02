@@ -52,13 +52,13 @@ export const ContactUnlockModal: React.FC = () => {
   if (!isContactUnlockModalOpen || !selectedProfileForUnlock) return null;
 
   const unlockFee = siteConfig.unlockContactFee || 50;
-  const upiId = paymentConfig?.upiId || siteConfig.paymentUpiId || 'hangemahesh@ybl';
+  const upiId = paymentConfig?.upiId || siteConfig.paymentUpiId || 'paytm.s3ms5x7@pty';
   const phonepeUpi = paymentConfig?.phonepeUpiId || upiId;
-  const gpayUpi = paymentConfig?.gpayUpiId || (upiId.includes('@ybl') || upiId.includes('@ibl') ? '' : upiId);
+  const gpayUpi = paymentConfig?.gpayUpiId || upiId;
   const paytmUpi = paymentConfig?.paytmUpiId || upiId;
   const bhimUpi = paymentConfig?.bhimUpiId || upiId;
 
-  const businessName = paymentConfig?.payeeName || siteConfig.paymentPayeeName || 'Mahesh Hange';
+  const businessName = paymentConfig?.payeeName || siteConfig.paymentPayeeName || 'Usha Shivdas Hange';
   const note = `Unlock_${selectedProfileForUnlock.id.slice(-6)}`;
 
   // Construct Direct App Intents

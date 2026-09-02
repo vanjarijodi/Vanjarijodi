@@ -46,6 +46,7 @@ import { KundaliMilanModal } from './components/KundaliMilanModal';
 import { SingleKundliReportModal } from './components/SingleKundliReportModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NetworkStatusIndicator } from './components/NetworkStatusIndicator';
+import { PushNotificationBanner } from './components/PushNotificationBanner';
 
 const MainAppContent: React.FC = () => {
   const {
@@ -118,6 +119,9 @@ const MainAppContent: React.FC = () => {
       {/* 🚀 Dynamic Technical SEO Meta, Title & Schema.org JSON-LD Injector */}
       <DynamicSeoHead />
       
+      {/* 🔔 Push Notification Permission Banner */}
+      <PushNotificationBanner />
+
       {/* Header with Sticky Container & Integrated Site-wide Notice Banner */}
       <Navbar />
 

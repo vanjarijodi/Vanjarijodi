@@ -90,12 +90,32 @@ export function triggerBrowserPushNotification(
   }
 
   if (Notification.permission === 'granted') {
+    // 1. Try Service Worker showNotification first (Required for Android Chrome, PWA & Mobile Web)
+    if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+      navigator.serviceWorker.ready
+        .then((reg) => {
+          if (reg && reg.showNotification) {
+            reg.showNotification(title, {
+              body: options.body,
+              icon: options.icon || '/icon-192.png',
+              badge: '/icon-192.png',
+              tag: options.tag || 'vanjari-jodi-push',
+              data: { url: options.url || '/' },
+            } as any);
+          }
+        })
+        .catch(() => {
+          // Fallback below
+        });
+    }
+
+    // 2. Desktop Notification fallback
     try {
       const n = new Notification(title, {
         body: options.body,
-        icon: options.icon || '/icon.png',
+        icon: options.icon || '/icon-192.png',
         tag: options.tag || 'vanjari-jodi-push',
-        badge: '/icon.png',
+        badge: '/icon-192.png',
       });
 
       n.onclick = (event) => {
@@ -108,8 +128,9 @@ export function triggerBrowserPushNotification(
       };
       return true;
     } catch (err) {
-      console.warn('Native notification creation error:', err);
+      // Ignored if handled by service worker or desktop permission constraints
     }
+    return true;
   }
 
   return false;

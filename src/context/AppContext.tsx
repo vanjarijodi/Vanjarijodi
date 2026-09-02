@@ -526,11 +526,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const parsed = JSON.parse(saved);
         if (parsed && (parsed.upiId || parsed.upi_id)) {
+          const rawUpi = (parsed.upiId || parsed.upi_id || '').trim();
+          const isLegacy = !rawUpi || rawUpi.includes('@ybl') || rawUpi.includes('hangemahesh') || rawUpi.includes('hange.usha');
+          const cleanUpi = isLegacy ? DEFAULT_PAYMENT_CONFIG.upiId : rawUpi;
+          const cleanName = isLegacy ? DEFAULT_PAYMENT_CONFIG.payeeName : (parsed.payeeName || DEFAULT_PAYMENT_CONFIG.payeeName);
           return {
             ...DEFAULT_PAYMENT_CONFIG,
             ...parsed,
-            upiId: parsed.upiId || parsed.upi_id || DEFAULT_PAYMENT_CONFIG.upiId,
-            phonepeUpiId: parsed.phonepeUpiId || parsed.upiId || parsed.upi_id || DEFAULT_PAYMENT_CONFIG.phonepeUpiId,
+            upiId: cleanUpi,
+            payeeName: cleanName,
+            phonepeUpiId: cleanUpi,
+            gpayUpiId: cleanUpi,
+            paytmUpiId: cleanUpi,
+            bhimUpiId: cleanUpi,
+            adminMobileNumber: '9623790916',
+            whatsappNumber: '9623790916',
+            enableDirectQrOnlyMode: true,
             merchantQrImageUrl: parsed.merchantQrImageUrl || parsed.qrCodeUrl || parsed.qr_code_url || ''
           };
         }
@@ -1584,6 +1595,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       target?.fullName
     );
 
+    // Send Instant Push & In-app Notification to Receiver
+    if (receiverId && receiverId !== 'admin' && receiverId !== currentUser.id) {
+      addNotification({
+        userId: receiverId,
+        title: `New Message from ${currentUser.fullName}`,
+        titleMr: `💬 नवीन मेसेज: ${currentUser.fullName}`,
+        message: text.slice(0, 60) || 'नवीन मेसेज प्राप्त झाला',
+        messageMr: text.slice(0, 60) || 'नवीन मेसेज प्राप्त झाला',
+        type: 'chat',
+      });
+    }
+
     return { success: true };
   };
 
@@ -1862,10 +1885,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const rejectPaymentRequest = (id: string) => {
+  const rejectPaymentRequest = (id: string, reason?: string) => {
+    const target = paymentRequests.find((r) => r.id === id);
     setPaymentRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r))
+      prev.map((r) => (r.id === id ? { ...r, status: 'rejected', adminNote: reason || r.adminNote } : r))
     );
+    if (target) {
+      addNotification({
+        userId: target.userId,
+        title: 'Payment Verification Update',
+        titleMr: '⚠️ पेमेंट विनंती नाकारली / अमान्य झाली',
+        message: reason || 'बँक खात्यात रक्कम जमा न झाल्यामुळे किंवा अमान्य UTR मुळे पेमेंट नाकारले गेले.',
+        messageMr: reason || 'बँक खात्यात रक्कम जमा न झाल्यामुळे किंवा अमान्य UTR मुळे पेमेंट नाकारले गेले.',
+        type: 'system',
+      });
+    }
   };
 
   const deletePaymentRequest = (id: string) => {

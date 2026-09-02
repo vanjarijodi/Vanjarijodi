@@ -79,13 +79,13 @@ async function startServer() {
   // In-Memory Master Stores with persistent data
   let globalSettings: SystemSettings = {
     id: 'main_settings',
-    upi_id: 'hange.usha@ybl',
-    business_name: 'Usha Hange',
+    upi_id: 'paytm.s3ms5x7@pty',
+    business_name: 'Usha Shivdas Hange',
     whatsapp_api_token: process.env.WHATSAPP_API_TOKEN || '',
     currency: 'INR',
     qr_code_url: '',
-    payment_note: 'Vanjari Jodi Matrimony',
-    support_mobile: '+91 7083070830',
+    payment_note: 'Vanjari Jodi Membership',
+    support_mobile: '+91 9623790916',
     updated_at: new Date().toISOString(),
   };
 
@@ -278,6 +278,38 @@ async function startServer() {
     }
   });
 
+  // Helper: Anti-Fraud Fake UTR Pattern Detector
+  function isLikelyFakeUtr(utr: string): { isFake: boolean; reason?: string } {
+    if (!utr || utr.length !== 12 || !/^\d{12}$/.test(utr)) {
+      return { isFake: true, reason: '१२-अंकी अंक असणे आवश्यक आहे.' };
+    }
+    // Check all identical digits (e.g. 000000000000, 111111111111, 999999999999)
+    if (/^(\d)\1{11}$/.test(utr)) {
+      return { isFake: true, reason: 'अमान्य / डमी UTR (सर्व अंक समान आहेत).' };
+    }
+    // Check known sequential or repetitive test patterns
+    const dummyPatterns = [
+      '123456789012',
+      '012345678901',
+      '987654321098',
+      '098765432109',
+      '121212121212',
+      '123123123123',
+      '112233445566',
+      '001122334455',
+      '101010101010',
+    ];
+    if (dummyPatterns.includes(utr)) {
+      return { isFake: true, reason: 'अमान्य डमी UTR क्रमांक टाकण्यात आला आहे.' };
+    }
+    // Real Indian Bank UTRs have diversity in digits (at least 3 distinct digits)
+    const uniqueDigits = new Set(utr.split('')).size;
+    if (uniqueDigits < 3) {
+      return { isFake: true, reason: 'अमान्य UTR फॉरमॅट (बँकेचा खरा UTR आवश्यक आहे).' };
+    }
+    return { isFake: false };
+  }
+
   // 3. Strict UTR Uniqueness Check Endpoint (Anti-Fraud Guard)
   app.get('/api/payment/check-utr/:utrNumber', (req, res) => {
     try {
@@ -286,10 +318,24 @@ async function startServer() {
         return res.status(400).json({ success: false, error: 'UTR parameter is required' });
       }
 
+      // Check fake pattern first
+      const fakeCheck = isLikelyFakeUtr(utr);
+      if (fakeCheck.isFake) {
+        return res.json({
+          success: true,
+          utr_number: utr,
+          is_fake: true,
+          is_unique: false,
+          is_duplicate: false,
+          message: `⚠️ ${fakeCheck.reason || 'अमान्य UTR क्रमांक.'} कृपया बँकेच्या ॲपमधील खरा UTR टाका.`,
+        });
+      }
+
       const isDuplicate = usedUtrSet.has(utr);
       return res.json({
         success: true,
         utr_number: utr,
+        is_fake: false,
         is_unique: !isDuplicate,
         is_duplicate: isDuplicate,
         message: isDuplicate ? 'हा UTR नंबर आधीच वापरला गेला आहे (Duplicate UTR).' : 'UTR नंबर उपलब्ध व वैध आहे.',
@@ -334,7 +380,18 @@ async function startServer() {
         });
       }
 
-      // Validation 2: Duplicate check across memory & historical records
+      // Validation 2: Anti-fraud fake sequence detection
+      const fakeCheck = isLikelyFakeUtr(cleanUtr);
+      if (fakeCheck.isFake) {
+        return res.status(400).json({
+          success: false,
+          error: `⚠️ ${fakeCheck.reason || 'अमान्य UTR क्रमांक.'} खोटा नंबर टाकल्यास खाते मंजूर केले जात नाही. कृपया खरा UTR टाका.`,
+          field: 'utr_number',
+          isFake: true,
+        });
+      }
+
+      // Validation 3: Duplicate check across memory & historical records
       if (usedUtrSet.has(cleanUtr)) {
         return res.status(409).json({
           success: false,

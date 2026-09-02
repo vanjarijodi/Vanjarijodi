@@ -26,16 +26,16 @@ export const AdminPaymentSettings: React.FC = () => {
   const [pinError, setPinError] = useState('');
 
   const [formData, setFormData] = useState<PaymentConfig>({
-    upiId: paymentConfig?.upiId || siteConfig?.paymentUpiId || 'hange.usha@ybl',
-    payeeName: paymentConfig?.payeeName || siteConfig?.paymentPayeeName || 'Usha Hange',
+    upiId: paymentConfig?.upiId || siteConfig?.paymentUpiId || 'paytm.s3ms5x7@pty',
+    payeeName: paymentConfig?.payeeName || siteConfig?.paymentPayeeName || 'Usha Shivdas Hange',
     amount: paymentConfig?.amount || '398.00',
-    transactionNote: paymentConfig?.transactionNote || 'Vanjari Jodi Registration',
-    phonepeUpiId: paymentConfig?.phonepeUpiId || paymentConfig?.upiId || siteConfig?.paymentUpiId || 'hange.usha@ybl',
-    gpayUpiId: paymentConfig?.gpayUpiId || '',
-    paytmUpiId: paymentConfig?.paytmUpiId || 'hange.usha@ybl',
-    bhimUpiId: paymentConfig?.bhimUpiId || 'hange.usha@ybl',
-    adminMobileNumber: paymentConfig?.adminMobileNumber || '',
-    whatsappNumber: paymentConfig?.whatsappNumber || '7083070830',
+    transactionNote: paymentConfig?.transactionNote || 'Vanjari Jodi Membership',
+    phonepeUpiId: paymentConfig?.phonepeUpiId || paymentConfig?.upiId || siteConfig?.paymentUpiId || 'paytm.s3ms5x7@pty',
+    gpayUpiId: paymentConfig?.gpayUpiId || 'paytm.s3ms5x7@pty',
+    paytmUpiId: paymentConfig?.paytmUpiId || 'paytm.s3ms5x7@pty',
+    bhimUpiId: paymentConfig?.bhimUpiId || 'paytm.s3ms5x7@pty',
+    adminMobileNumber: paymentConfig?.adminMobileNumber || '9623790916',
+    whatsappNumber: paymentConfig?.whatsappNumber || '9623790916',
     merchantQrImageUrl: paymentConfig?.merchantQrImageUrl || siteConfig?.paymentQrCodeUrl || siteConfig?.paymentQrUrl || '',
     updatedAt: paymentConfig?.updatedAt || new Date().toISOString()
   });
@@ -48,16 +48,16 @@ export const AdminPaymentSettings: React.FC = () => {
   useEffect(() => {
     if (paymentConfig) {
       setFormData({
-        upiId: paymentConfig.upiId || siteConfig?.paymentUpiId || 'hange.usha@ybl',
-        payeeName: paymentConfig.payeeName || siteConfig?.paymentPayeeName || 'Usha Hange',
+        upiId: paymentConfig.upiId || siteConfig?.paymentUpiId || 'paytm.s3ms5x7@pty',
+        payeeName: paymentConfig.payeeName || siteConfig?.paymentPayeeName || 'Usha Shivdas Hange',
         amount: paymentConfig.amount || '398.00',
-        transactionNote: paymentConfig.transactionNote || 'Vanjari Jodi Registration',
-        phonepeUpiId: paymentConfig.phonepeUpiId || paymentConfig.upiId || siteConfig?.paymentUpiId || 'hange.usha@ybl',
-        gpayUpiId: paymentConfig.gpayUpiId || '',
-        paytmUpiId: paymentConfig.paytmUpiId || 'hange.usha@ybl',
-        bhimUpiId: paymentConfig.bhimUpiId || 'hange.usha@ybl',
-        adminMobileNumber: paymentConfig.adminMobileNumber || '',
-        whatsappNumber: paymentConfig.whatsappNumber || '7083070830',
+        transactionNote: paymentConfig.transactionNote || 'Vanjari Jodi Membership',
+        phonepeUpiId: paymentConfig.phonepeUpiId || paymentConfig.upiId || siteConfig?.paymentUpiId || 'paytm.s3ms5x7@pty',
+        gpayUpiId: paymentConfig.gpayUpiId || 'paytm.s3ms5x7@pty',
+        paytmUpiId: paymentConfig.paytmUpiId || 'paytm.s3ms5x7@pty',
+        bhimUpiId: paymentConfig.bhimUpiId || 'paytm.s3ms5x7@pty',
+        adminMobileNumber: paymentConfig.adminMobileNumber || '9623790916',
+        whatsappNumber: paymentConfig.whatsappNumber || '9623790916',
         merchantQrImageUrl: paymentConfig.merchantQrImageUrl || siteConfig?.paymentQrCodeUrl || siteConfig?.paymentQrUrl || '',
         updatedAt: paymentConfig.updatedAt || new Date().toISOString()
       });

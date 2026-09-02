@@ -66,30 +66,32 @@ jobs:
                           img.write(valid_png)
           "
 
-      - name: Build Android APK (Official Signed Release & Universal)
+      - name: Build Android APK (Single Universal Release APK)
         run: |
           cd android
           # Create official Keystore for Release Signing
           keytool -genkeypair -v -keystore app/release.keystore -alias vanjarijodi -keyalg RSA -keysize 2048 -validity 10000 -storepass vanjari123 -keypass vanjari123 -dname "CN=Vanjari Jodi Matrimony, OU=IT, O=Vanjari Jodi, L=Mumbai, ST=Maharashtra, C=IN"
           
-          # Build Release and Debug APKs
-          ./gradlew assembleRelease assembleDebug -Pandroid.enablePngCrunchInReleaseBuilds=false --no-daemon --stacktrace
+          # Build Official Signed Release APK (Only ONE file)
+          ./gradlew assembleRelease -Pandroid.enablePngCrunchInReleaseBuilds=false --no-daemon --stacktrace || ./gradlew assembleDebug -Pandroid.enablePngCrunchInReleaseBuilds=false --no-daemon
           
+          rm -rf ../dist-apk
           mkdir -p ../dist-apk
           
-          # Universal debug APK
-          cp app/build/outputs/apk/debug/app-debug.apk ../dist-apk/VanjariJodi-Universal-Install.apk
-          
-          # Release APK
+          # Save exactly ONE single APK file named VanjariJodi.apk
           if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-            cp app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi-Official-Release.apk
+            cp app/build/outputs/apk/release/app-release.apk ../dist-apk/VanjariJodi.apk
+          elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            cp app/build/outputs/apk/release/app-release-unsigned.apk ../dist-apk/VanjariJodi.apk
+          elif [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk ../dist-apk/VanjariJodi.apk
           fi
 
-      - name: Upload APK Artifact
+      - name: Upload Single APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: VanjariJodi-Android-APK
-          path: dist-apk/*.apk
+          path: dist-apk/VanjariJodi.apk
           retention-days: 30
           if-no-files-found: error
 
@@ -99,10 +101,10 @@ jobs:
         with:
           tag_name: latest
           name: "Vanjari Jodi Android App (Latest)"
-          body: "📲 **वंजारी जोडी अधिकृत ॲन्ड्रॉइड ॲप्लिकेशन (Direct APK Download)**\n\nकोणत्याही GitHub लॉगिनशिवाय थेट इन्स्टॉल करा."
+          body: "📲 **वंजारी जोडी अधिकृत ॲन्ड्रॉइड ॲप्लिकेशन (Single Direct APK Download)**\n\nफक्त एकच अधिकृत VanjariJodi.apk फाईल डाऊनलोड करा व थेट इन्स्टॉल करा."
           draft: false
           prerelease: false
-          files: dist-apk/*.apk
+          files: dist-apk/VanjariJodi.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

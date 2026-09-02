@@ -10,17 +10,19 @@ import {
 import { UserProfile, SiteConfig, ChatMessage, SuccessStory, PaymentRequest, ContactRequest, AdminSupportMessage, NotificationItem, PaymentConfig, Plan } from '../types';
 
 export const DEFAULT_PAYMENT_CONFIG: PaymentConfig = {
-  upiId: 'hange.usha@ybl',
-  payeeName: 'Usha Hange',
+  upiId: 'paytm.s3ms5x7@pty',
+  payeeName: 'Usha Shivdas Hange',
   amount: '398.00',
-  transactionNote: 'Vanjari Jodi Registration',
-  phonepeUpiId: 'hange.usha@ybl',
-  gpayUpiId: '',
-  paytmUpiId: 'hange.usha@ybl',
-  bhimUpiId: 'hange.usha@ybl',
-  adminMobileNumber: '',
-  whatsappNumber: '7083070830',
+  transactionNote: 'Vanjari Jodi Membership',
+  phonepeUpiId: 'paytm.s3ms5x7@pty',
+  gpayUpiId: 'paytm.s3ms5x7@pty',
+  paytmUpiId: 'paytm.s3ms5x7@pty',
+  bhimUpiId: 'paytm.s3ms5x7@pty',
+  adminMobileNumber: '9623790916',
+  whatsappNumber: '9623790916',
   merchantQrImageUrl: '',
+  enableDirectQrOnlyMode: true,
+  autoOpenUpiAppOnMobile: true,
   updatedAt: new Date().toISOString()
 };
 

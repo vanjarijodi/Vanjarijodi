@@ -72,8 +72,8 @@ export const OfficialPaymentReceiptModal: React.FC<OfficialPaymentReceiptProps> 
     currency: '₹',
     paymentDate: data.paymentDate,
     membershipExpiryDate: data.expiryDate,
-    businessName: siteConfig?.businessName || 'PRIME MULTI SERVICES / वंजारी जोडी',
-    upiId: siteConfig?.paymentUpiId || 'hange.usha@ybl',
+    businessName: siteConfig?.paymentPayeeName || siteConfig?.businessName || 'Usha Shivdas Hange / वंजारी जोडी',
+    upiId: siteConfig?.paymentUpiId || 'paytm.s3ms5x7@pty',
     adminNote: 'अधिकृत डिजिटल पावती व सदस्यत्व मंजुरी पत्र'
   };
 

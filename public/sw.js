@@ -69,3 +69,62 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// Push Notification Event Listener (Mobile Chrome / PWA / Android)
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'वंजारी जोडी मॅट्रिमोनी',
+    body: 'नवीन विवाह जुळवणी व संदेश सूचना!',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    url: '/',
+    tag: 'vanjari-jodi-notification'
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      data = { ...data, ...parsed };
+    } catch (e) {
+      try {
+        data.body = event.data.text() || data.body;
+      } catch (err) {}
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+    tag: data.tag || 'vanjari-jodi-alert',
+    renotify: true,
+    data: {
+      url: data.url || '/'
+    },
+    vibrate: [200, 100, 200]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Notification Click Handler: Focus or open window
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+
