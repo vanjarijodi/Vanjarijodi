@@ -8,6 +8,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Android APK
@@ -89,4 +92,18 @@ jobs:
           path: dist-apk/*.apk
           retention-days: 30
           if-no-files-found: error
+
+      - name: Publish Direct Download APK Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          tag_name: latest
+          name: "Vanjari Jodi Android App (Latest)"
+          body: "📲 **वंजारी जोडी अधिकृत ॲन्ड्रॉइड ॲप्लिकेशन (Direct APK Download)**\n\nकोणत्याही GitHub लॉगिनशिवाय थेट इन्स्टॉल करा."
+          draft: false
+          prerelease: false
+          files: dist-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           
