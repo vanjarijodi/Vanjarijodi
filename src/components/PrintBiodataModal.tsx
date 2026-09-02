@@ -827,7 +827,7 @@ export const PrintBiodataModal: React.FC<{
                 </div>
                 
                 {siteConfig?.biodataPlaystoreQrEnabled !== false && (
-                  <div style={{ display: 'flex', flexDirection: 'column', items: 'center', gap: '2px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
                         siteConfig?.biodataPlaystoreUrl || 'https://play.google.com/store/apps/details?id=com.vanjarijodi.app'

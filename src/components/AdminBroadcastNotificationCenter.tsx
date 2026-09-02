@@ -148,23 +148,25 @@ export const AdminBroadcastNotificationCenter: React.FC = () => {
       });
 
       targetProfiles.slice(0, 100).forEach(p => {
-        addSystemNotification({
-          userId: p.id,
-          title: title,
-          titleMr: title,
-          message: message,
-          messageMr: message,
-          type: 'system',
-          createdAt: new Date().toISOString(),
-          isRead: false
-        });
+        if (typeof addSystemNotification === 'function') {
+          addSystemNotification({
+            userId: p.id,
+            title: title,
+            titleMr: title,
+            message: message,
+            messageMr: message,
+            type: 'system',
+            createdAt: new Date().toISOString(),
+            isRead: false
+          });
+        }
       });
 
       // 3. Log Admin Activity
       logActivity(
         'BROADCAST_NOTIFICATION_SENT',
         `पुश व ई-मेल ब्रॉडकास्ट पाठवला: "${title}" (${targetProfiles.length} सदस्यांना)`,
-        { targetAudience, senderEmail, notificationType }
+        `Target: ${targetAudience}, Sender: ${senderEmail}`
       );
 
       setSentSuccess(`यशस्वी! ${targetProfiles.length} सदस्यांना पुश नोटिफिकेशन्स व ई-मेल ब्रॉडकास्ट (Sender: ${senderEmail}) द्वारे सूचना पाठवली गेली.`);

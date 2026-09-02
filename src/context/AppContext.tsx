@@ -180,7 +180,7 @@ interface AppContextType {
 
   // Pre-Plans & Ads Management
   plansList: Plan[];
-  updatePlan: (updatedPlan: Plan) => void;
+  updatePlan: (planOrId: Plan | string, partialPlan?: Partial<Plan>) => void;
   communityAds: CommunityAd[];
   addCommunityAd: (ad: Omit<CommunityAd, 'id' | 'createdAt'>) => void;
   toggleAdStatus: (adId: string) => void;
@@ -215,9 +215,21 @@ interface AppContextType {
   toggleCustomAccess: (profileId: string) => void;
   toggleProfileVisibility: (profileId: string) => void;
   adminSuggestMatch: (targetUserId: string, suggestedProfileId: string, note?: string) => void;
-  updateMemberTier: (profileId: string, tier: MembershipTier) => void;
+  updateMemberTier: (profileId: string, tier: MembershipTier, bonusUnlocks?: number, extraPaymentInfo?: any) => void;
   addProfile: (newProfile: UserProfile) => void;
+  registerCandidateDirectly?: (data: any) => Promise<any>;
   notifications: NotificationItem[];
+  addNotification: (notification: Omit<NotificationItem, 'id' | 'createdAt' | 'isRead'>) => void;
+  addSystemNotification?: (titleOrNotif: string | any, message?: string, type?: string) => void;
+  updateProfile: (profileIdOrProfile: string | Partial<UserProfile>, updates?: Partial<UserProfile>) => void;
+  checkCanUserChatWithMember: (targetUserIdOrProfile: string | UserProfile) => {
+    allowed: boolean;
+    isMutualLiked: boolean;
+    isPhoneVerified: boolean;
+    isPaidPlan: boolean;
+    targetUser: UserProfile | null;
+    reason?: string;
+  };
   markNotificationRead: (id: string) => void;
   addBroadcastNotification: (titleMr: string, messageMr: string) => void;
   sendPushNotification: (targetUserId: string, titleMr: string, messageMr: string) => void;
@@ -226,7 +238,7 @@ interface AppContextType {
 
   // Admin Direct Support Chat
   adminSupportMessages: AdminSupportMessage[];
-  sendAdminSupportMessage: (message: string, fileUrl?: string, fileName?: string, userMobile?: string, customName?: string, customSenderId?: string) => void;
+  sendAdminSupportMessage: (message: string, fileUrl?: string, fileName?: string, userMobile?: string, customName?: string, customSenderId?: string, fileType?: any) => void;
   replyAdminSupportMessage: (targetSenderId: string, message: string, fileUrl?: string, fileName?: string) => void;
   markAdminSupportMessagesRead: (targetSenderId?: string) => void;
   unreadAdminChatCount: number;
@@ -254,6 +266,14 @@ interface AppContextType {
   addSubAdmin: (subAdmin: Omit<SubAdmin, 'id' | 'createdAt'>) => void;
   updateSubAdmin: (subAdmin: SubAdmin) => void;
   deleteSubAdmin: (id: string) => void;
+  hasPermission?: (permission: string) => boolean;
+  adminCredentials?: { username: string; password: string; displayName?: string };
+  updateAdminCredentials?: (credsOrUser: { name?: string; username: string; password: string; displayName?: string } | string, password?: string, displayName?: string) => void;
+  deleteProfileDirect?: (profileId: string) => void;
+  restoreFromRecycleBin?: (id: string) => void;
+  permanentDeleteRecycleBin?: (id: string) => void;
+  clearRecycleBin?: () => void;
+  sendAdminSupportReply?: (targetSenderId: string, message: string, fileUrl?: string, fileName?: string) => void;
 
   // Promo Codes & Discounts Engine
   promoCodes: PromoCode[];
@@ -310,17 +330,15 @@ interface AppContextType {
   addSocialLink: (link: Omit<SocialLinkItem, 'id'>) => void;
   deleteSocialLink: (id: string) => void;
 
-  // Master Admin Security Credentials
-  updateAdminCredentials: (credentials: { name: string; username: string; password: string }) => void;
-
   // Profile Likes Approval & Guest Login
   pendingLikes: PendingLike[];
   approveLike: (id: string) => void;
   rejectLike: (id: string) => void;
   bulkApproveLikes: (ids: string[]) => void;
-  loginAsGuest: (mobile?: string, name?: string) => void;
+  loginAsGuest: (mobile?: string, name?: string, district?: string) => void;
   loginWithGoogle: () => Promise<{ success: boolean; isNewUser: boolean; user?: UserProfile; message?: string }>;
   loginWithEmail: (email: string, passwordOrOtp?: string) => Promise<{ success: boolean; isNewUser: boolean; user?: UserProfile; message?: string }>;
+  loginWithTruecaller: (mobile: string, name?: string, city?: string) => Promise<{ success: boolean; isNewUser: boolean; user?: UserProfile; message?: string }>;
   updateFeatureBoxes: (boxes: FeatureBoxItem[]) => void;
 
   // Manual UPI Pay-Per-Contact System
@@ -1079,9 +1097,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => unsubscribe();
   }, []);
 
-  const updatePlan = (updatedPlan: Plan) => {
+  const updatePlan = (planOrId: Plan | string, partialPlan?: Partial<Plan>) => {
     setPlansList((prev) => {
-      const nextPlans = prev.map((p) => (p.id === updatedPlan.id ? updatedPlan : p));
+      let nextPlans: Plan[];
+      if (typeof planOrId === 'string') {
+        nextPlans = prev.map((p) => (p.id === planOrId ? { ...p, ...partialPlan } : p));
+      } else {
+        nextPlans = prev.map((p) => (p.id === planOrId.id ? planOrId : p));
+      }
       try {
         localStorage.setItem('vanjari_jodi_plans', JSON.stringify(nextPlans));
         savePlansToFirestore(nextPlans);
@@ -1394,7 +1417,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const checkCanUserChatWithMember = (
-    targetUserId: string
+    targetUserIdOrProfile: string | UserProfile
   ): {
     allowed: boolean;
     isMutualLiked: boolean;
@@ -1403,6 +1426,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     targetUser: UserProfile | null;
     reason?: string;
   } => {
+    const targetUserId = typeof targetUserIdOrProfile === 'string' ? targetUserIdOrProfile : targetUserIdOrProfile.id;
     if (!currentUser) {
       return {
         allowed: false,
@@ -1414,7 +1438,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    const targetUser = profiles.find((p) => p.id === targetUserId) || null;
+    const targetUser = typeof targetUserIdOrProfile === 'object' ? targetUserIdOrProfile : (profiles.find((p) => p.id === targetUserId) || null);
 
     // Admin can always chat with any member
     if (isAdminLoggedIn || currentUser.isAdmin || targetUserId === 'admin') {
@@ -2240,6 +2264,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return p;
       })
     );
+  };
+
+  const updateProfile = (profileIdOrProfile: string | Partial<UserProfile>, updates?: Partial<UserProfile>) => {
+    const id = typeof profileIdOrProfile === 'string' ? profileIdOrProfile : (profileIdOrProfile as any)?.id;
+    const updateData = typeof profileIdOrProfile === 'string' ? (updates || {}) : (profileIdOrProfile || {});
+    if (!id) return;
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id === id) {
+          const updated = { ...p, ...updateData };
+          syncDocToFirestore('profiles', updated.id, updated);
+          return updated;
+        }
+        return p;
+      })
+    );
+    if (currentUser && currentUser.id === id) {
+      setCurrentUser((prev) => (prev ? { ...prev, ...updateData } : null));
+    }
   };
 
   const rejectProfile = (profileId: string) => {
@@ -3551,10 +3594,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Master Admin Credentials
-  const updateAdminCredentials = (credentials: { name: string; username: string; password: string }) => {
+  const updateAdminCredentials = (
+    credsOrUser: { name?: string; username: string; password: string; displayName?: string } | string,
+    password?: string,
+    displayName?: string
+  ) => {
+    let username = 'admin';
+    let pass = 'admin123';
+    let name = 'मुख्य प्रशासक (Super Admin)';
+    if (typeof credsOrUser === 'object' && credsOrUser !== null) {
+      username = credsOrUser.username || 'admin';
+      pass = credsOrUser.password || 'admin123';
+      name = credsOrUser.name || credsOrUser.displayName || name;
+    } else if (typeof credsOrUser === 'string') {
+      username = credsOrUser || 'admin';
+      pass = password || 'admin123';
+      name = displayName || name;
+    }
     setSiteConfig(prev => ({
       ...prev,
-      adminCredentials: credentials
+      adminUsername: username,
+      adminPin: pass,
+      adminCredentials: { name, username, password: pass }
     }));
     logActivity('admin_credentials_updated', 'मुख्य मास्टर ॲडमिन क्रेडेंशियल्स अद्ययावत केले');
   };
@@ -3837,6 +3898,131 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(newProfile);
 
     logActivity('Email Registration', `ई-मेल द्वारे नवीन नोंदणी: ${newProfile.fullName} (${cleanEmail})`, newProfile.fullName);
+    return { success: true, isNewUser: true, user: newProfile };
+  };
+
+  // Truecaller 1-Tap / Instant Verified Login
+  const loginWithTruecaller = async (
+    mobileInput: string,
+    nameInput?: string,
+    cityInput?: string
+  ): Promise<{
+    success: boolean;
+    isNewUser: boolean;
+    user?: UserProfile;
+    message?: string;
+  }> => {
+    const rawClean = (mobileInput || '').replace(/\D/g, '');
+    if (!rawClean || rawClean.length < 10) {
+      return { success: false, isNewUser: false, message: 'Invalid 10-digit mobile number' };
+    }
+    const cleanMobile = rawClean.slice(-10);
+
+    const existing = profiles.find((p) => {
+      const pClean = (p.mobile || '').replace(/\D/g, '');
+      return pClean.includes(cleanMobile);
+    });
+
+    const timestamp = new Date().toISOString();
+    const verifiedName = nameInput?.trim() || existing?.fullName || 'वंजारी सदस्य';
+
+    if (existing) {
+      if (existing.isBlocked) {
+        return { success: false, isNewUser: false, user: existing, message: 'Account blocked by Admin' };
+      }
+
+      const updated: UserProfile = {
+        ...existing,
+        isPhoneVerified: true,
+        phoneVerifiedAt: timestamp,
+        phoneVerificationMethod: 'truecaller',
+        truecallerVerified: true,
+        truecallerName: verifiedName,
+        lastActive: 'सध्या ऑनलाईन (Truecaller Verified)',
+      };
+
+      setProfiles((prev) =>
+        prev.map((p) => (p.id === existing.id ? updated : p))
+      );
+      syncDocToFirestore('profiles', updated.id, updated);
+      setCurrentUser(updated);
+
+      logActivity(
+        'Truecaller Login',
+        `Truecaller द्वारे पडताळणी व थेट लॉगिन: ${updated.fullName} (${cleanMobile})`,
+        updated.fullName
+      );
+
+      return { success: true, isNewUser: false, user: updated };
+    }
+
+    // New Profile Created with Truecaller Verification
+    const newUserId = `vj-tc-${Date.now().toString().slice(-6)}`;
+    const newProfile: UserProfile = {
+      id: newUserId,
+      fullName: verifiedName,
+      gender: 'groom',
+      dob: '1998-01-01',
+      age: 26,
+      mobile: `+91 ${cleanMobile}`,
+      email: `tc_${cleanMobile}@vanjarijodi.com`,
+      district: cityInput || 'बीड (Beed)',
+      taluka: 'परळी',
+      city: cityInput || 'परळी',
+      education: 'माहिती भरा',
+      occupation: 'माहिती भरा',
+      income: 'माहिती भरा',
+      height: "5'7\"",
+      weight: '65',
+      bloodGroup: 'B+',
+      maritalStatus: 'never_married',
+      religion: 'हिंदू (Hindu)',
+      subCaste: 'वंजारी',
+      fatherOccupation: 'शेतकरी',
+      motherOccupation: 'गृहिणी',
+      brothers: 0,
+      sisters: 0,
+      familyType: 'कुटुंब',
+      expectations: 'सुसंस्कृत वंजारी जोडीदार',
+      photos: ['https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400'],
+      aadhaarVerified: false,
+      isVerified: true,
+      isPhoneVerified: true,
+      phoneVerifiedAt: timestamp,
+      phoneVerificationMethod: 'truecaller',
+      truecallerVerified: true,
+      truecallerName: verifiedName,
+      isFeatured: false,
+      isApproved: true,
+      membership: 'free',
+      authProvider: 'mobile_otp',
+      createdAt: timestamp.split('T')[0],
+      lastActive: 'सध्या ऑनलाईन (Truecaller)',
+      privacy: { hideContact: false, hidePhoto: false },
+      completionPercentage: 45,
+      registrationType: 'manual',
+      bio: 'Truecaller द्वारे पडताळणीकृत अधिकृत वंजारी जोडी प्रोफाइल'
+    };
+
+    setProfiles((prev) => [newProfile, ...prev]);
+    syncDocToFirestore('profiles', newProfile.id, newProfile);
+    setCurrentUser(newProfile);
+
+    logActivity(
+      'Truecaller Registration',
+      `Truecaller द्वारे नवीन व्हेरिफाइड नोंदणी: ${newProfile.fullName} (${cleanMobile})`,
+      newProfile.fullName
+    );
+
+    addNotification({
+      userId: 'admin',
+      title: 'New Truecaller User Registered',
+      titleMr: '⚡ Truecaller द्वारे नवीन सदस्य नोंदणी व पडताळणी!',
+      message: `${newProfile.fullName} (${cleanMobile}) verified via Truecaller.`,
+      messageMr: `${newProfile.fullName} (मोबाईल: ${cleanMobile}) यांनी Truecaller १-क्लिक व्हेरिफिकेशनद्वारे नोंदणी केली आहे.`,
+      type: 'system'
+    });
+
     return { success: true, isNewUser: true, user: newProfile };
   };
 
@@ -4820,6 +5006,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         bulkApprovePaymentRequests,
         bulkDeletePaymentRequests,
         notifications,
+        addNotification,
+        addSystemNotification: (titleOrNotif: string | any, message?: string, type: string = 'system') => {
+          if (typeof titleOrNotif === 'object' && titleOrNotif !== null) {
+            addNotification({
+              userId: titleOrNotif.userId || 'broadcast',
+              title: titleOrNotif.title || 'Notification',
+              titleMr: titleOrNotif.titleMr || titleOrNotif.title || 'सूचना',
+              message: titleOrNotif.message || '',
+              messageMr: titleOrNotif.messageMr || titleOrNotif.message || '',
+              type: titleOrNotif.type || 'system',
+              actionUrl: titleOrNotif.actionUrl,
+            });
+          } else {
+            addNotification({
+              userId: 'broadcast',
+              title: titleOrNotif || 'System Alert',
+              titleMr: titleOrNotif || 'सिस्टीम सूचना',
+              message: message || '',
+              messageMr: message || '',
+              type: type as any,
+            });
+          }
+        },
+        updateProfile,
         markNotificationRead,
         addBroadcastNotification,
         sendPushNotification,
@@ -4851,6 +5061,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         permanentDeleteRecycleItem,
         bulkPermanentDeleteRecycleItems,
         bulkPurgeRecycleBin,
+        clearRecycleBin: bulkPurgeRecycleBin,
+        restoreFromRecycleBin: restoreRecycleItem,
+        permanentDeleteRecycleBin: permanentDeleteRecycleItem,
+        deleteProfileDirect: softDeleteProfile,
+        sendAdminSupportReply: replyAdminSupportMessage,
+        hasPermission: (permission: string) => {
+          if (!currentSubAdmin) return true;
+          return currentSubAdmin.permissions.includes(permission as any);
+        },
+        adminCredentials: {
+          username: siteConfig.adminUsername || siteConfig.adminCredentials?.username || 'admin',
+          password: siteConfig.adminPin || siteConfig.adminCredentials?.password || '1234',
+          displayName: siteConfig.adminCredentials?.name || 'मुख्य प्रशासक (Super Admin)'
+        },
+        updateAdminCredentials,
         deletedPhotosTrash,
         trashPhoto,
         restorePhotoFromTrash,
@@ -4896,7 +5121,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateSocialLinks,
         addSocialLink,
         deleteSocialLink,
-        updateAdminCredentials,
         pendingLikes,
         approveLike,
         rejectLike,
@@ -4904,6 +5128,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loginAsGuest,
         loginWithGoogle,
         loginWithEmail,
+        loginWithTruecaller,
         updateFeatureBoxes,
         payPerContactRequests,
         addPayPerContactRequest,

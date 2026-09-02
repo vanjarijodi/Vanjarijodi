@@ -1,21 +1,62 @@
 import { transliterateMarathiToEnglish } from './transliterate';
 
+export function getProfileSurnameOnly(profileName: string, language: 'mr' | 'en' = 'mr'): string {
+  if (!profileName) return language === 'en' ? 'Candidate' : 'उमेदवार';
+
+  const parts = profileName.trim().split(/\s+/);
+  const honorifics = [
+    'डॉ.', 'इंजि.', 'प्रा.', 'ॲड.', 'adv.', 'dr.', 'er.', 'prof.', 'mr.', 'mrs.', 'ms.', 'श्री.', 'सौ.', 'कु.', 'चि.'
+  ];
+  let honorific = '';
+  let nameParts = [...parts];
+
+  if (nameParts.length > 0 && honorifics.some((h) => h.toLowerCase() === nameParts[0].toLowerCase())) {
+    honorific = nameParts[0] + ' ';
+    nameParts = nameParts.slice(1);
+  }
+
+  const surname = nameParts.length > 0 ? nameParts[nameParts.length - 1] : profileName;
+  const result = `${honorific}${surname}`.trim();
+  return language === 'en' ? transliterateMarathiToEnglish(result) : result;
+}
+
 export function formatProfileDisplayName(
   profileName: string,
   currentUser: any,
   isAdminLoggedIn: boolean,
   isAuthorized: boolean,
   siteConfig: any,
-  language: 'mr' | 'en' = 'mr'
+  language: 'mr' | 'en' = 'mr',
+  isMutualLiked?: boolean,
+  targetProfileId?: string
 ): string {
   if (!profileName) return language === 'en' ? 'Candidate' : 'उमेदवार';
 
-  // Admin and authorized contacts see full name
-  if (isAdminLoggedIn || isAuthorized) {
+  // 1. Admin and Self Viewers see full name unconditionally
+  const isSelf = Boolean(
+    currentUser && (
+      (targetProfileId && currentUser.id === targetProfileId) ||
+      (currentUser.fullName && currentUser.fullName.trim().toLowerCase() === profileName.trim().toLowerCase())
+    )
+  );
+
+  if (isAdminLoggedIn || isSelf) {
     return language === 'en' ? transliterateMarathiToEnglish(profileName) : profileName;
   }
 
-  // Strict Guest Mode: Blur/Mask name for guest visitors
+  // 2. If contact is already authorized or profiles are mutually liked (दोघांनी एकमेकांना लाईक केल्यावर पूर्ण नाव दिसेल)
+  if (isAuthorized || isMutualLiked) {
+    return language === 'en' ? transliterateMarathiToEnglish(profileName) : profileName;
+  }
+
+  // 3. Mutual Like Name Privacy Setting (Admin Controlled - Default ON)
+  // जर हे चालू असेल तर जोपर्यंत दोघांनी एकमेकांना लाईक केलेले नसेल, तोपर्यंत फक्त 'आडनाव'च दिसेल.
+  const requireMutualLikeForFullName = siteConfig?.requireMutualLikeForFullName !== false;
+  if (requireMutualLikeForFullName) {
+    return getProfileSurnameOnly(profileName, language);
+  }
+
+  // 4. Strict Guest Mode: Blur/Mask name for guest visitors (if mutual like setting is OFF)
   const isGuest = !currentUser || currentUser.id?.startsWith('guest') || currentUser.isGuest;
   if (isGuest) {
     const parts = profileName.trim().split(/\s+/);
@@ -23,7 +64,7 @@ export function formatProfileDisplayName(
     return language === 'en' ? `${masked} (🔒 Login to view)` : `${masked} (🔒 नाव पाहण्यासाठी लॉगिन करा)`;
   }
 
-  // Strict Unapproved Member Mode: Mask name until admin approves
+  // 5. Strict Unapproved Member Mode: Mask name until admin approves
   const isUnapproved = Boolean(currentUser && currentUser.isApproved === false && !currentUser.isAdmin);
   if (isUnapproved) {
     const parts = profileName.trim().split(/\s+/);
@@ -31,7 +72,7 @@ export function formatProfileDisplayName(
     return language === 'en' ? `${masked} (🔒 Pending Admin Approval)` : `${masked} (🔒 ॲडमिन मंजुरी प्रलंबित)`;
   }
 
-  // Free / Unpaid Member Mode
+  // 6. Free / Unpaid Member Mode fallbacks (when requireMutualLikeForFullName is OFF)
   const isPaidMember = Boolean(
     currentUser &&
       ((currentUser.membership && currentUser.membership !== 'free') ||
@@ -45,7 +86,7 @@ export function formatProfileDisplayName(
     }
 
     const parts = profileName.trim().split(/\s+/);
-    const honorifics = ['डॉ.', 'इंजि.', 'प्रा.', 'ॲड.', 'adv.', 'dr.', 'er.', 'prof.', 'mr.', 'mrs.', 'ms.', 'श्री.', 'सौ.', 'कु.'];
+    const honorifics = ['डॉ.', 'इंजि.', 'प्रा.', 'ॲड.', 'adv.', 'dr.', 'er.', 'prof.', 'mr.', 'mrs.', 'ms.', 'श्री.', 'सौ.', 'कु.', 'चि.'];
     let honorific = '';
     let nameParts = [...parts];
 

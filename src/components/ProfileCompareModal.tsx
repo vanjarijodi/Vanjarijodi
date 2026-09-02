@@ -3,6 +3,7 @@ import { UserProfile } from '../types';
 import { VerifiedBadge } from './VerifiedBadge';
 import { X, Scale, Heart, Sparkles, MapPin, Briefcase, GraduationCap, Calendar, Check, Scroll } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatProfileDisplayName } from '../utils/nameFormatter';
 
 interface ProfileCompareModalProps {
   isOpen: boolean;
@@ -19,7 +20,19 @@ export const ProfileCompareModal: React.FC<ProfileCompareModalProps> = ({
   onRemoveProfile,
   onSelectForKundli,
 }) => {
-  const { setSelectedProfileForModal, toggleShortlist, shortlistedIds, sendInterest, likedProfileIds } = useApp();
+  const {
+    setSelectedProfileForModal,
+    toggleShortlist,
+    shortlistedIds,
+    sendInterest,
+    likedProfileIds,
+    currentUser,
+    siteConfig,
+    language,
+    isContactAuthorizedForUser,
+    interests,
+    isAdminLoggedIn,
+  } = useApp();
 
   if (!isOpen || profilesToCompare.length === 0) return null;
 
@@ -59,6 +72,24 @@ export const ProfileCompareModal: React.FC<ProfileCompareModalProps> = ({
               const isLiked = likedProfileIds.includes(profile.id);
               const mainPhoto = profile.photos?.[0] || profile.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500';
 
+              const isAuthorized = isContactAuthorizedForUser(profile.id);
+              const interestObj = interests.find((i) => currentUser && i.fromUserId === currentUser.id && i.toUserId === profile.id);
+              const isMutualMatch = Boolean(
+                currentUser &&
+                (isLiked || !!interestObj) &&
+                (interests.some((i) => i.fromUserId === profile.id && i.toUserId === currentUser.id) || (profile.shortlistedByUsers || []).includes(currentUser.id))
+              );
+              const displayName = formatProfileDisplayName(
+                profile.fullName,
+                currentUser,
+                isAdminLoggedIn,
+                isAuthorized || isMutualMatch,
+                siteConfig,
+                language,
+                isMutualMatch,
+                profile.id
+              );
+
               return (
                 <div
                   key={profile.id}
@@ -79,19 +110,19 @@ export const ProfileCompareModal: React.FC<ProfileCompareModalProps> = ({
                     <div className="relative w-28 h-28 mx-auto rounded-2xl overflow-hidden border-2 border-amber-300 shadow-sm">
                       <img
                         src={mainPhoto}
-                        alt={profile.fullName}
+                        alt={displayName}
                         className="w-full h-full object-cover"
                       />
                       {profile.isVerified && (
                         <div className="absolute bottom-1 right-1 bg-emerald-500 text-white p-1 rounded-full shadow">
-                          <VerifiedBadge size="sm" showText={false} />
+                          <VerifiedBadge profile={profile} size="sm" />
                         </div>
                       )}
                     </div>
 
                     <div>
                       <h3 className="font-black text-slate-900 text-base leading-snug">
-                        {profile.fullName}
+                        {displayName}
                       </h3>
                       <div className="text-xs font-bold text-[#800C1E] mt-0.5">
                         {profile.age} वर्षे • {profile.height}

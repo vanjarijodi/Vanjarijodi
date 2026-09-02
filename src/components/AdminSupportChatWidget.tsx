@@ -183,7 +183,7 @@ export const AdminSupportChatWidget: React.FC = () => {
       visitorMobile,
       visitorName,
       visitorId,
-      attachedFile?.type
+      attachedFile?.type as any
     );
 
     setMessageText('');

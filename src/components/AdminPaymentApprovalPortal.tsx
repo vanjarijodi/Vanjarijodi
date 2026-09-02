@@ -440,16 +440,18 @@ export const AdminPaymentApprovalPortal: React.FC = () => {
 
       // Auto System Notification to User
       try {
-        addSystemNotification({
-          userId: reqItem.userId,
-          title: '🎉 तुमचे पेमेंट मंजूर झाले व VIP सदस्यत्व सक्रिय झाले!',
-          titleMr: '🎉 तुमचे पेमेंट मंजूर झाले व VIP सदस्यत्व सक्रिय झाले!',
-          message: `तुमचे ₹${reqItem.amount} चे पेमेंट (UTR: ${reqItem.utrNumber}) मंजूर झाले असून नोंदणीकृत ई-मेल (${recipientEmail}) वर पावती पाठवली आहे.`,
-          messageMr: `तुमचे ₹${reqItem.amount} चे पेमेंट (UTR: ${reqItem.utrNumber}) मंजूर झाले असून नोंदणीकृत ई-मेल (${recipientEmail}) वर पावती पाठवली आहे.`,
-          type: 'system',
-          createdAt: new Date().toISOString(),
-          isRead: false,
-        });
+        if (typeof addSystemNotification === 'function') {
+          addSystemNotification({
+            userId: reqItem.userId,
+            title: '🎉 तुमचे पेमेंट मंजूर झाले व VIP सदस्यत्व सक्रिय झाले!',
+            titleMr: '🎉 तुमचे पेमेंट मंजूर झाले व VIP सदस्यत्व सक्रिय झाले!',
+            message: `तुमचे ₹${reqItem.amount} चे पेमेंट (UTR: ${reqItem.utrNumber}) मंजूर झाले असून नोंदणीकृत ई-मेल (${recipientEmail}) वर पावती पाठवली आहे.`,
+            messageMr: `तुमचे ₹${reqItem.amount} चे पेमेंट (UTR: ${reqItem.utrNumber}) मंजूर झाले असून नोंदणीकृत ई-मेल (${recipientEmail}) वर पावती पाठवली आहे.`,
+            type: 'system',
+            createdAt: new Date().toISOString(),
+            isRead: false,
+          });
+        }
       } catch (err) {}
 
       // Download PDF Invoice

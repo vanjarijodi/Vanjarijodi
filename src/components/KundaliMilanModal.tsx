@@ -34,9 +34,10 @@ import {
 } from 'lucide-react';
 
 interface KundaliMilanModalProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   candidateProfile?: UserProfile | null;
+  candidate?: UserProfile | null;
 }
 
 interface KootaItem {
@@ -87,10 +88,12 @@ interface ProkeralaKundliResult {
 }
 
 export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
-  isOpen,
+  isOpen = true,
   onClose,
   candidateProfile,
+  candidate,
 }) => {
+  const profile = candidateProfile || candidate || null;
   const {
     currentUser,
     profiles,
@@ -105,17 +108,17 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
 
   const isMutualMatch = Boolean(
     currentUser &&
-    candidateProfile &&
+    profile &&
     (
-      (likedProfileIds || []).includes(candidateProfile.id) ||
-      (currentUser.shortlistedProfiles || []).includes(candidateProfile.id) ||
-      interests.some((i) => i.fromUserId === candidateProfile.id && i.toUserId === currentUser.id && i.status !== 'rejected')
+      (likedProfileIds || []).includes(profile.id) ||
+      (currentUser.shortlistedProfiles || []).includes(profile.id) ||
+      interests.some((i) => i.fromUserId === profile.id && i.toUserId === currentUser.id && i.status !== 'rejected')
     ) &&
     (
-      (candidateProfile.likedProfileIds || []).includes(currentUser.id) ||
-      (candidateProfile.shortlistedByUsers || []).includes(currentUser.id) ||
-      (currentUser.likedByUsers || []).includes(candidateProfile.id) ||
-      interests.some((i) => i.fromUserId === currentUser.id && i.toUserId === candidateProfile.id && i.status !== 'rejected')
+      (profile.likedProfileIds || []).includes(currentUser.id) ||
+      (profile.shortlistedByUsers || []).includes(currentUser.id) ||
+      (currentUser.likedByUsers || []).includes(profile.id) ||
+      interests.some((i) => i.fromUserId === currentUser.id && i.toUserId === profile.id && i.status !== 'rejected')
     )
   );
 
@@ -128,7 +131,7 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
     isAdminLoggedIn ||
     (currentUser && (
       (currentUser.kundliCredits && currentUser.kundliCredits > 0) ||
-      (candidateProfile && currentUser.unlockedKundliProfileIds?.includes(candidateProfile.id)) ||
+      (profile && currentUser.unlockedKundliProfileIds?.includes(profile.id)) ||
       currentUser.isAdmin === true ||
       currentUser.id === 'admin' ||
       currentUser.isCustomAccessGranted === true ||
@@ -144,36 +147,36 @@ export const KundaliMilanModal: React.FC<KundaliMilanModalProps> = ({
     ))
   );
 
-  const isCandidateBride = candidateProfile?.gender === 'bride';
+  const isCandidateBride = profile?.gender === 'bride';
 
   // Groom Details State
   const [groomName, setGroomName] = useState(
-    isCandidateBride ? currentUser?.fullName || 'वर (Groom)' : candidateProfile?.fullName || 'वर (Groom)'
+    isCandidateBride ? currentUser?.fullName || 'वर (Groom)' : profile?.fullName || 'वर (Groom)'
   );
   const [groomDob, setGroomDob] = useState(
-    isCandidateBride ? currentUser?.dob || '1995-05-15' : candidateProfile?.dob || '1995-05-15'
+    isCandidateBride ? currentUser?.dob || '1995-05-15' : profile?.dob || '1995-05-15'
   );
   const [groomTime, setGroomTime] = useState(
-    isCandidateBride ? currentUser?.birthTime || '08:30' : candidateProfile?.birthTime || '08:30'
+    isCandidateBride ? currentUser?.birthTime || '08:30' : profile?.birthTime || '08:30'
   );
   const [groomUnknownTime, setGroomUnknownTime] = useState(false);
   const [groomCity, setGroomCity] = useState(
-    isCandidateBride ? currentUser?.city || currentUser?.district || 'छत्रपती संभाजीनगर' : candidateProfile?.city || candidateProfile?.district || 'छत्रपती संभाजीनगर'
+    isCandidateBride ? currentUser?.city || currentUser?.district || 'छत्रपती संभाजीनगर' : profile?.city || profile?.district || 'छत्रपती संभाजीनगर'
   );
   const [groomCoords, setGroomCoords] = useState('19.8762,75.3433');
   const [groomIsManglik, setGroomIsManglik] = useState<'non_manglik' | 'manglik'>(
-    (isCandidateBride ? currentUser?.horoscopeManglik : candidateProfile?.horoscopeManglik) === 'manglik' ? 'manglik' : 'non_manglik'
+    (isCandidateBride ? currentUser?.horoscopeManglik : profile?.horoscopeManglik) === 'manglik' ? 'manglik' : 'non_manglik'
   );
 
   // Bride Details State
   const [brideName, setBrideName] = useState(
-    isCandidateBride ? candidateProfile?.fullName || 'वधू (Bride)' : currentUser?.fullName || 'वधू (Bride)'
+    isCandidateBride ? profile?.fullName || 'वधू (Bride)' : currentUser?.fullName || 'वधू (Bride)'
   );
   const [brideDob, setBrideDob] = useState(
-    isCandidateBride ? candidateProfile?.dob || '1997-08-20' : currentUser?.dob || '1997-08-20'
+    isCandidateBride ? profile?.dob || '1997-08-20' : currentUser?.dob || '1997-08-20'
   );
   const [brideTime, setBrideTime] = useState(
-    isCandidateBride ? candidateProfile?.birthTime || '14:15' : currentUser?.birthTime || '14:15'
+    isCandidateBride ? profile?.birthTime || '14:15' : currentUser?.birthTime || '14:15'
   );
   const [brideUnknownTime, setBrideUnknownTime] = useState(false);
   const [brideCity, setBrideCity] = useState(

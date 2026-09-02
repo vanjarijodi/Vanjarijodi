@@ -387,6 +387,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       return;
     }
     addSuccessStory({
+      id: 'story-' + Date.now(),
       groomName: newStoryGroom,
       brideName: newStoryBride,
       marriageDate: newStoryDate || '२०२६',
@@ -1006,7 +1007,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                           <div>
                             <h4 className="font-black text-slate-900 text-sm">{p.fullName}</h4>
                             <p className="text-xs text-slate-600">
-                              {p.gender === 'male' ? 'वर (Groom)' : 'वधू (Bride)'} • {p.age} वर्षे • {p.district} • {p.mobile}
+                              {p.gender === 'groom' ? 'वर (Groom)' : 'वधू (Bride)'} • {p.age} वर्षे • {p.district} • {p.mobile}
                             </p>
                             <p className="text-[11px] text-slate-500">
                               शिक्षण: {p.education} | व्यवसाय: {p.occupation}
@@ -1113,8 +1114,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                           setEditingPlan(plan);
                           setPlanName(plan.name);
                           setPlanPrice(plan.price);
-                          setPlanDuration(plan.duration);
-                          setPlanContacts(plan.contacts);
+                          setPlanDuration(plan.duration || '३० दिवस');
+                          setPlanContacts(Number(plan.contacts) || 35);
                           setPlanBadge(plan.badge || '');
                           setPlanFeaturesText(plan.features.join('\n'));
                         }}
@@ -1412,7 +1413,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    updateAdminCredentials(masterUsername, masterPassword, masterDisplayName);
+                    if (typeof updateAdminCredentials === 'function') {
+                      updateAdminCredentials(masterUsername, masterPassword, masterDisplayName);
+                    }
                     alert('मुख्य प्रशासक (Super Admin) क्रेडेंशियल्स यशस्वीरीत्या अपडेट केले गेले!');
                   }}
                   className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold"
@@ -1595,48 +1598,53 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <div className="divide-y divide-amber-100">
-                    {recycleBin.map((item) => (
-                      <div key={item.id} className="py-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={item.profile.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
-                            alt={item.profile.fullName}
-                            referrerPolicy="no-referrer"
-                            className="w-10 h-10 rounded-xl object-cover border border-amber-300 opacity-60"
-                          />
-                          <div>
-                            <div className="font-bold text-slate-900 text-xs">{item.profile.fullName}</div>
-                            <div className="text-[10px] text-slate-500">
-                              हटवले: {new Date(item.deletedAt).toLocaleDateString('mr-IN')}
+                    {recycleBin.map((item) => {
+                      const p = (item as any).profile || item.data || {};
+                      const name = p.fullName || item.title || 'सदस्य';
+                      const photo = p.photoUrl || (p.photos && p.photos[0]) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100';
+                      return (
+                        <div key={item.id} className="py-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={photo}
+                              alt={name}
+                              referrerPolicy="no-referrer"
+                              className="w-10 h-10 rounded-xl object-cover border border-amber-300 opacity-60"
+                            />
+                            <div>
+                              <div className="font-bold text-slate-900 text-xs">{name}</div>
+                              <div className="text-[10px] text-slate-500">
+                                हटवले: {new Date(item.deletedAt).toLocaleDateString('mr-IN')}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              restoreFromRecycleBin(item.id);
-                              alert(`✅ '${item.profile.fullName}' यांची प्रोफाइल पूर्ववत करण्यात आली!`);
-                            }}
-                            className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                            <span>पूर्ववत करा</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm('कायमचे हटवायचे आहे का?')) {
-                                permanentDeleteRecycleBin(item.id);
-                              }
-                            }}
-                            className="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>कायमचे हटवा</span>
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                restoreFromRecycleBin(item.id);
+                                alert(`✅ '${name}' यांची प्रोफाइल पूर्ववत करण्यात आली!`);
+                              }}
+                              className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <RefreshCw className="w-3.5 h-3.5" />
+                              <span>पूर्ववत करा</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('कायमचे हटवायचे आहे का?')) {
+                                  permanentDeleteRecycleBin(item.id);
+                                }
+                              }}
+                              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                              title="कायमचे हटवा"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -49,6 +49,7 @@ export const DynamicGestureView: React.FC<DynamicGestureViewProps> = ({
     shortlistedIds,
     toggleShortlist,
     sendInterest,
+    interests,
     language,
     isContactAuthorizedForUser,
   } = useApp();
@@ -66,6 +67,16 @@ export const DynamicGestureView: React.FC<DynamicGestureViewProps> = ({
   const currentProfile: UserProfile | undefined = profiles[currentIndex];
   const isUnapproved = Boolean(currentUser && currentUser.isApproved === false && !currentUser.isAdmin);
   const isAuthorized = currentProfile ? isContactAuthorizedForUser(currentProfile.id) : false;
+  const isLiked = currentProfile ? likedProfileIds.includes(currentProfile.id) : false;
+  const interestObj = currentProfile ? interests.find(
+    (i) => currentUser && i.fromUserId === currentUser.id && i.toUserId === currentProfile.id
+  ) : undefined;
+  const isMutualMatch = Boolean(
+    currentUser && currentProfile &&
+    (isLiked || !!interestObj) &&
+    (interests.some((i) => i.fromUserId === currentProfile.id && i.toUserId === currentUser.id) || (currentProfile.shortlistedByUsers || []).includes(currentUser.id))
+  );
+
   const isPhotoBlurred = isAuthorized ? false : (
     !currentUser ||
     currentUser?.id?.startsWith('guest') ||
@@ -113,7 +124,6 @@ export const DynamicGestureView: React.FC<DynamicGestureViewProps> = ({
     ? currentProfile.photos
     : ['https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80'];
 
-  const isLiked = likedProfileIds.includes(currentProfile.id);
   const isShortlisted = shortlistedIds.includes(currentProfile.id);
 
   const nextProfile = () => {
@@ -223,7 +233,7 @@ export const DynamicGestureView: React.FC<DynamicGestureViewProps> = ({
           <div className="absolute bottom-4 left-4 right-4 z-20 space-y-2 text-white">
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-black text-white drop-shadow-md">
-                {formatProfileDisplayName(currentProfile.fullName, currentUser, false, isAuthorized, siteConfig, language)}, {currentProfile.age}
+                {formatProfileDisplayName(currentProfile.fullName, currentUser, false, isAuthorized || isMutualMatch, siteConfig, language, isMutualMatch, currentProfile.id)}, {currentProfile.age}
               </h3>
               {(currentProfile.isVerified || currentProfile.aadhaarVerified) && (
                 <ShieldCheck className="w-5 h-5 text-amber-400 fill-amber-400" />

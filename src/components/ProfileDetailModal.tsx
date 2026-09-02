@@ -262,7 +262,7 @@ export const ProfileDetailModal: React.FC<{
                 आयडी: {profile.id}
               </span>
               <h2 className="text-base sm:text-lg font-black text-amber-100 break-words">
-                {formatProfileDisplayName(profile.fullName, currentUser, isAdminLoggedIn, isAuthorized, siteConfig, language)}
+                {formatProfileDisplayName(profile.fullName, currentUser, isAdminLoggedIn, isAuthorized || isMutualMatch, siteConfig, language, isMutualMatch, profile.id)}
               </h2>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -363,10 +363,10 @@ export const ProfileDetailModal: React.FC<{
                 </div>
                 <div className="space-y-0.5">
                   <h4 className="font-black text-amber-200 text-sm sm:text-base flex items-center gap-2">
-                    <span>म्युचुअल मॅच! (Mutual Like Match) - नंबर अनलॉक झाला</span>
+                    <span>🎉 म्युचुअल मॅच! (Mutual Like Match) - पूर्ण नाव व नंबर अनलॉक</span>
                   </h4>
                   <p className="text-xs text-emerald-100 font-bold">
-                    तुम्ही व {profile.fullName} यांनी एकमेकांना 'लाईक' केल्यामुळे दोघांचे डायरेक्ट मोबाईल नंबर अनलॉक झाले आहेत!
+                    तुम्ही व {profile.fullName} यांनी एकमेकांना 'लाईक' केल्यामुळे दोघांचे पूर्ण नाव आणि डायरेक्ट मोबाईल नंबर अनलॉक झाले आहेत!
                   </p>
                   <p className="text-xs text-amber-300 font-extrabold pt-1">
                     📞 मोबाईल नंबर: {profile.mobile}
@@ -1212,8 +1212,14 @@ export const ProfileDetailModal: React.FC<{
 
                   <h1 className="text-xl sm:text-2xl font-black text-[#A71930] mt-2 flex flex-col items-start gap-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span>{formatProfileDisplayName(profile.fullName, currentUser, isAdminLoggedIn, isAuthorized, siteConfig, language)}</span>
+                      <span>{formatProfileDisplayName(profile.fullName, currentUser, isAdminLoggedIn, isAuthorized || isMutualMatch, siteConfig, language, isMutualMatch, profile.id)}</span>
                       <VerifiedBadge profile={profile} size="md" />
+                      {siteConfig.requireMutualLikeForFullName !== false && !isMutualMatch && !isAuthorized && !isAdminLoggedIn && (
+                        <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                          <span>🔒</span>
+                          <span>दोघांनी लाईक केल्यावर पूर्ण नाव दिसेल</span>
+                        </span>
+                      )}
                     </div>
                   </h1>
 
@@ -1650,14 +1656,14 @@ export const ProfileDetailModal: React.FC<{
                         nakshatra: groomData.nakshatra || 'श्रवण (Shravana)',
                         gan: groomData.gan || 'देव गण',
                         nadi: groomData.nadi || 'अंत्य नाडी',
-                        isManglik: groomData.horoscopeManglik,
+                        isManglik: groomData.horoscopeManglik === 'manglik' ? 'manglik' : groomData.horoscopeManglik === 'partial' ? 'partial' : 'non_manglik',
                       },
                       {
                         rashi: brideData.rashi || 'वृषभ (Taurus)',
                         nakshatra: brideData.nakshatra || 'रोहिणी (Rohini)',
                         gan: brideData.gan || 'मनुष्य गण',
                         nadi: brideData.nadi || 'मध्य नाडी',
-                        isManglik: brideData.horoscopeManglik,
+                        isManglik: brideData.horoscopeManglik === 'manglik' ? 'manglik' : brideData.horoscopeManglik === 'partial' ? 'partial' : 'non_manglik',
                       }
                     );
 

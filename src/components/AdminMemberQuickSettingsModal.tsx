@@ -27,6 +27,7 @@ import { PROFILE_TAG_PRESETS, TAG_CATEGORIES, getTagStyleClass } from '../utils/
 import { getCleanReferralCode } from '../utils/referralUtils';
 
 interface AdminMemberQuickSettingsModalProps {
+  isOpen?: boolean;
   profile: UserProfile | null;
   onClose: () => void;
   onOpenCustomPlanGrantModal?: (profile: UserProfile) => void;

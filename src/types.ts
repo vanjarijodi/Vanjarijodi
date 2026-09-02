@@ -21,7 +21,7 @@ export type ActionDockType =
   | 'category_chip_bar'
   | 'bottom_sheet_dock';
 
-export type HoroscopeManglik = 'non_manglik' | 'manglik' | 'not_applicable';
+export type HoroscopeManglik = 'non_manglik' | 'manglik' | 'partial' | 'not_applicable';
 
 export type ProfessionCategory =
   | 'govt_job'
@@ -55,7 +55,10 @@ export interface CommunityAd {
   description: string;
   imageUrl: string;
   linkUrl?: string;
-  type: 'banner' | 'meetup' | 'sponsor';
+  type: 'banner' | 'meetup' | 'sponsor' | 'business';
+  categoryTag?: string;
+  badgeText?: string;
+  contactPhone?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -198,8 +201,13 @@ export interface UserProfile {
   referredByMobile?: string;
   referralCount?: number;
   referralRewardsGiven?: string[];
-  authProvider?: 'google' | 'email' | 'mobile' | 'guest';
+  authProvider?: 'google' | 'email' | 'mobile' | 'mobile_otp' | 'truecaller' | 'guest';
   isGoogleUser?: boolean;
+  password?: string;
+  whatsappNumber?: string;
+  membershipTier?: MembershipTier;
+  status?: 'pending' | 'approved' | 'rejected';
+  isSoftDeleted?: boolean;
 }
 
 export interface ProfileReport {
@@ -233,17 +241,21 @@ export interface ProfileRemovalRequest {
 
 export interface SuccessStory {
   id: string;
-  coupleName: string;
-  marriageDate: string;
-  district: string;
-  image: string;
-  story: string;
-  storyMr: string;
+  coupleName?: string;
+  groomName?: string;
+  brideName?: string;
+  marriageDate?: string;
+  district?: string;
+  image?: string;
+  photoUrl?: string;
+  story?: string;
+  storyMr?: string;
   status?: 'pending' | 'approved' | 'rejected';
   submittedByUserId?: string;
   submittedByUserName?: string;
   partnerProfileId?: string;
   createdAt?: string;
+  likes?: number;
 }
 
 export interface Plan {
@@ -252,11 +264,13 @@ export interface Plan {
   nameMr: string;
   price: number;
   durationMonths: number;
+  duration?: string;
   durationLabelMr?: string;
   durationText?: string;
   validityText?: string;
   planType?: 'monthly' | 'yearly' | 'lifetime' | 'pay_per_contact' | 'welcome_offer' | string;
   unlockCount?: number;
+  contacts?: string | number;
   isLimitedSlotsPlan?: boolean;
   maxMemberLimit?: number;
   currentMemberCount?: number;
@@ -264,6 +278,7 @@ export interface Plan {
   relaunchBannerText?: string;
   customBadgeText?: string;
   badgeText?: string;
+  badge?: string;
   features: string[];
   featuresMr: string[];
   recommended?: boolean;
@@ -299,9 +314,10 @@ export interface NotificationItem {
   titleMr: string;
   message: string;
   messageMr: string;
-  type: 'interest' | 'chat' | 'system' | 'approval';
+  type: 'interest' | 'chat' | 'system' | 'approval' | string;
   createdAt: string;
   isRead: boolean;
+  actionUrl?: string;
 }
 
 export interface AdminStats {
@@ -487,6 +503,8 @@ export interface AdminSupportMessage {
   timestamp: string;
   isReadByAdmin: boolean;
   isReadByUser: boolean;
+  isRead?: boolean;
+  isAdminReply?: boolean;
   userMobile?: string;
   isArchived?: boolean;
 }
@@ -494,7 +512,7 @@ export interface AdminSupportMessage {
 export interface PromoCode {
   id: string;
   code: string;
-  discountType: 'percentage' | 'flat' | 'vip_free';
+  discountType: 'percentage' | 'flat' | 'vip_free' | 'fixed';
   discountValue: number;
   maxUses?: number;
   usedCount: number;
@@ -520,6 +538,7 @@ export interface RecycleBinItem {
   title: string;
   deletedAt: string;
   data: any;
+  profile?: UserProfile;
 }
 
 export interface AuditLog {
@@ -745,11 +764,14 @@ export interface SiteConfig {
   telegramSupportNote?: string;
   contactAddress: string;
   businessName?: string;
+  tradeName?: string;
   operatingHours?: string;
   contactHeaderTitle?: string;
   contactHeaderSubtitle?: string;
   aboutUsText: string;
+  aboutUsTextEn?: string;
   disclaimerText: string;
+  disclaimerTextEn?: string;
   isSuccessStoriesEnabled: boolean;
   isAdsEnabled: boolean;
   isPaidPlansEnabled: boolean;
@@ -825,6 +847,7 @@ export interface SiteConfig {
   guestPermissions?: GuestPermissions;
   isNoticeBannerEnabled?: boolean;
   noticeBannerText?: string;
+  noticeBannerTextEn?: string;
   allowGuestsToViewContacts?: boolean;
   allowPublicVisitorsToViewContacts?: boolean;
   allowMembersToViewContacts?: boolean;
@@ -847,6 +870,7 @@ export interface SiteConfig {
   festiveFreeModeTitle?: string; // उदा. "गुढीपाडवा विशेष मोफत संपर्क ऑफर!" किंवा "दिवाळी सण विशेष मोफत संपर्क"
   enableMutualLikeContactUnlock?: boolean;
   requireMutualLikeForPhone?: boolean;
+  requireMutualLikeForFullName?: boolean; // दोघांनी एकमेकांना लाईक (Mutual Like) केल्यावरच पहिलं व मधलं नाव अनलॉक करणे, अन्यथा फक्त आडनाव दिसणे
   requirePaidForLikes?: boolean;
   contactUnlockMode?: 'mutual_like_only' | 'all_paid_members' | 'both_allowed';
   disablePlanContactLimit?: boolean;
@@ -910,7 +934,9 @@ export interface SiteConfig {
   isFlashAdEnabled?: boolean;
   flashAdImageUrl?: string;
   flashAdTitle?: string;
+  flashAdTitleEn?: string;
   flashAdSubtitle?: string;
+  flashAdSubtitleEn?: string;
   flashAdLinkUrl?: string;
   flashAdDisplayMode?: 'popup_modal' | 'top_slide' | 'bottom_float';
   flashAdAutoCloseSeconds?: number;
@@ -940,6 +966,13 @@ export interface SiteConfig {
   activeActionDock?: ActionDockType;
   // Dual-Engine OCR & Multi-API Key Architecture
   ocrConfig?: OcrConfigSettings;
+  allowMemberIdRequest?: boolean;
+  themePreset?: string;
+  gestureMode?: string;
+  actionDockType?: string;
+  showQuickInfoChipsOnCards?: boolean;
+  adminUsername?: string;
+  adminPin?: string;
 }
 
 export interface SecurityLogEvent {

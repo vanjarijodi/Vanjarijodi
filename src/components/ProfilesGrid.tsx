@@ -487,6 +487,23 @@ export const ProfilesGrid: React.FC<{
             {displayedProfiles.map((profile) => {
               const isShortlisted = shortlistedIds.includes(profile.id);
               const isLiked = likedProfileIds.includes(profile.id);
+              const isAuthorized = isContactAuthorizedForUser(profile.id);
+              const interestObj = interests.find((i) => currentUser && i.fromUserId === currentUser.id && i.toUserId === profile.id);
+              const isMutualMatch = Boolean(
+                currentUser &&
+                (isLiked || !!interestObj) &&
+                (interests.some((i) => i.fromUserId === profile.id && i.toUserId === currentUser.id) || (profile.shortlistedByUsers || []).includes(currentUser.id))
+              );
+              const displayName = formatProfileDisplayName(
+                profile.fullName,
+                currentUser,
+                false,
+                isAuthorized || isMutualMatch,
+                siteConfig,
+                language,
+                isMutualMatch,
+                profile.id
+              );
               const mainPhoto = profile.photos?.[0] || profile.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500';
 
               return (
@@ -497,7 +514,7 @@ export const ProfilesGrid: React.FC<{
                   <div className="flex items-center gap-3.5 w-full sm:w-auto">
                     <img
                       src={mainPhoto}
-                      alt={profile.fullName}
+                      alt={displayName}
                       className="w-16 h-16 rounded-xl object-cover border border-amber-300 shrink-0 cursor-pointer"
                       onClick={() => handleOpenProfileModal(profile)}
                     />
@@ -507,7 +524,7 @@ export const ProfilesGrid: React.FC<{
                           onClick={() => handleOpenProfileModal(profile)}
                           className="font-black text-slate-900 text-sm hover:text-[#800C1E] cursor-pointer"
                         >
-                          {profile.fullName}
+                          {displayName}
                         </h4>
                         <VerifiedBadge profile={profile} size="sm" />
                       </div>
@@ -665,7 +682,7 @@ export const ProfilesGrid: React.FC<{
                     <InstagramPhotoCarousel
                       photos={photosArray}
                       defaultGender={profile.gender}
-                      fullName={profile.fullName}
+                      fullName={formatProfileDisplayName(profile.fullName, currentUser, false, isAuthorized || Boolean(isMutualMatch), siteConfig, language, Boolean(isMutualMatch), profile.id)}
                       isBlurred={isPhotoBlurred}
                       blurClass={blurClass}
                       onPhotoClick={() => handleOpenProfileModal(profile)}
@@ -693,7 +710,7 @@ export const ProfilesGrid: React.FC<{
                               ? ((siteConfig?.nameBlurPercentage || 50) >= 75 ? 'blur-sm select-none opacity-60' : 'blur-xs select-none opacity-80')
                               : ''
                           }`}>
-                            {formatProfileDisplayName(profile.fullName, currentUser, false, isAuthorized, siteConfig, language)}
+                            {formatProfileDisplayName(profile.fullName, currentUser, false, isAuthorized || Boolean(isMutualMatch), siteConfig, language, Boolean(isMutualMatch), profile.id)}
                           </span>
                           <VerifiedBadge profile={profile} size="sm" />
                         </h3>

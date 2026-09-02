@@ -182,7 +182,7 @@ export const BioDataMakerModal: React.FC<{
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-          setFormData((prev) => ({ ...prev, candidatePhotoUrl: reader.result }));
+          setFormData((prev) => ({ ...prev, candidatePhotoUrl: reader.result as string }));
         }
       };
       reader.readAsDataURL(file);

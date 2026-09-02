@@ -256,7 +256,7 @@ export const HorizontalBiodataDeck: React.FC<HorizontalBiodataDeckProps> = ({
                     ? ((siteConfig?.nameBlurPercentage || 50) >= 75 ? 'blur-sm select-none opacity-60' : 'blur-xs select-none opacity-80')
                     : ''
                 }`}>
-                  {formatProfileDisplayName(currentProfile.fullName, currentUser, false, isAuthorized, siteConfig, language)}
+                  {formatProfileDisplayName(currentProfile.fullName, currentUser, false, isAuthorized || Boolean(isMutualMatch), siteConfig, language, Boolean(isMutualMatch), currentProfile.id)}
                 </span>
                 <VerifiedBadge profile={currentProfile} size="sm" />
               </h3>

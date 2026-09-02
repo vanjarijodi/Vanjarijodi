@@ -146,7 +146,6 @@ export const AdminMemberChatMonitor: React.FC<AdminMemberChatMonitorProps> = ({
           message: directMsgText.trim() || 'ॲडमिन यांनी तुम्हाला थेट संदेश पाठवला आहे.',
           messageMr: `${directMsgTargetMember.fullName}जी, ॲडमिन कडून संदेश: "${directMsgText.trim() || (finalFileUrl ? 'फाइल संलग्नक' : 'नवीन संदेश')}"`,
           type: 'chat',
-          read: false,
         });
       }
 

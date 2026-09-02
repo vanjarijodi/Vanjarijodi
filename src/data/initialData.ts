@@ -695,6 +695,7 @@ export const INITIAL_SITE_CONFIG: any = {
   showOnlyWelcomePlan: true,
   enablePromoCodes: true,
   enableMutualLikeContactUnlock: true,
+  requireMutualLikeForFullName: true, // चालू (ON) - दोघांनी लाईक केल्यावरच नाव अनलॉक होईल, एरवी फक्त आडनाव दिसेल
   requirePaidForLikes: false,
   contactUnlockMode: 'mutual_like_only',
   disablePlanContactLimit: false,

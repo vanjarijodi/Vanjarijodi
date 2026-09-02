@@ -55,7 +55,8 @@ export const AdminApkFileManager: React.FC = () => {
 
     try {
       // Direct File Reader or Cloudinary upload
-      const cloudUrl = await uploadToCloudinary(file);
+      const uploadRes = await uploadToCloudinary(file);
+      const cloudUrl = uploadRes.success && uploadRes.url ? uploadRes.url : URL.createObjectURL(file);
       setForm(prev => ({
         ...prev,
         apkUrl: cloudUrl,

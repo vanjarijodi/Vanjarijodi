@@ -346,7 +346,7 @@ export const FullMobileInstaDeck: React.FC<FullMobileInstaDeckProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-base sm:text-lg font-black text-white drop-shadow flex items-center gap-1.5">
                     <span>
-                      {formatProfileDisplayName(currentProfile.fullName, currentUser, false, isAuthorized, siteConfig, language)}
+                      {formatProfileDisplayName(currentProfile.fullName, currentUser, false, isAuthorized || Boolean(isMutualMatch), siteConfig, language, Boolean(isMutualMatch), currentProfile.id)}
                     </span>
                     <VerifiedBadge profile={currentProfile} size="sm" />
                   </h3>

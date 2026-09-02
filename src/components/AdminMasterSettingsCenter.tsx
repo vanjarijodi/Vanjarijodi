@@ -695,7 +695,7 @@ export const AdminMasterSettingsCenter: React.FC = () => {
             </div>
 
             {/* MUTUAL LIKE CONTACT UNLOCK TOGGLE */}
-            <div className="p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-300 space-y-2 col-span-1 md:col-span-2">
+            <div className="p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-300 space-y-3 col-span-1 md:col-span-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="font-black text-amber-950 text-sm flex items-center gap-2">
@@ -725,6 +725,39 @@ export const AdminMasterSettingsCenter: React.FC = () => {
                   }`}
                 >
                   {siteConfig.enableMutualLikeContactUnlock !== false ? 'ऑटो अनलॉक चालू (ON)' : 'बंद (OFF)'}
+                </button>
+              </div>
+
+              {/* MUTUAL LIKE NAME PRIVACY TOGGLE */}
+              <div className="pt-3 border-t border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="font-black text-slate-900 text-sm flex items-center gap-2">
+                    <span>🔒</span>
+                    <span>दोन्ही प्रोफाइलने एकमेकांना लाईक केल्यावरच नाव अनलॉक (Mutual Like Full Name Unlock):</span>
+                  </span>
+                  <span className="text-xs text-slate-700 font-bold block mt-1">
+                    ℹ️ काय काम करते: जोपर्यंत दोन्ही प्रोफाइल एकमेकांना 'लाईक' (Mutual Match) करत नाहीत, तोपर्यंत सर्वत्र फक्त <strong>'आडनाव'</strong> (Surname Only) दिसेल.
+                  </span>
+                  <span className="text-[11px] text-emerald-800 font-semibold block mt-0.5">
+                    👉 परिणाम: दोघांनी एकमेकांना लाईक केल्यावरच 'पहिलं नाव व मधलं नाव' (पूर्ण नाव) आणि मोबाईल नंबर अनलॉक होतील.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleToggle(
+                      'requireMutualLikeForFullName',
+                      siteConfig.requireMutualLikeForFullName !== false,
+                      'म्युचुअल लाईक नाव अनलॉक प्रणाली'
+                    )
+                  }
+                  className={`px-4 py-2 rounded-xl text-xs font-black shrink-0 transition-all cursor-pointer ${
+                    siteConfig.requireMutualLikeForFullName !== false
+                      ? 'bg-emerald-600 text-white shadow-md border border-emerald-300'
+                      : 'bg-slate-300 text-slate-700'
+                  }`}
+                >
+                  {siteConfig.requireMutualLikeForFullName !== false ? 'फक्त आडनाव (ON)' : 'नेहमी पूर्ण नाव (OFF)'}
                 </button>
               </div>
 
@@ -1478,12 +1511,40 @@ export const AdminMasterSettingsCenter: React.FC = () => {
 
             {/* Name Display Control for Free Users */}
             <div className="p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-300 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/90 rounded-xl border border-amber-300">
+                <div>
+                  <span className="font-black text-slate-900 block flex items-center gap-1.5 text-xs sm:text-sm">
+                    <span>🔒 दोन्ही प्रोफाइलने एकमेकांना लाईक केल्यावरच नाव अनलॉक (Mutual Like Name Reveal):</span>
+                  </span>
+                  <span className="text-[11px] text-slate-600 font-medium block mt-0.5">
+                    हे चालू असल्यास सर्वत्र फक्त <strong>'आडनाव'</strong> दिसेल, आणि दोघांनी एकमेकांना लाईक (म्युचुअल मॅच) केल्यावरच 'पूर्ण नाव' अनलॉक होईल.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleToggle(
+                      'requireMutualLikeForFullName',
+                      siteConfig.requireMutualLikeForFullName !== false,
+                      'म्युचुअल लाईक नाव अनलॉक'
+                    )
+                  }
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black shrink-0 transition-all cursor-pointer ${
+                    siteConfig.requireMutualLikeForFullName !== false
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-300 text-slate-700'
+                  }`}
+                >
+                  {siteConfig.requireMutualLikeForFullName !== false ? 'फक्त आडनाव (ON)' : 'बंद (OFF)'}
+                </button>
+              </div>
+
               <div>
                 <span className="font-black text-slate-900 block flex items-center gap-1.5 text-xs sm:text-sm">
-                  <span>👤 बिन-पेमेंट (Free) सदस्यांना नावाची दृश्यमानता (Name Display Controls):</span>
+                  <span>👤 मॅन्युअल नावाची दृश्यमानता पर्याय (इतर मोड जेव्हा म्युचुअल लाईक बंद असेल):</span>
                 </span>
                 <span className="text-[11px] text-slate-600 font-medium block mt-0.5">
-                  ज्या सदस्यांनी पेमेंट केलेले नाही त्यांना वधू-वरांचे नाव कशा प्रकारे दिसावे ते निवडा:
+                  ज्या सदस्यांनी पेमेंट केलेले नाही किंवा म्युचुअल लाईक नियम बंद असल्यास नावाची रचना निवडा:
                 </span>
               </div>
 
@@ -2061,9 +2122,9 @@ export const AdminMasterSettingsCenter: React.FC = () => {
                           const file = e.target.files?.[0];
                           if (!file) return;
                           try {
-                            const uploadedUrl = await uploadToCloudinary(file);
-                            if (uploadedUrl) {
-                              updateSiteConfig({ paymentQrCodeUrl: uploadedUrl, paymentQrUrl: uploadedUrl });
+                            const uploadRes = await uploadToCloudinary(file);
+                            if (uploadRes.success && uploadRes.url) {
+                              updateSiteConfig({ paymentQrCodeUrl: uploadRes.url, paymentQrUrl: uploadRes.url });
                               notifyChange('कस्टम क्यूआर कोड फोटो यशस्वीरीत्या बदलला!');
                             }
                           } catch (err) {

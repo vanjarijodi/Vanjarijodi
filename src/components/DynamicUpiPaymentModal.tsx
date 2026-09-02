@@ -793,7 +793,6 @@ export const DynamicUpiPaymentModal: React.FC<DynamicUpiPaymentModalProps> = ({
           message: `${activePlan.nameMr || activePlan.name} प्लॅन (₹${activePlan.price}) मंजूर झाला आहे!`,
           messageMr: `${activePlan.nameMr || activePlan.name} प्लॅन (₹${activePlan.price}) मंजूर झाला आहे!`,
           type: 'approval',
-          read: false,
         });
       }
     }
